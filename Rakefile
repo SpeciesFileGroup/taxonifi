@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "taxonifi"
   gem.homepage = "http://github.com/mjy/taxonifi"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{A general purpose framework for scripted handling of tayhxonomic names}
+  gem.description = %Q{Taxonifi contains simple models and utilties of use in for parsing lists of taxonomic name (life) related metadata}
   gem.email = "diapriid@gmail.com"
   gem.authors = ["mjy"]
   # dependencies defined in Gemfile
