@@ -1,5 +1,5 @@
 require 'helper'
-require File.expand_path(File.join(File.dirname(__FILE__), '../lib/disolver/disolver')) 
+require File.expand_path(File.join(File.dirname(__FILE__), '../lib/splitter/splitter')) 
 
 
 # Stub code if you want ot just mess with a regex in testing
@@ -9,62 +9,62 @@ require File.expand_path(File.join(File.dirname(__FILE__), '../lib/disolver/diso
 #   end
 # end
 
-class Test_TaxonifiDisolverLexer < Test::Unit::TestCase
+class Test_TaxonifiSplitterLexer < Test::Unit::TestCase
 
   def test_lexer_raises_when_not_hit
-    lexer = Taxonifi::Disolver::Lexer.new("123a")
-    assert_raises Taxonifi::Disolver::DisolverError do
-      lexer.pop(Taxonifi::Disolver::Tokens::Year)
+    lexer = Taxonifi::Splitter::Lexer.new("123a")
+    assert_raises Taxonifi::Splitter::SplitterError do
+      lexer.pop(Taxonifi::Splitter::Tokens::Year)
     end
   end
 
 end
 
 
-class Test_TaxonifiDisolverTokens < Test::Unit::TestCase
+class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
 
   def test_year
-    lexer = Taxonifi::Disolver::Lexer.new("1235")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::Year)
+    lexer = Taxonifi::Splitter::Lexer.new("1235")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Year)
 
-    lexer = Taxonifi::Disolver::Lexer.new(" 1235")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::Year)
+    lexer = Taxonifi::Splitter::Lexer.new(" 1235")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Year)
  
-    lexer = Taxonifi::Disolver::Lexer.new(" 1235  ")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::Year)
+    lexer = Taxonifi::Splitter::Lexer.new(" 1235  ")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Year)
  
-    lexer = Taxonifi::Disolver::Lexer.new("1235  ")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::Year)
+    lexer = Taxonifi::Splitter::Lexer.new("1235  ")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Year)
  
-    lexer = Taxonifi::Disolver::Lexer.new("1235\n  ")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::Year)
+    lexer = Taxonifi::Splitter::Lexer.new("1235\n  ")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Year)
   end
 
   def test_left_paren
-    lexer = Taxonifi::Disolver::Lexer.new("(")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::LeftParen)
+    lexer = Taxonifi::Splitter::Lexer.new("(")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::LeftParen)
   
-    lexer = Taxonifi::Disolver::Lexer.new(" (")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::LeftParen)
+    lexer = Taxonifi::Splitter::Lexer.new(" (")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::LeftParen)
 
-    lexer = Taxonifi::Disolver::Lexer.new(" ( ")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::LeftParen)
+    lexer = Taxonifi::Splitter::Lexer.new(" ( ")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::LeftParen)
   end
 
   def test_right_paren
-    lexer = Taxonifi::Disolver::Lexer.new(")")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::RightParen)
+    lexer = Taxonifi::Splitter::Lexer.new(")")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::RightParen)
   
-    lexer = Taxonifi::Disolver::Lexer.new(" )")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::RightParen)
+    lexer = Taxonifi::Splitter::Lexer.new(" )")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::RightParen)
 
-    lexer = Taxonifi::Disolver::Lexer.new(" ) ")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::RightParen)
+    lexer = Taxonifi::Splitter::Lexer.new(" ) ")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::RightParen)
   end
 
   def test_right_paren
-    lexer = Taxonifi::Disolver::Lexer.new(",")
-    assert lexer.pop(Taxonifi::Disolver::Tokens::Comma)
+    lexer = Taxonifi::Splitter::Lexer.new(",")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Comma)
   end
 
   def test_author_year
@@ -81,8 +81,8 @@ class Test_TaxonifiDisolverTokens < Test::Unit::TestCase
           parens.each do |p|
             s = a.to_s + (comma ? "," : "") + y.to_s
             s = "(#{s})" if p
-            lexer = Taxonifi::Disolver::Lexer.new(s)
-            assert t = lexer.pop(Taxonifi::Disolver::Tokens::AuthorYear)
+            lexer = Taxonifi::Splitter::Lexer.new(s)
+            assert t = lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
             assert_equal a.strip, t.authors
             assert_equal (y.size > 0 ? y.strip : nil), t.year
             assert_equal p, t.parens
@@ -109,30 +109,30 @@ class Test_TaxonifiDisolverTokens < Test::Unit::TestCase
         "Foo A, Bar ZA, Smith-Blorf A"                        # 11
     ]
 
-    lexer = Taxonifi::Disolver::Lexer.new(auths[0])
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::Authors)
+    lexer = Taxonifi::Splitter::Lexer.new(auths[0])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
     assert_equal 3, t.authors.size
     assert_equal "Jepson", t.authors[0][:last_name]
     assert_equal "JE", t.authors[0][:initials].join
     assert_equal "Jarzembowski", t.authors[2][:last_name]
     assert_equal "EA", t.authors[2][:initials].join
 
-    lexer = Taxonifi::Disolver::Lexer.new(auths[1])
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::Authors)
+    lexer = Taxonifi::Splitter::Lexer.new(auths[1])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
     assert_equal 2, t.authors.size
     assert_equal "Ren", t.authors[0][:last_name]
     assert_equal "D", t.authors[0][:initials].join
     assert_equal "Meng", t.authors[1][:last_name]
     assert_equal "X-m", t.authors[1][:initials].join
 
-    lexer = Taxonifi::Disolver::Lexer.new(auths[9])
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::Authors)
+    lexer = Taxonifi::Splitter::Lexer.new(auths[9])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
     assert_equal 1, t.authors.size
     assert_equal "Hong", t.authors[0][:last_name]
     assert_equal "Y-C", t.authors[0][:initials].join
 
-    lexer = Taxonifi::Disolver::Lexer.new(auths[11])
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::Authors)
+    lexer = Taxonifi::Splitter::Lexer.new(auths[11])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
     assert_equal 3, t.authors.size
     assert_equal "Foo", t.authors[0][:last_name]
     assert_equal "A", t.authors[0][:initials].join
@@ -143,18 +143,18 @@ class Test_TaxonifiDisolverTokens < Test::Unit::TestCase
   end
 
   def test_volume_number
-    lexer = Taxonifi::Disolver::Lexer.new("42(123)", :volume_number)
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::VolumeNumber)
+    lexer = Taxonifi::Splitter::Lexer.new("42(123)", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
     assert_equal "42", t.volume
     assert_equal "123", t.number
 
-    lexer = Taxonifi::Disolver::Lexer.new("42:123", :volume_number)
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::VolumeNumber)
+    lexer = Taxonifi::Splitter::Lexer.new("42:123", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
     assert_equal "42", t.volume
     assert_equal "123", t.number
 
-    lexer = Taxonifi::Disolver::Lexer.new("42", :volume_number)
-    assert t = lexer.pop(Taxonifi::Disolver::Tokens::VolumeNumber)
+    lexer = Taxonifi::Splitter::Lexer.new("42", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
     assert_equal "42", t.volume
     assert_equal nil, t.number
   end

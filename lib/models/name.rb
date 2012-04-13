@@ -1,7 +1,6 @@
 module Taxonifi
-  module Model
 
-    RANK = %w{
+   RANK = %w{
       kingdom
       phylum
       class
@@ -20,6 +19,7 @@ module Taxonifi
       subspecies
     }
 
+  module Model
     class Name
       attr_accessor :name, :parent, :id, :rank, :author, :year
       def initialize(options = {})
@@ -50,6 +50,7 @@ module Taxonifi
 
         @parent = parent
       end
+     
     end
 
 

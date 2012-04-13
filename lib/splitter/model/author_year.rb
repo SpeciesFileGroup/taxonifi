@@ -1,5 +1,5 @@
 
-module Taxonifi::Disolver::Model
+module Taxonifi::Splitter::Model
 
     class AuthorYear
       attr_accessor :author, :year, :parens

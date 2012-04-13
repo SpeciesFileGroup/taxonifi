@@ -5,14 +5,14 @@
 # * 
 
 module Taxonifi
-  module Disolver
+  module Splitter
 
     TOKEN_LISTS = [
       :global_token_list,
       :volume_number
     ]
 
-    class DisolverError < StandardError; end
+    class SplitterError < StandardError; end
 
     require File.expand_path(File.join(File.dirname(__FILE__), 'tokens'))
     require File.expand_path(File.join(File.dirname(__FILE__), 'parser'))
@@ -25,13 +25,13 @@ module Taxonifi
     end
 
     # stub, we might not need
-    class Disolver
+    class Splitter
       def initialize 
         true
       end
     end
 
-  end # end Disolver module
+  end # end Splitter module
 end # Taxonifi module
 
 
@@ -39,12 +39,12 @@ end # Taxonifi module
 
 def do_bar(input)
   @input = input
-  raise(Taxonifi::Disolver::DisolverError, "Nothing passed to parse!") if !@input || @input.size == 0
+  raise(Taxonifi::Splitter::SplitterError, "Nothing passed to parse!") if !@input || @input.size == 0
 
-  builder = Taxonifi::Disolver::DisolverBuilder.new
-  lexer = Taxonifi::Disolver::Lexer.new(@input)
-  Taxonifi::Disolver::Parser.new(lexer, builder).parse_file
-  Taxonfi::Disolver::Parser.new(lexer, builder).foo 
+  builder = Taxonifi::Splitter::SplitterBuilder.new
+  lexer = Taxonifi::Splitter::Lexer.new(@input)
+  Taxonifi::Splitter::Parser.new(lexer, builder).parse_file
+  Taxonfi::Splitter::Parser.new(lexer, builder).foo 
   return builder.bar
 end
 

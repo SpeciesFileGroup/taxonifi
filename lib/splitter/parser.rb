@@ -1,4 +1,4 @@
-class Taxonifi::Disolver::Parser
+class Taxonifi::Splitter::Parser
   def initialize(lexer, builder)
     @lexer = lexer
     @builder = builder

@@ -1,5 +1,5 @@
 
-module Taxonifi::Disolver::Tokens
+module Taxonifi::Splitter::Tokens
 
   # Tokens are simple classes that return a regular expression (pattern to match).
   # You should write a test in test_resolver.rb before defining a token.
@@ -135,7 +135,7 @@ module Taxonifi::Disolver::Tokens
   end
 
   # !! You must register token lists as symbols in
-  # !! Taxonifi::Disolver
+  # !! Taxonifi::Splitter
   # 
   # Include all tokens in the global_token_list.
   # Tokens are matched in order of the list. If you 
@@ -145,19 +145,19 @@ module Taxonifi::Disolver::Tokens
 
   def self.global_token_list
     [ 
-      Taxonifi::Disolver::Tokens::LeftParen,
-      Taxonifi::Disolver::Tokens::Year,
-      Taxonifi::Disolver::Tokens::Comma,
-      Taxonifi::Disolver::Tokens::RightParen,
-      Taxonifi::Disolver::Tokens::AuthorYear,
-      Taxonifi::Disolver::Tokens::Authors,
-      Taxonifi::Disolver::Tokens::VolumeNumber,
+      Taxonifi::Splitter::Tokens::LeftParen,
+      Taxonifi::Splitter::Tokens::Year,
+      Taxonifi::Splitter::Tokens::Comma,
+      Taxonifi::Splitter::Tokens::RightParen,
+      Taxonifi::Splitter::Tokens::AuthorYear,
+      Taxonifi::Splitter::Tokens::Authors,
+      Taxonifi::Splitter::Tokens::VolumeNumber,
     ]   
   end
 
   def self.volume_number
     [
-      Taxonifi::Disolver::Tokens::VolumeNumber
+      Taxonifi::Splitter::Tokens::VolumeNumber
     ]
   end
 

@@ -1,10 +1,10 @@
 # Lexer from OboParser and other mjy gems.  
 
-class Taxonifi::Disolver::Lexer
+class Taxonifi::Splitter::Lexer
   attr_reader :input, :token_list
   def initialize(input, token_list = nil)
     
-    raise Taxonifi::Disolver::DisolverError, "Invalid token list passed to Lexer." if (!token_list.nil? && !Taxonifi::Disolver::TOKEN_LISTS.include?(token_list)  )
+    raise Taxonifi::Splitter::SplitterError, "Invalid token list passed to Lexer." if (!token_list.nil? && !Taxonifi::Splitter::TOKEN_LISTS.include?(token_list)  )
     token_list = :global_token_list if token_list.nil?
 
     @input = input
@@ -24,7 +24,7 @@ class Taxonifi::Disolver::Lexer
     token = read_next_token(token_class)
     @next_token = nil
     if token.class != token_class
-      raise(Taxonifi::Disolver::DisolverError, "expected #{token_class.to_s} but received #{token.class.to_s} at #{@input[0..10]}...", caller)
+      raise(Taxonifi::Splitter::SplitterError, "expected #{token_class.to_s} but received #{token.class.to_s} at #{@input[0..10]}...", caller)
     else
       return token
     end
@@ -42,13 +42,13 @@ class Taxonifi::Disolver::Lexer
         return @next_token
       else
         # now check all the tokens for a match
-        Taxonifi::Disolver::Tokens.send(@token_list).each {|t|
+        Taxonifi::Splitter::Tokens.send(@token_list).each {|t|
           return @next_token if match(t)
         }
       end
        # no match, either end of string or lex-error
        if @input != ''
-           raise(Taxonifi::Disolver::DisolverError, "Lexer Error, unknown token at #{@input[0..10]}...", caller)
+           raise(Taxonifi::Splitter::SplitterError, "Lexer Error, unknown token at #{@input[0..10]}...", caller)
        else
         return nil
       end
