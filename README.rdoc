@@ -1,6 +1,10 @@
 = taxonifi
 
+
+
 Description goes here.
+
+Taxonifi is built against Ruby 1.9.3.
 
 == Contributing to taxonifi
  

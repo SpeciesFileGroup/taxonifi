@@ -1,24 +1,5 @@
 module Taxonifi
 
-   RANK = %w{
-      kingdom
-      phylum
-      class
-      infraclass
-      order 
-      suborder
-      infraorder
-      superfamily
-      family
-      subfamily
-      tribe
-      subtribe
-      genus
-      subgenus
-      species
-      subspecies
-    }
-
   module Model
     class Name
       attr_accessor :name, :parent, :id, :rank, :author, :year
@@ -29,7 +10,7 @@ module Taxonifi
 
       def rank=(rank)
         r = rank.downcase.strip
-        if !RANK.include?(r) 
+        if !RANKS.include?(r) 
           raise NameError,  "#{r} is not a valid rank."
         end
         @rank = r
@@ -44,7 +25,7 @@ module Taxonifi
           raise NameError, "Parent is not a Taxonifi::Model::Name."
         end
 
-        if RANK.index(parent.rank) >= RANK.index(self.rank)
+        if RANKS.index(parent.rank) >= RANKS.index(self.rank)
           raise NameError, "Parent is same or lower rank than self (#{rank})."
         end
 

@@ -13,20 +13,20 @@ module Taxonifi
         @names.push(name)
       end
 
-      # The highest RANK for which there is no
+      # The highest RANKS for which there is no
       # name.
       def encompassing_rank
-        highest = RANK.size
+        highest = RANKS.size
         @names.each do |n|
-          h = RANK.index(n.rank)
+          h = RANKS.index(n.rank)
           highest = h if h < highest
         end
-        RANK[highest - 1]
+        RANKS[highest - 1]
       end 
 
       # Should index this on add_name
       def names_at_rank(rank)
-        raise if !RANK.include?(rank)
+        raise if !RANKS.include?(rank)
         names = []
         @names.each do |n|
           names << n if n.rank == rank
