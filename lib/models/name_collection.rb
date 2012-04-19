@@ -4,18 +4,13 @@ module Taxonifi
 
   module Model
 
-    class NameCollection
+    class NameCollection < Taxonifi::Model::Collection
+
       attr_reader :names
-      attr_accessor :by_id_index
-      attr_accessor :current_free_id
       
       def initialize(options = {})
-        opts = {
-          :initial_name_id => 0
-        }.merge!(options)
+        super 
         @names = []
-        @by_id_index = {} 
-        @current_free_id = opts[:initial_name_id]
         true
       end 
 
@@ -52,10 +47,6 @@ module Taxonifi
           names << n if n.rank == rank
         end
         names
-      end
-
-      def name_by_id(id)
-        @by_id_index[id] 
       end
 
       def parent_id_vector(id)

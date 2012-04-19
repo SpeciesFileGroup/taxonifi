@@ -63,12 +63,12 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert_equal ({0 => n}), c.by_id_index
   end
 
-  def test_that_name_by_id_returns
+  def test_that_object_by_id_returns
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     n.rank = 'species'  
     id = c.add_name(n)
-    assert_equal id, c.name_by_id(id).id
+    assert_equal id, c.object_by_id(id).id
   end
 
   def test_that_parent_id_vector_returns_a_id_vector
@@ -77,8 +77,8 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     c.add_name(Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family"))
     c.add_name(Taxonifi::Model::Name.new(:name => "Bar", :rank => "genus"))
     c.add_name(Taxonifi::Model::Name.new(:name => "blorf", :rank => "species"))
-    c.name_by_id(2).parent = c.name_by_id(1)
-    c.name_by_id(1).parent = c.name_by_id(0)
+    c.object_by_id(2).parent = c.object_by_id(1)
+    c.object_by_id(1).parent = c.object_by_id(0)
     
     assert_equal [0,1], c.parent_id_vector(2)
     assert_equal [0], c.parent_id_vector(1)

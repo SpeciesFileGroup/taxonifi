@@ -87,7 +87,7 @@ module Taxonifi
             if !n.nil? 
               n.rank = rank
               n.name = name
-              n.parent = nc.name_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
+              n.parent = nc.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
 
               # Name/year needs to be standardized / cased out
               # headers are overlapping at times
