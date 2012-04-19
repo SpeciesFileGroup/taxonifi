@@ -78,5 +78,33 @@ class Test_TaxonifiLumper < Test::Unit::TestCase
   end
 
 
+  def test_that_create_a_name_collection_handles_author_year
+    string = CSV.generate() do |csv|
+      csv << %w{family genus species author_year}
+      csv << ["Fooidae", "Foo", "bar", "Smith, 1854"]
+      csv << ["Fooidae", "Foo", "foo", "(Smith, 1854)"]
+    end
+   
+    # 0  Fooidae
+    # 1  Foo
+    # 2  bar
+    # 3  foo 
+
+    csv = CSV.parse(string, {headers: true})
+    nc = Taxonifi::Lumper.create_name_collection(csv)
+    assert_equal 1, nc.names[3].author.size
+    assert_equal 'Smith', nc.names[3].author.first.last_name
+    assert_equal 1854, nc.names[3].year
+
+    # Name only applies to the "last" name in the order.
+    assert_equal nil, nc.names[0].author
+    assert_equal nil, nc.names[1].author
+    assert_equal 1, nc.names[2].author.size
+
+    assert_equal nil, nc.names[0].original_combination
+    assert_equal true, nc.names[2].original_combination
+    assert_equal false, nc.names[3].original_combination
+  end
+
 end 
 

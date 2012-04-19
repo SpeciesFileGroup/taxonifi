@@ -106,40 +106,61 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
         " Zhang, J.F. ",                                      # 8
         "Hong, Y-C.",                                         # 9 
         "Yan, E.V.",                                          # 10
-        "Foo A, Bar ZA, Smith-Blorf A"                        # 11
+        "Foo A, Bar ZA, Smith-Blorf A",                       # 11
+        "Smith and Barnes",                                   # 12
+        "Smith & Barnes",                                     # 13 
+        "Smith"                                               # 14 
     ]
+
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[14])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal 1, t.names.size
+    assert_equal "Smith", t.names[0][:last_name]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[12])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal 2, t.names.size
+    assert_equal "Smith", t.names[0][:last_name]
+    assert_equal "Barnes", t.names[1][:last_name]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[13])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal 2, t.names.size
+    assert_equal "Smith", t.names[0][:last_name]
+    assert_equal "Barnes", t.names[1][:last_name]
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[0])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
-    assert_equal 3, t.authors.size
-    assert_equal "Jepson", t.authors[0][:last_name]
-    assert_equal "JE", t.authors[0][:initials].join
-    assert_equal "Jarzembowski", t.authors[2][:last_name]
-    assert_equal "EA", t.authors[2][:initials].join
+    assert_equal 3, t.names.size
+    assert_equal "Jepson", t.names[0][:last_name]
+    assert_equal "JE", t.names[0][:initials].join
+    assert_equal "Jarzembowski", t.names[2][:last_name]
+    assert_equal "EA", t.names[2][:initials].join
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[1])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
-    assert_equal 2, t.authors.size
-    assert_equal "Ren", t.authors[0][:last_name]
-    assert_equal "D", t.authors[0][:initials].join
-    assert_equal "Meng", t.authors[1][:last_name]
-    assert_equal "X-m", t.authors[1][:initials].join
+    assert_equal 2, t.names.size
+    assert_equal "Ren", t.names[0][:last_name]
+    assert_equal "D", t.names[0][:initials].join
+    assert_equal "Meng", t.names[1][:last_name]
+    assert_equal "X-m", t.names[1][:initials].join
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[9])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
-    assert_equal 1, t.authors.size
-    assert_equal "Hong", t.authors[0][:last_name]
-    assert_equal "Y-C", t.authors[0][:initials].join
+    assert_equal 1, t.names.size
+    assert_equal "Hong", t.names[0][:last_name]
+    assert_equal "Y-C", t.names[0][:initials].join
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[11])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
-    assert_equal 3, t.authors.size
-    assert_equal "Foo", t.authors[0][:last_name]
-    assert_equal "A", t.authors[0][:initials].join
-    assert_equal "Bar", t.authors[1][:last_name]
-    assert_equal "ZA", t.authors[1][:initials].join
-    assert_equal "Smith-Blorf", t.authors[2][:last_name]
-    assert_equal "A", t.authors[2][:initials].join
+    assert_equal 3, t.names.size
+    assert_equal "Foo", t.names[0][:last_name]
+    assert_equal "A", t.names[0][:initials].join
+    assert_equal "Bar", t.names[1][:last_name]
+    assert_equal "ZA", t.names[1][:initials].join
+    assert_equal "Smith-Blorf", t.names[2][:last_name]
+    assert_equal "A", t.names[2][:initials].join
   end
 
   def test_volume_number

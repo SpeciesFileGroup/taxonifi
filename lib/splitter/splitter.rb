@@ -17,12 +17,8 @@ module Taxonifi
     require File.expand_path(File.join(File.dirname(__FILE__), 'tokens'))
     require File.expand_path(File.join(File.dirname(__FILE__), 'parser'))
     require File.expand_path(File.join(File.dirname(__FILE__), 'lexer'))
+    require File.expand_path(File.join(File.dirname(__FILE__), 'builder'))
 
-    # Load all models
-    #  TODO: perhaps use a different scope that doesn't require loading all at once
-    Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "model/*.rb") )) do |file|
-      require file
-    end
 
     # stub, we might not need
     class Splitter
@@ -43,7 +39,6 @@ def do_bar(input)
 
   builder = Taxonifi::Splitter::SplitterBuilder.new
   lexer = Taxonifi::Splitter::Lexer.new(@input)
-  Taxonifi::Splitter::Parser.new(lexer, builder).parse_file
   Taxonfi::Splitter::Parser.new(lexer, builder).foo 
   return builder.bar
 end

@@ -7,14 +7,6 @@ class SplitterTest < Test::Unit::TestCase
   end
 end
 
-# Builder construction
-
-class Test_AuthorYearBuilder < Test::Unit::TestCase
-  def test_builder
-    b = Taxonifi::Splitter::Model::AuthorYearBuilder.new
-  end
-end
-
 class Test_TaxonifiSplitterLexer < Test::Unit::TestCase
 
   def test_that_vanilla_new_succeed

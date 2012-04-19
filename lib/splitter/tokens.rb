@@ -65,11 +65,11 @@ module Taxonifi::Splitter::Tokens
   # AuthorYear this will match just about anything.
   # If the match breakdown has "doubts" @flag == true
   class Authors < Token
-    attr_reader :authors
+    attr_reader :names
     @regexp = Regexp.new(/\A\s*([^\d]+)\s*/i)
 
     def initialize(str)
-      @authors = [] 
+      @names = [] 
       str.strip!
       individuals = []
 
@@ -115,9 +115,9 @@ module Taxonifi::Splitter::Tokens
           initials.gsub!(/\s*von\s*/, '')
         end
       
-        a[:initials] = initials.strip.split(/\s|\./).collect{|v| v.strip} if initials.size > 0
+        a[:initials] = initials.strip.split(/\s|\./).collect{|v| v.strip} if initials && initials.size > 0
 
-        @authors << a
+        @names << a
       end
     end
   end

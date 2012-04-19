@@ -4,7 +4,10 @@ module Taxonifi
 
   module Model
     class Name
-      attr_accessor :name, :parent, :id, :rank, :author, :year
+      attr_accessor :name, :parent, :id, :rank
+      attr_accessor :author # a collection of Taxonifi::Model::People
+      attr_accessor :year
+      attr_accessor :original_combination  # = parens check on author year, perhaps subclass in SpeciesName < Name
       def initialize(options = {})
         opts = {
         }.merge!(options)
