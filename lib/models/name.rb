@@ -1,10 +1,19 @@
 module Taxonifi
 
+  class NameError < StandardError; end
+
   module Model
     class Name
       attr_accessor :name, :parent, :id, :rank, :author, :year
       def initialize(options = {})
+        opts = {
+        }.merge!(options)
         @parent = nil
+
+        self.name = opts[:name] if !opts[:name].nil?
+        self.parent = opts[:parent] if !opts[:parent].nil?
+        self.rank = opts[:rank] if !opts[:rank].nil?
+
         true
       end 
 
@@ -31,7 +40,12 @@ module Taxonifi
 
         @parent = parent
       end
-     
+   
+      # TODO: Build row-wise instantiation?
+      def self.new_from_row(csv_row)
+        n = self.new
+        n.rank = Taxonifi::Assessor::RowAssessor.lump_rank
+      end
     end
 
 
@@ -60,7 +74,6 @@ module Taxonifi
     end
   end
 
-  class NameError < StandardError
-  end
+
 
 end

@@ -1,9 +1,11 @@
-# The accessor accesses!
+# The assessor assesses!
 
 module Taxonifi
-  module Accessor 
+  module Assessor 
 
-    class AccessorError < StandardError; end
+    require File.expand_path(File.join(File.dirname(__FILE__), 'row_assessor'))
+
+    class AssessorError < StandardError; end
 
     INPUTS = { 
       name_and_heirarchy: {
@@ -23,10 +25,10 @@ module Taxonifi
       def initialze(columns)
       end
 
-      def _access_inputs
+      def _assess_inputs
       end
 
-      def _access_outputs
+      def _assess_outputs
       end
     end
 

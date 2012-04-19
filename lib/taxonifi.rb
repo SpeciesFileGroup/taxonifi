@@ -22,5 +22,14 @@ module Taxonifi
     }
 
 
+    # an aliase for Taxonifi::Revisor.revise
+    def self.transform(options)
+      opt = {
+        :from => nil,
+        :to => nil
+      }.merge!(options)
+      raise if opt[:from].nil? || opt[:to].nil?
+      Taxonifi::Revisor.revise(opt) 
+    end
 
 end
