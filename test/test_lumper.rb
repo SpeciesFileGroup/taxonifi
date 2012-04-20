@@ -43,14 +43,14 @@ class Test_TaxonifiLumper < Test::Unit::TestCase
 
   def test_that_create_name_collection_populates_a_name_collection
     nc = Taxonifi::Lumper.create_name_collection(@csv)
-    assert_equal 3, nc.names.size
-    assert_equal ["Fooidae", "Foo", "bar"], nc.names.collect{|n| n.name}
+    assert_equal 3, nc.collection.size
+    assert_equal ["Fooidae", "Foo", "bar"], nc.collection.collect{|n| n.name}
   end
 
   def test_that_create_name_collection_parentifies
     nc = Taxonifi::Lumper.create_name_collection(@csv)
-    assert_equal nc.names[0], nc.names[1].parent
-    assert_equal nc.names[1], nc.names[2].parent
+    assert_equal nc.collection[0], nc.collection[1].parent
+    assert_equal nc.collection[1], nc.collection[2].parent
   end
 
   def test_that_create_a_name_collection_handles_homonomy
@@ -69,12 +69,12 @@ class Test_TaxonifiLumper < Test::Unit::TestCase
     csv = CSV.parse(string, {headers: true})
     nc = Taxonifi::Lumper.create_name_collection(csv)
 
-    assert_equal nc.names[2], nc.names[5].parent
-    assert_equal nc.names[0], nc.names[2].parent
-    assert_equal nc.names[1], nc.names[3].parent
-    assert_equal nc.names[3], nc.names[6].parent
-    assert_equal nc.names[0], nc.names[4].parent
-    assert_equal nc.names[4], nc.names[7].parent
+    assert_equal nc.collection[2], nc.collection[5].parent
+    assert_equal nc.collection[0], nc.collection[2].parent
+    assert_equal nc.collection[1], nc.collection[3].parent
+    assert_equal nc.collection[3], nc.collection[6].parent
+    assert_equal nc.collection[0], nc.collection[4].parent
+    assert_equal nc.collection[4], nc.collection[7].parent
   end
 
 
@@ -92,18 +92,18 @@ class Test_TaxonifiLumper < Test::Unit::TestCase
 
     csv = CSV.parse(string, {headers: true})
     nc = Taxonifi::Lumper.create_name_collection(csv)
-    assert_equal 1, nc.names[3].author.size
-    assert_equal 'Smith', nc.names[3].author.first.last_name
-    assert_equal 1854, nc.names[3].year
+    assert_equal 1, nc.collection[3].author.size
+    assert_equal 'Smith', nc.collection[3].author.first.last_name
+    assert_equal 1854, nc.collection[3].year
 
     # Name only applies to the "last" name in the order.
-    assert_equal nil, nc.names[0].author
-    assert_equal nil, nc.names[1].author
-    assert_equal 1, nc.names[2].author.size
+    assert_equal nil, nc.collection[0].author
+    assert_equal nil, nc.collection[1].author
+    assert_equal 1, nc.collection[2].author.size
 
-    assert_equal nil, nc.names[0].original_combination
-    assert_equal true, nc.names[2].original_combination
-    assert_equal false, nc.names[3].original_combination
+    assert_equal nil, nc.collection[0].original_combination
+    assert_equal true, nc.collection[2].original_combination
+    assert_equal false, nc.collection[3].original_combination
   end
 
 end 

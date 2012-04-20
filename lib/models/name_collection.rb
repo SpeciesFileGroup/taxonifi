@@ -6,44 +6,32 @@ module Taxonifi
 
     class NameCollection < Taxonifi::Model::Collection
 
-      attr_reader :names
-      
       def initialize(options = {})
         super 
-        @names = []
+        @collection = []
         true
       end 
 
-      # Method also indexes names
-      def add_name(name)
-        raise NameCollectionError, "Taxonifi::Model::Name not passed to NameCollection.add_name." if !(name.class == Taxonifi::Model::Name)
-        raise NameCollectionError, "Taxonifi::Model::Name#id may not be pre-initialized if used in a NameCollection." if !name.id.nil?
-
-        name.id = @current_free_id
-        @current_free_id += 1
-
-        @names.push(name)
-
-        @by_id_index.merge!(name.id => name)
-        return name.id
+      def object_class
+        Taxonifi::Model::Name
       end
 
       # The highest RANKS for which there is no
       # name.
       def encompassing_rank
         highest = RANKS.size
-        @names.each do |n|
+        @collection.each do |n|
           h = RANKS.index(n.rank)
           highest = h if h < highest
         end
         RANKS[highest - 1]
       end 
 
-      # Should index this on add_name
+      # Should index this on add_object
       def names_at_rank(rank)
         raise if !RANKS.include?(rank)
         names = []
-        @names.each do |n|
+        @collection.each do |n|
           names << n if n.rank == rank
         end
         names

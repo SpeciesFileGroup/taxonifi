@@ -101,7 +101,7 @@ module Taxonifi
                 n.original_combination = !builder.parens
               end
 
-              name_id = nc.add_name(n) 
+              name_id = nc.add_object(n) 
               # Add the name to the index of unique names
               name_index[rank][name] = [] if !name_index[rank][name] 
               name_index[rank][name].push name_id                

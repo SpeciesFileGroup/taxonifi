@@ -3,24 +3,24 @@ require File.expand_path(File.join(File.dirname(__FILE__), '../lib/models/name_c
 
 class TestTaxonifiNameCollection < Test::Unit::TestCase
 
-  def test_that_add_names_adds_names
+  def test_that_add_objects_adds_to_collection
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
-    assert c.add_name(n)
-    assert_equal(1, c.names.size)
+    assert c.add_object(n)
+    assert_equal(1, c.collection.size)
   end
 
-  def test_that_name_collections_have_names
+  def test_that_name_collections_have_collections
     c = Taxonifi::Model::NameCollection.new
-    assert c.respond_to?(:names)
-    assert_equal([], c.names)
+    assert c.respond_to?(:collection)
+    assert_equal([], c.collection)
   end
 
   def test_that_name_collection_returns_encompassing_rank
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     n.rank = 'species'  
-    c.add_name(n)
+    c.add_object(n)
     assert_equal 'subgenus', c.encompassing_rank 
   end
 
@@ -28,22 +28,22 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     n.rank = 'species'  
-    c.add_name(n)
+    c.add_object(n)
 
     n1 = Taxonifi::Model::Name.new
     n1.rank = 'species'  
-    c.add_name(n1)
+    c.add_object(n1)
  
     assert_equal 2, c.names_at_rank('species').size 
   end
 
-  def test_that_add_names_tests_for_existing_name_id_and_raises
+  def test_that_add_objects_tests_for_existing_name_id_and_raises
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     n.rank = 'species'  
     n.id = 1 
-    assert_raise Taxonifi::NameCollectionError do
-      c.add_name(n)
+    assert_raise Taxonifi::CollectionError do
+      c.add_object(n)
     end
   end
   
@@ -51,7 +51,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     assert_equal 0, c.current_free_id
-    c.add_name(n)
+    c.add_object(n)
     assert_equal 1, c.current_free_id
   end
 
@@ -59,7 +59,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     assert_equal 0, c.current_free_id
-    c.add_name(n)
+    c.add_object(n)
     assert_equal ({0 => n}), c.by_id_index
   end
 
@@ -67,16 +67,16 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     n.rank = 'species'  
-    id = c.add_name(n)
+    id = c.add_object(n)
     assert_equal id, c.object_by_id(id).id
   end
 
   def test_that_parent_id_vector_returns_a_id_vector
     c = Taxonifi::Model::NameCollection.new
 
-    c.add_name(Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family"))
-    c.add_name(Taxonifi::Model::Name.new(:name => "Bar", :rank => "genus"))
-    c.add_name(Taxonifi::Model::Name.new(:name => "blorf", :rank => "species"))
+    c.add_object(Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family"))
+    c.add_object(Taxonifi::Model::Name.new(:name => "Bar", :rank => "genus"))
+    c.add_object(Taxonifi::Model::Name.new(:name => "blorf", :rank => "species"))
     c.object_by_id(2).parent = c.object_by_id(1)
     c.object_by_id(1).parent = c.object_by_id(0)
     
