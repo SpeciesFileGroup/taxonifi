@@ -9,7 +9,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     @headers = ["authors", "year", "title", "publication", "pg_start", "pg_end",  "pages", "cited_page"  ,"volume", "number", "volume_number"]
     @csv_string = CSV.generate() do |csv|
       csv <<  @headers
-      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-5, 190", nil, "2", "4", "2(4)" ]
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
 
     @csv = CSV.parse(@csv_string, {headers: true})
@@ -44,8 +44,37 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     rc = Taxonifi::Lumper.create_ref_collection(@csv)
     assert_equal ["J"], rc.collection.first.authors.first.initials
     assert_equal "Smith", rc.collection.first.authors.first.last_name
+    assert_equal "2012", rc.collection.first.year
+    assert_equal "Bar and foo", rc.collection.first.title
+    assert_equal "Journal of Foo", rc.collection.first.publication
+    assert_equal "2", rc.collection.first.volume
+    assert_equal "4", rc.collection.first.number
+    assert_equal "2", rc.collection.first.pg_start
+    assert_equal "3", rc.collection.first.pg_end
   end
 
+  def test_indexes_unique_refs
+    csv_string = CSV.generate() do |csv|
+      csv <<  @headers
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+    end
+    csv = CSV.parse(csv_string, {headers: true})
+    rc = Taxonifi::Lumper.create_ref_collection(csv)
+    assert_equal 1, rc.collection.size
+  end
+
+  def test_indexes_unique_refs2
+    csv_string = CSV.generate() do |csv|
+      csv <<  @headers
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+      csv << ["Smith J. and Bartes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+    end
+    csv = CSV.parse(csv_string, {headers: true})
+    rc = Taxonifi::Lumper.create_ref_collection(csv)
+    assert_equal 2, rc.collection.size
+  end
 
 
 end 

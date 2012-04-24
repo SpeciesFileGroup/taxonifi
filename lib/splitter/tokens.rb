@@ -134,6 +134,21 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
+  class Pages < Token
+    attr_reader :pg_start, :pg_end, :remainder
+    @regexp = Regexp.new(/\A\s*((\d+)\s*[-]?\s*(\d+)?\)?\s*[\.\,]?(.*)?)/i)
+
+    def initialize(str)
+      str.strip 
+      str =~ /\A\s*(\d+)\s*[-]?\s*(\d+)?\)?\s*[\.\,]?(.*)?/i
+      @pg_start = $1 
+      @pg_end = $2
+      @remainder = $3
+    end
+  end
+
+
+
   # !! You must register token lists as symbols in
   # !! Taxonifi::Splitter
   # 
@@ -152,6 +167,7 @@ module Taxonifi::Splitter::Tokens
       Taxonifi::Splitter::Tokens::AuthorYear,
       Taxonifi::Splitter::Tokens::Authors,
       Taxonifi::Splitter::Tokens::VolumeNumber,
+      Taxonifi::Splitter::Tokens::Pages,
     ]   
   end
 
@@ -160,5 +176,13 @@ module Taxonifi::Splitter::Tokens
       Taxonifi::Splitter::Tokens::VolumeNumber
     ]
   end
+
+  def self.pages
+    [
+      Taxonifi::Splitter::Tokens::Pages
+    ]
+  end
+
+
 
 end

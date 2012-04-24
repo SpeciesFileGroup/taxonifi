@@ -132,11 +132,18 @@ module Taxonifi
       row_size = csv.size
 
       ref_index = {}
-
       csv.each_with_index do |row, i|
           if Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(row, [:citation_small]).include?(:citation_small)
-            r = Taxonifi::Model::Ref.new(:year => row['year'], :title => row['title'], :publication => row['publication']) 
-          
+            r = Taxonifi::Model::Ref.new(
+                                         :year => row['year'],
+                                         :title => row['title'],
+                                         :publication => row['publication']
+                                        # These are not part of :citation_small
+                                        # :pg_start => row['pg_start'],
+                                        # :pg_end => row['pg_end']
+                                        ) 
+         
+           # TODO: break out to a builder 
            if row['authors'] && !row['authors'].empty?
             lexer = Taxonifi::Splitter::Lexer.new(row['authors'])
             authors = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
@@ -148,9 +155,24 @@ module Taxonifi
             end
            end
 
-            
+           if row['volume_number'] && !row['volume_number'].empty?
+             lexer = Taxonifi::Splitter::Lexer.new(row['volume_number'], :volume_number)
+             t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+             r.volume = t.volume
+             r.number = t.number
+           end
 
-            rc.add_object(r)
+           if row['pages'] && !row['pages'].empty?
+             lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
+             t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
+             r.pg_start = t.pg_start
+             r.pg_end = t.pg_end
+           end
+
+            if !ref_index.keys.include?(r.compact_string)
+              ref_id = rc.add_object(r)
+              ref_index.merge!(r.compact_string => ref_id)
+            end
           end
       end
       rc

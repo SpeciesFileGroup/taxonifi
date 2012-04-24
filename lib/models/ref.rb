@@ -35,7 +35,7 @@ module Taxonifi
 
       # Returns a pipe delimited representation of the reference.
       def compact_string
-        s = [authors.collect{|a| a.compact_string}.join, year, self.title, publication, volume, number, pages, pg_start, pg_end,  cited_page].join("|").downcase.gsub(/\s/, '')
+        s = [authors.collect{|a| a.compact_string}.join, year, self.title, publication, volume, number, pages, pg_start, pg_end, cited_page].join("|").downcase.gsub(/\s/, '')
       end
 
     end

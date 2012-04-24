@@ -9,7 +9,8 @@ module Taxonifi
 
     TOKEN_LISTS = [
       :global_token_list,
-      :volume_number
+      :volume_number,
+      :pages
     ]
 
     class SplitterError < StandardError; end

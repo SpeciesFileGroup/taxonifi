@@ -180,6 +180,15 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
     assert_equal nil, t.number
   end
 
+  def test_pages
+    ["1-10", "1-10.", "1-10, something", "1-10. something"].each do |p|
+      lexer = Taxonifi::Splitter::Lexer.new(p, :pages)
+      assert t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
+      assert_equal "1", t.pg_start
+      assert_equal "10", t.pg_end
+    end
+  end
+
 
 
   # def test_end_of_file
