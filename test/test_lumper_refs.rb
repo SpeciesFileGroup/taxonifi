@@ -76,6 +76,16 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     assert_equal 2, rc.collection.size
   end
 
+  def test_that_refs_can_be_returned_by_row
+   csv_string = CSV.generate() do |csv|
+      csv <<  @headers
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+      csv << ["Smith J.", "2012", "Foo and bar", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
+    end
+    csv = CSV.parse(csv_string, {headers: true})
+    rc = Taxonifi::Lumper.create_ref_collection(csv)
+    assert_equal "Foo and bar", rc.object_from_row(2).title
+  end
 
 end 
 
