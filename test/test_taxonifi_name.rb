@@ -74,6 +74,13 @@ class TestTaxonifiName < Test::Unit::TestCase
     end
   end
 
+ def test_that_rank_can_be_set
+    n = Taxonifi::Model::Name.new() 
+    n.rank = "family"
+    assert_equal "family", n.rank
+  end
+
+
   def test_that_parent_is_higher_rank_than_child
     n = Taxonifi::Model::Name.new() 
     n.rank = "genus"
@@ -117,6 +124,30 @@ class TestTaxonifiName < Test::Unit::TestCase
 
     assert n.name = "Fooina"
   end
+
+
+  def test_that_parent_can_be_set
+    n = Taxonifi::Model::Name.new() 
+    n.rank = "genus"
+    p = Taxonifi::Model::Name.new() 
+    p.rank = "species"
+    assert p.parent = n
+    assert_equal "genus", p.parent.rank
+  end
+
+  def test_that_attributes_can_be_assigned_on_new
+    n0 = Taxonifi::Model::Name.new(:name => "Baridae", :rank => "Family")
+    n = Taxonifi::Model::Name.new(:name => "Foo", :rank => "Genus", :author => "Frank", :year => 2020, :parent => n0)
+  
+    assert_equal "Foo", n.name
+    assert_equal "genus", n.rank
+    assert_equal 2020, n.year
+    assert_equal "Frank", n.author
+    assert_equal n0, n.parent
+
+  end
+
+
 
 
 end

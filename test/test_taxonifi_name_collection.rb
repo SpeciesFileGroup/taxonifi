@@ -74,11 +74,31 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
   def test_that_parent_id_vector_returns_a_id_vector
     c = Taxonifi::Model::NameCollection.new
 
-    c.add_object(Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family"))
-    c.add_object(Taxonifi::Model::Name.new(:name => "Bar", :rank => "genus"))
-    c.add_object(Taxonifi::Model::Name.new(:name => "blorf", :rank => "species"))
-    c.object_by_id(2).parent = c.object_by_id(1)
-    c.object_by_id(1).parent = c.object_by_id(0)
+    n1 = Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family")
+    n2 = Taxonifi::Model::Name.new(:name => "Bar",     :rank => "genus")
+    n3 = Taxonifi::Model::Name.new(:name => "blorf",   :rank => "species")
+
+    assert_equal "family",  n1.rank
+    assert_equal "genus",   n2.rank
+    assert_equal "species", n3.rank
+
+    c.add_object(n1)
+    c.add_object(n2)
+    c.add_object(n3)
+
+    assert_equal 0, n1.id
+    assert_equal 1, n2.id
+    assert_equal 2, n3.id
+
+
+    n3.parent = n2
+    n2.parent = n1
+
+    
+
+
+    #  c.object_by_id(2).parent = c.object_by_id(1)
+    #  c.object_by_id(1).parent = c.object_by_id(0)
     
     assert_equal [0,1], c.parent_id_vector(2)
     assert_equal [0], c.parent_id_vector(1)

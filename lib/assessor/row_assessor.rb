@@ -13,7 +13,13 @@ module Taxonifi
       class RowAssessorError < StandardError; end
 
       class RowAssessor
+
+        # !! Note that there are various
+        # !! CSV methods for returning row columns
+        # !! that have particular attributes
+
         attr_reader :lumps # the lumps present in this row
+
         def initialze(csv_row)
           cols = []
           cols = csv_row.entries.select{|c,v| !v.nil?}.collect{|c| c[0]}
@@ -62,6 +68,7 @@ module Taxonifi
         else
           return Taxonifi::Assessor::RowAssessor.last_available(csv_row, Taxonifi::Lumper::LUMPS[:higher]).first.to_sym
         end
+
         # this far? bad
         raise RowAssessor::RowAssessorError
       end
@@ -74,6 +81,38 @@ module Taxonifi
 
       def self.rank_headers(headers)
         Taxonifi::RANKS & headers
+      end
+
+      def self.intersecting_lumps_with_data(row, lumps_to_try = nil)
+        lumps_to_try ||= Taxonifi::Lumper::LUMPS.keys 
+        lumps = [] 
+        lumps_to_try.each do |l|  
+          has_data = false 
+          Taxonifi::Lumper::LUMPS[l].each do |c|
+            if !row[c].nil? && !row[c].empty?
+              has_data = true 
+              break
+            end
+          end
+          has_data && lumps.push(l) 
+        end
+        lumps
+      end
+
+      def self.lumps_with_data(row, lumps_to_try = nil)
+        lumps_to_try ||= Taxonifi::Lumper::LUMPS.keys 
+        lumps = [] 
+        lumps_to_try.each do |l|  
+          has_data = true 
+          Taxonifi::Lumper::LUMPS[l].each do |c|
+            if row[c].nil? || row[c].empty?
+              has_data = false 
+              break
+            end
+          end
+          has_data && lumps.push(l) 
+        end
+        lumps
       end
 
     end

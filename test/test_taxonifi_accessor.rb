@@ -33,5 +33,29 @@ class Test_TaxonifiAccessor < Test::Unit::TestCase
     assert_equal ["genus", "Foo"], Taxonifi::Assessor::RowAssessor.parent_taxon_column(@csv.first)
   end
 
+  def test_intersecting_lumps_with_data
+
+      headers = ["authors"]
+      csv_string = CSV.generate() do |csv|
+        csv <<  headers
+        csv << ["Smith J. and Barnes S."]
+      end
+     csv = CSV.parse(csv_string, {headers: true})
+     assert_equal [:citation_basic, :citation_small],  Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(csv.first)
+  end 
+
+  def test_lumps_with_data
+ 
+      headers = Taxonifi::Lumper::LUMPS[:citation_small]
+      csv_string = CSV.generate() do |csv|
+        csv <<  headers
+        csv << ["Smith J. and Barnes S.", 1912, "Foo", "Bar", "3(4)", "1-2"]
+      end
+
+     csv = CSV.parse(csv_string, {headers: true})
+
+     assert_equal [:citation_small],  Taxonifi::Assessor::RowAssessor.lumps_with_data(csv.first)
+  end
+
 end 
 

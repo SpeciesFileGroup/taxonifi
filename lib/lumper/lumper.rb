@@ -17,12 +17,23 @@ module Taxonifi
       names:  Taxonifi::RANKS + AUTHOR_YEAR,
       higher: Taxonifi::RANKS - [QUAD + AUTHOR_YEAR],
       species: ['species', 'subspecies'],
-      genera: ['genus', 'subgenus']
+      genera: ['genus', 'subgenus'],
+      citation_basic: %w{authors year title publication volume number pages pg_start pg_end},
+      citation_small: %w{authors year title publication volume_number pages}
     }
 
     def self.available_lumps(columns)
       raise Taxonifi::Lumper::LumperError, 'Array not passed to Lumper.available_lumps.' if !(columns.class == Array)
       LUMPS.keys.select{|k| (LUMPS[k] - columns) == []}
+    end
+
+    def self.intersecting_lumps(columns)
+      raise Taxonifi::Lumper::LumperError, 'Array not passed to Lumper.intersecting_lumps.' if !(columns.class == Array)
+      intersections = []
+      LUMPS.keys.each do |k|
+        intersections.push k if (LUMPS[k] & columns).size > 0
+      end
+      intersections
     end
 
     #
@@ -93,9 +104,7 @@ module Taxonifi
               # headers are overlapping at times
 
               if row['author_year'] && row_rank == rank
-                lexer = Taxonifi::Splitter::Lexer.new(row['author_year'])
-                builder = Taxonifi::Model::AuthorYear.new
-                Taxonifi::Splitter::Parser.new(lexer, builder).parse_author_year
+                builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
                 n.author               = builder.people 
                 n.year                 = builder.year 
                 n.original_combination = !builder.parens
@@ -117,6 +126,35 @@ module Taxonifi
       nc
     end 
 
+    def self.create_ref_collection(csv)
+      raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_ref_collection.' if csv.class != CSV::Table
+      rc = Taxonifi::Model::RefCollection.new
+      row_size = csv.size
+
+      ref_index = {}
+
+      csv.each_with_index do |row, i|
+          if Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(row, [:citation_small]).include?(:citation_small)
+            r = Taxonifi::Model::Ref.new(:year => row['year'], :title => row['title'], :publication => row['publication']) 
+          
+           if row['authors'] && !row['authors'].empty?
+            lexer = Taxonifi::Splitter::Lexer.new(row['authors'])
+            authors = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+            authors.names.each do |a|
+              n = Taxonifi::Model::Person.new()
+              n.last_name = a[:last_name]
+              n.initials = a[:initials]
+              r.authors.push n
+            end
+           end
+
+            
+
+            rc.add_object(r)
+          end
+      end
+      rc
+    end
 
   end # end Lumper Module 
 end # Taxonifi module

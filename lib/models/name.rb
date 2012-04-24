@@ -3,34 +3,43 @@ module Taxonifi
   class NameError < StandardError; end
 
   module Model
-    class Name
-      attr_accessor :name, :parent, :id, :rank
-      attr_accessor :author # a collection of Taxonifi::Model::People
-      attr_accessor :year
-      attr_accessor :original_combination  # = parens check on author year, perhaps subclass in SpeciesName < Name
+    class Name < Taxonifi::Model::Base
+
+      ATTRIBUTES = [:name, :rank, :year, :original_combination, :parent, :author]
+      attr_accessor :name                  # String
+      attr_accessor :rank                  # String
+      attr_accessor :year                  # String
+      attr_accessor :original_combination  # Boolean = parens check on author year, perhaps subclass in SpeciesName < Name
+      attr_accessor :parent                # Model::Name
+      attr_accessor :author                # String
+
+      ATTRIBUTES.each do |a|
+        attr_accessor a
+      end
+
       def initialize(options = {})
         opts = {
         }.merge!(options)
         @parent = nil
+          
+        build(ATTRIBUTES, opts)
 
-        self.name = opts[:name] if !opts[:name].nil?
-        self.parent = opts[:parent] if !opts[:parent].nil?
-        self.rank = opts[:rank] if !opts[:rank].nil?
+        @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
 
         true
       end 
 
       def rank=(rank)
-        r = rank.downcase.strip
+        r = rank.to_s.downcase.strip
         if !RANKS.include?(r) 
-          raise NameError,  "#{r} is not a valid rank."
+          raise NameError, "#{r} is not a valid rank."
         end
         @rank = r
       end
 
       def parent=(parent)
         if @rank.nil?
-          raise Taxonifi::NameError 
+          raise Taxonifi::NameError, "Parent of name can not be set if rank of child is not set." 
         end
 
         if parent.class != Taxonifi::Model::Name
@@ -43,7 +52,7 @@ module Taxonifi
 
         @parent = parent
       end
-   
+
       # TODO: Build row-wise instantiation?
       def self.new_from_row(csv_row)
         n = self.new
