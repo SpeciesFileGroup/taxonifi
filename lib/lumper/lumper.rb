@@ -169,10 +169,14 @@ module Taxonifi
              r.pg_end = t.pg_end
            end
 
-            if !ref_index.keys.include?(r.compact_string)
-              ref_id = rc.add_object(r)
-              ref_index.merge!(r.compact_string => ref_id)
-            end
+           ref_str = r.compact_string 
+           if !ref_index.keys.include?(ref_str)
+             ref_id = rc.add_object(r)
+             ref_index.merge!(ref_str => ref_id)
+             rc.row_index[i] = r 
+           else
+             rc.row_index[i] = ref_index[ref_str] 
+           end
           end
       end
       rc

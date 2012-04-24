@@ -84,7 +84,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     end
     csv = CSV.parse(csv_string, {headers: true})
     rc = Taxonifi::Lumper.create_ref_collection(csv)
-    assert_equal "Foo and bar", rc.object_from_row(2).title
+    assert_equal "Foo and bar", rc.object_from_row(1).title
   end
 
 end 

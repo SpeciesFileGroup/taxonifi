@@ -18,7 +18,7 @@ module Taxonifi
       end
          
       def object_from_row(row_number)
-        @row_index(row_number)
+        @row_index[row_number]
       end
 
     end
