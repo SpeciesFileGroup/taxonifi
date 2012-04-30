@@ -19,7 +19,8 @@ module Taxonifi
       species: ['species', 'subspecies'],
       genera: ['genus', 'subgenus'],
       citation_basic: %w{authors year title publication volume number pages pg_start pg_end},
-      citation_small: %w{authors year title publication volume_number pages}
+      citation_small: %w{authors year title publication volume_number pages},
+      basic_geog: %w{country state county} # add 'continent'
     }
 
     def self.available_lumps(columns)
@@ -40,7 +41,6 @@ module Taxonifi
     # TODO: Make this a generic parent/child indexer suitable for 
     # any heirachical data.  Should be straightforward- make collections
     # generic, and ensure that collection members respond_to id, parent etc.
-    #  
     #  
     def self.create_name_collection(csv)
       raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
@@ -67,14 +67,14 @@ module Taxonifi
       Taxonifi::Assessor::RowAssessor.rank_headers(csv.headers).each do |rank|
         name_index[rank] = {}
         csv.each_with_index do |row, i|
-          row_rank = Taxonifi::Assessor::RowAssessor.lump_rank(row).to_s # metadata (e.g. author year) apply to this rank 
+          row_rank = Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s # metadata (e.g. author year) apply to this rank 
           name = row[rank] 
 
           if !name.nil?     # cell has data
             n = nil         # a Name if necessary
             name_id = nil   # index the new or existing name 
 
-            if name_index[rank][name] # name exists
+            if name_index[rank][name] # name (string) exists
 
               exists = false 
               name_index[rank][name].each do |id|
@@ -112,7 +112,7 @@ module Taxonifi
 
               name_id = nc.add_object(n) 
               # Add the name to the index of unique names
-              name_index[rank][name] = [] if !name_index[rank][name] 
+              name_index[rank][name] ||= []
               name_index[rank][name].push name_id                
             end
 
@@ -133,18 +133,18 @@ module Taxonifi
 
       ref_index = {}
       csv.each_with_index do |row, i|
-          if Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(row, [:citation_small]).include?(:citation_small)
-            r = Taxonifi::Model::Ref.new(
-                                         :year => row['year'],
-                                         :title => row['title'],
-                                         :publication => row['publication']
-                                        # These are not part of :citation_small
-                                        # :pg_start => row['pg_start'],
-                                        # :pg_end => row['pg_end']
-                                        ) 
-         
-           # TODO: break out to a builder 
-           if row['authors'] && !row['authors'].empty?
+        if Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(row, [:citation_small]).include?(:citation_small)
+          r = Taxonifi::Model::Ref.new(
+                                       :year => row['year'],
+                                       :title => row['title'],
+                                       :publication => row['publication']
+                                       # These are not part of :citation_small
+                                       # :pg_start => row['pg_start'],
+                                       # :pg_end => row['pg_end']
+                                      ) 
+
+          # TODO: break out each of these lexes to a builder
+          if row['authors'] && !row['authors'].empty?
             lexer = Taxonifi::Splitter::Lexer.new(row['authors'])
             authors = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
             authors.names.each do |a|
@@ -153,34 +153,166 @@ module Taxonifi
               n.initials = a[:initials]
               r.authors.push n
             end
-           end
-
-           if row['volume_number'] && !row['volume_number'].empty?
-             lexer = Taxonifi::Splitter::Lexer.new(row['volume_number'], :volume_number)
-             t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
-             r.volume = t.volume
-             r.number = t.number
-           end
-
-           if row['pages'] && !row['pages'].empty?
-             lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
-             t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
-             r.pg_start = t.pg_start
-             r.pg_end = t.pg_end
-           end
-
-           ref_str = r.compact_string 
-           if !ref_index.keys.include?(ref_str)
-             ref_id = rc.add_object(r)
-             ref_index.merge!(ref_str => ref_id)
-             rc.row_index[i] = r 
-           else
-             rc.row_index[i] = ref_index[ref_str] 
-           end
           end
+
+          if row['volume_number'] && !row['volume_number'].empty?
+            lexer = Taxonifi::Splitter::Lexer.new(row['volume_number'], :volume_number)
+            t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+            r.volume = t.volume
+            r.number = t.number
+          end
+
+          if row['pages'] && !row['pages'].empty?
+            lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
+            t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
+            r.pg_start = t.pg_start
+            r.pg_end = t.pg_end
+          end
+
+          # Do some indexing.
+          ref_str = r.compact_string 
+          if !ref_index.keys.include?(ref_str)
+            ref_id = rc.add_object(r)
+            ref_index.merge!(ref_str => ref_id)
+            rc.row_index[i] = r 
+          else
+            rc.row_index[i] = ref_index[ref_str] 
+          end
+        end
       end
       rc
     end
+
+    # Takes 
+
+
+    # Creates a generic Collection with Objects of GenericObject
+    # Objects are assigned to parents (rank) according to the order provided in headers.
+    # Objects are considered the same if they have the same name and the same parents closure, e.g.
+    #
+    #   a b c
+    #   a b d
+    #   e b f
+    #
+    #   Will return 7 objects named in order a,b,c,d,e,b,f
+    #
+    # a,b b,c b,d e,b b,f are the unique parent/child relationships stored
+    #
+    #
+    def self.create_hierarchical_collection(csv, headers)
+      raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
+      raise Taxonifi::Lumper::LumperError, 'No headers provided to create_hierarchical_collection.' if headers.size == 0
+
+      c = Taxonifi::Model::Collection.new
+      row_size = csv.size
+
+      # See create_name_collection
+      row_index = []
+      (0..(row_size-1)).each do |i|
+        row_index[i] = []
+      end
+
+      name_index = {}
+      headers.each do |h|
+        name_index[h] = {}
+      end
+
+      csv.each_with_index do |row, i|
+        headers.each do |rank|
+          name = row[rank]
+          if !name.nil? && !name.empty?  # cell has data
+            o = nil                      # a Name if necessary
+            name_id = nil                # index the new or existing name 
+
+            if name_index[rank][name] # name exists
+
+              exists = false
+              name_index[rank][name].each do |id|
+                if c.parent_id_vector(id) == row_index[i]
+                  exists = true
+                  name_id = id
+                  break
+                end
+              end
+
+              if !exists
+                o = Taxonifi::Model::GenericObject.new()
+              end
+            else
+              o = Taxonifi::Model::GenericObject.new()
+            end
+
+            if !o.nil? 
+              o.name = name
+              o.rank = rank
+              o.parent = c.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
+
+              name_id = c.add_object(o) 
+              name_index[rank][name] ||= []
+              name_index[rank][name].push name_id                
+
+            end
+              row_index[i].push name_id                       
+          end
+        end
+      end
+      c
+
+    end
+
+    def self.create_geog_collection(csv)
+      raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
+      gc = Taxonifi::Model::GeogCollection.new
+
+      row_size = csv.size
+
+      # See create_name_collection
+      row_index = []
+      (0..(row_size-1)).each do |i|
+        row_index[i] = []
+      end
+
+      name_index = {}
+      geog_headers =  Taxonifi::Assessor::RowAssessor.geog_headers(csv.headers)
+      geog_headers.each do |h|
+        name_index[h] = {}
+      end
+
+      # We don't have the same problems as with taxon names, i.e.
+      # boo in 
+      #  Foo nil boo
+      #  Foo bar boo
+      # is the same thing wrt geography, not the case for taxon names.
+      # We can use a row first loop to build as we go
+
+      csv.each_with_index do |row, i|
+        geog_headers.each do |level|
+          name = row[level]
+          if !name.nil? && !name.empty?  # cell has data
+            g = nil         # a Name if necessary
+            name_id = nil   # index the new or existing name 
+
+            if name_index[level][name] # name exists
+              name_id  = name_index[level][name] 
+            else
+              g = Taxonifi::Model::Geog.new()
+              name_id = gc.add_object(g) 
+            end
+
+            if !g.nil? 
+              g.name = name
+              g.rank = level
+              g.parent = gc.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
+            end
+
+            name_index[level][name] = name_id
+            row_index[i].push name_id                       
+          end
+        end
+      end
+      gc
+    end 
+
 
   end # end Lumper Module 
 end # Taxonifi module

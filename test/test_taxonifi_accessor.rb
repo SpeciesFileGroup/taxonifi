@@ -21,12 +21,12 @@ class Test_TaxonifiAccessor < Test::Unit::TestCase
     assert_equal [:genus, 'Foo'], Taxonifi::Assessor::RowAssessor.last_available(@csv.first, [:family, :genus])
   end
 
-  def test_lump_rank
-    assert_equal :species, Taxonifi::Assessor::RowAssessor.lump_rank(@csv.first)
+  def test_lump_name_rank
+    assert_equal :species, Taxonifi::Assessor::RowAssessor.lump_name_rank(@csv.first)
     @csv << ["Fooidae"]
-    assert_equal :family, Taxonifi::Assessor::RowAssessor.lump_rank(@csv[1])
+    assert_equal :family, Taxonifi::Assessor::RowAssessor.lump_name_rank(@csv[1])
     @csv << ["Fooidae", "Blorf"] 
-    assert_equal :genus, Taxonifi::Assessor::RowAssessor.lump_rank(@csv[2])
+    assert_equal :genus, Taxonifi::Assessor::RowAssessor.lump_name_rank(@csv[2])
   end
 
   def test_lump_rank_parent

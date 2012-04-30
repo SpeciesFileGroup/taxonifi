@@ -37,15 +37,6 @@ module Taxonifi
         names
       end
 
-      def parent_id_vector(id)
-        vector = []
-        while !@by_id_index[id].parent.nil? 
-          vector.unshift @by_id_index[id].parent.id
-          id = @by_id_index[id].parent.id 
-        end
-        vector
-      end
-
     end
   end
 

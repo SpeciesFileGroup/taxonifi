@@ -51,7 +51,7 @@ module Taxonifi
         end
       end
 
-      def self.lump_rank(csv_row)
+      def self.lump_name_rank(csv_row)
         lumps = Taxonifi::Lumper.available_lumps(csv_row.headers)        
         if lumps.include?(:species) # has to be a species name
           if csv_row[:subspecies].nil?
@@ -81,6 +81,10 @@ module Taxonifi
 
       def self.rank_headers(headers)
         Taxonifi::RANKS & headers
+      end
+
+      def self.geog_headers(headers)
+        Taxonifi::Lumper::LUMPS[:basic_geog] & headers
       end
 
       def self.intersecting_lumps_with_data(row, lumps_to_try = nil)
