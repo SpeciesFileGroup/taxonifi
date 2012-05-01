@@ -46,8 +46,6 @@ module Taxonifi
         vector
       end
 
-
-
     end
   end
 
