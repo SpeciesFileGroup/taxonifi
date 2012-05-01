@@ -69,6 +69,7 @@ module Taxonifi::Lumper
       name_index[rank] = {}
       csv.each_with_index do |row, i|
         row_rank = Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s # metadata (e.g. author year) apply to this rank 
+
         name = row[rank] 
 
         if !name.nil?     # cell has data
@@ -100,6 +101,7 @@ module Taxonifi::Lumper
             n.rank = rank
             n.name = name
             n.parent = nc.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
+            n.row_number = i
 
             # Name/year needs to be standardized / cased out
             # headers are overlapping at times
@@ -246,6 +248,7 @@ module Taxonifi::Lumper
           if !o.nil? 
             o.name = name
             o.rank = rank
+            o.row_number = i
             o.parent = c.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
 
             name_id = c.add_object(o) 
@@ -262,7 +265,7 @@ module Taxonifi::Lumper
   end
 
   def self.create_geog_collection(csv)
-    raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
+    raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_geog_collection.' if csv.class != CSV::Table
     gc = Taxonifi::Model::GeogCollection.new
 
     row_size = csv.size

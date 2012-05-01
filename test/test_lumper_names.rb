@@ -47,6 +47,13 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal ["Fooidae", "Foo", "bar"], nc.collection.collect{|n| n.name}
   end
 
+  def test_that_create_name_collection_assigns_row_number
+    nc = Taxonifi::Lumper.create_name_collection(@csv)
+    assert_equal 0, nc.collection.first.row_number
+    assert_equal 0, nc.collection.last.row_number
+  end
+  
+
   def test_that_create_name_collection_parentifies
     nc = Taxonifi::Lumper.create_name_collection(@csv)
     assert_equal nc.collection[0], nc.collection[1].parent

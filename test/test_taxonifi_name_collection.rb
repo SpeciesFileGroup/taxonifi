@@ -94,9 +94,6 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     n3.parent = n2
     n2.parent = n1
 
-    
-
-
     #  c.object_by_id(2).parent = c.object_by_id(1)
     #  c.object_by_id(1).parent = c.object_by_id(0)
     

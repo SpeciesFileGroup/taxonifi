@@ -1,10 +1,89 @@
 = taxonifi
 
+The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases).
+
+Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading around 25k rows of nomenclature (class to species, inc. author year) in to memory as Taxonifi objects benchmarks at around 2-3 minutes.
+
+= Requirements
+
+taxonifi is coded for Ruby 1.9.3, it has not been tested on earlier versions.
+
+taxonifi feeds on Ruby's CSV, read your files with header true:
+
+  csv = CSV.read('input/my_data.tab',  { 
+                headers: true,
+                header_converters: :downcase,
+                col_sep: "\t"  } ) 
+
+= Use
+
+== Quick start
+
+Install the gem:
+
+  gem install taxonifi
+
+Write some code:
+
+  require 'taxonifi'
+
+  headers = ["a", "B", "c"]
+  csv_string = CSV.generate() do |csv|
+    csv <<  @headers
+    csv << %w{a b c}
+  end
+
+  csv = CSV.parse(csv_string, {headers: true, :header_converters :downcase})
+
+  # Taxonifi can create generic hierachical collections based on column headers
+  c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{a b c})    # => a Taxonifi::Model::Collection 
+  c.collection.first               # => Taxonifi::Model::GenericObject
+  c.collection.first.name          # => "a" 
+  c.collection.last.name           # => "c" 
+  c.collection.last.parent.name    # => "b" 
+  c.collection.first.row_number    # => 0
+  c.collection.first.rank          # => "a"
+
+  # Header order is important:
+  c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{c a b})    # => a Taxonifi::Model::Collection 
+  c.collection.first.name          # => "c" 
+  c.collection.last.rank           # => "c" 
+  c.collection.last.name           # => "b" 
+  c.collection.last.parent.name    # => "a" 
+  
+  # Collections of GenericObjects (and some other Taxonifi::Collection based objects like TaxonifiNameCollection) only include
+  # Unique names, i.e. if a name has a shared parent lineage only the name itself is created, not its parents. 
+  # E.g.: given:
+  #  a b c 
+  #  a d nil
+  #  b nil d
+  # The collection consists of objects with names a,b,c,d,b,d respectively.
+  # Very useful for handling nomenclatural and other nested data.
+
+There are collections of specific types (e.g. taxonomic names, geographic names):
+
+    string = CSV.generate() do |csv|
+      csv << %w{family genus species author_year}
+      csv << ["Fooidae", "Foo", "bar", "Smith, 1854"]
+      csv << ["Fooidae", "Foo", "foo", "(Smith, 1854)"]
+    end
+   
+    csv = CSV.parse(string, {headers: true})
+
+    nc = Taxonifi::Lumper.create_name_collection(csv)  # => Taxonifi::Model::NameCollection
+
+    nc.collection.first                                # => Taxonifi::Model::Name 
+    nc.collection.first.name                           # => "Fooidae"
+    nc.collection.first.rank                           # => "family" 
+    nc.collection.first.year                           # =>  nil
+    nc.collection.first.author                         # => []
+    nc.collection.last.rank                            # => "species" 
+    nc.collection.last.name                            # => "foo" 
+    nc.collection.last.author.first.last_name          # =>  "Smith"
+    nc.collection.last.year                            # =>  "1854"
 
 
-Description goes here.
-
-Taxonifi is built against Ruby 1.9.3.
+There are *lots* more examples of code use in the test suite.
 
 == Contributing to taxonifi
  
@@ -18,6 +97,6 @@ Taxonifi is built against Ruby 1.9.3.
 
 == Copyright
 
-Copyright (c) 2012 Illinois Natural History Survey. See LICENSE.txt for
+Copyright (c) 2012 Matt Yoder and the Illinois Natural History Survey. See LICENSE.txt for
 further details.
 

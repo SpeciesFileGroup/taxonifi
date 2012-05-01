@@ -46,6 +46,12 @@ module Taxonifi
         vector
       end
 
+      # Returns an Array which respresents
+      # all the roots
+      def objects_without_parents
+        collection.select{|o| o.parent.nil?}
+      end
+
     end
   end
 

@@ -178,6 +178,37 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
     assert_equal "42", t.volume
     assert_equal nil, t.number
+
+    lexer = Taxonifi::Splitter::Lexer.new("II(5)", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+    assert_equal "II", t.volume
+    assert_equal "5", t.number
+ 
+    lexer = Taxonifi::Splitter::Lexer.new("99A", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+    assert_equal "99A", t.volume
+    assert_equal nil, t.number
+
+    lexer = Taxonifi::Splitter::Lexer.new("99(2-3)", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+    assert_equal "99", t.volume
+    assert_equal "2-3", t.number
+
+    lexer = Taxonifi::Splitter::Lexer.new("8(c4)", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+    assert_equal "8", t.volume
+    assert_equal "c4", t.number
+
+    lexer = Taxonifi::Splitter::Lexer.new("74 (1/2)", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+    assert_equal "74", t.volume
+    assert_equal "1/2", t.number
+
+    lexer = Taxonifi::Splitter::Lexer.new("74(1/2)", :volume_number)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+    assert_equal "74", t.volume
+    assert_equal "1/2", t.number
+
   end
 
   def test_pages

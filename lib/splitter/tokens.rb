@@ -124,13 +124,18 @@ module Taxonifi::Splitter::Tokens
 
   class VolumeNumber  < Token
     attr_reader :volume, :number
-    @regexp = Regexp.new(/\A\s*((\d+)\s*[:\(]?\s*(\d+)?\)?)\s*/i)
+
+
+    @regexp = Regexp.new(/\A\s*(([^:(]+)\s*[:\(]?\s*([^:)]+)?\)?)\s*/i)
+    # @regexp = Regexp.new(/\A\s*((\d+)\s*[:\(]?\s*(\d+)?\)?)\s*/i) <- only digits allowed in this version
 
     def initialize(str)
       str.strip 
-      str =~ /\A\s*(\d+)\s*[:\(]?\s*(\d+)?\s*/i
-      @volume = $1 
+      str =~ /\A\s*([^:(]+)\s*[:\(]?\s*([^:)]+)?\)?\s*/i
+      @volume = $1
       @number = $2
+      @volume && @volume.strip!
+      @number && @number.strip!
     end
   end
 
