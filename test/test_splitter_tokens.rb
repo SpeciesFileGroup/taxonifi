@@ -1,14 +1,6 @@
 require 'helper'
 require File.expand_path(File.join(File.dirname(__FILE__), '../lib/splitter/splitter')) 
 
-
-# Stub code if you want ot just mess with a regex in testing
-# class Test_Regex < Test::Unit::TestCase
-#   def test_some_regex
-#     assert true 
-#   end
-# end
-
 class Test_TaxonifiSplitterLexer < Test::Unit::TestCase
 
   def test_lexer_raises_when_not_hit
