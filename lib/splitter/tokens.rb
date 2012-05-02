@@ -99,11 +99,15 @@ module Taxonifi::Splitter::Tokens
         if i =~ /,/
           last_name, initials = i.split(/,/, 2)
         else # space must indicate the split
-          last_name, initials = i.split(/\s/, 2)
+          if i =~ /\s/
+            last_name, initials = i.split(/\s/, 2)
+          else # TODO: this else not tested
+            last_name = i
+          end
         end
         
         a = {} 
-        a[:last_name] = last_name.strip
+        a[:last_name] = last_name.strip if last_name # "if" not fully tested for consequences
 
         if initials =~ /jr\./i 
           a[:suffix] = "jr"
