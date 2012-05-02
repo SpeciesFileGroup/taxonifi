@@ -129,7 +129,6 @@ module Taxonifi::Splitter::Tokens
   class VolumeNumber  < Token
     attr_reader :volume, :number
 
-
     @regexp = Regexp.new(/\A\s*(([^:(]+)\s*[:\(]?\s*([^:)]+)?\)?)\s*/i)
     # @regexp = Regexp.new(/\A\s*((\d+)\s*[:\(]?\s*(\d+)?\)?)\s*/i) <- only digits allowed in this version
 
@@ -156,7 +155,30 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
+  # Matches: 
+  # Foo
+  # Foo (Bar)
+  # Foo (Bar) stuff
+  # Foo (Bar) stuff things
+  # Foo stuff
+  # Foo stuff things
+  class Quadrinomial < Token
+    attr_reader :genus, :subgenus, :species, :subspecies
+    @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?)\s*\z/)
 
+    def initialize(str)
+      str.strip 
+      str =~ /\A\s*([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?\s*\z/i
+      @genus = $1 
+      @subgenus = $2
+      @species = $3
+      @subspecies = $4
+
+      if @subgenus =~ /\((.*)\)/
+        @subgenus = $1
+      end
+    end
+  end
 
   # !! You must register token lists as symbols in
   # !! Taxonifi::Splitter

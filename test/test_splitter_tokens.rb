@@ -92,7 +92,41 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
       end
     end
   end
-  
+
+  def test_quadrinomial
+    ["Foo"].each do |genus|
+      ["(Bar)", nil].each do |subgenus|
+        sg = nil
+        sg = $1
+        ["stuff"].each do |species|
+          ["things", nil].each do |subspecies|
+            str = [genus, subgenus, species, subspecies].compact.join(" ")
+            if subgenus 
+              sg = subgenus[-(subgenus.size-1)..-2] 
+            else
+              sg = nil
+            end
+            lexer = Taxonifi::Splitter::Lexer.new(str)
+            t = lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
+            assert_equal genus,      t.genus
+            assert_equal sg,         t.subgenus
+            assert_equal species,    t.species
+            assert_equal subspecies, t.subspecies
+          end
+        end
+      end
+    end
+
+    lexer = Taxonifi::Splitter::Lexer.new("Foo")
+    t = lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
+    assert_equal "Foo",      t.genus
+
+    lexer = Taxonifi::Splitter::Lexer.new("Foo stuff")
+    t = lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
+    assert_equal "Foo",      t.genus
+    assert_equal "stuff",      t.species
+  end
+
   def test_authors
     auths = [
         "Jepson, J.E.,Makarkin, V.N., & Jarzembowski, E.A.",  # 0

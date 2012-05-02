@@ -141,58 +141,54 @@ module Taxonifi::Lumper
                                      :year => row['year'],
                                      :title => row['title'],
                                      :publication => row['publication']
-                                     # These are not part of :citation_small
-                                     # :pg_start => row['pg_start'],
-                                     # :pg_end => row['pg_end']
                                     ) 
 
-                                    # TODO: break out each of these lexes to a builder
-                                    if row['authors'] && !row['authors'].empty?
-                                      lexer = Taxonifi::Splitter::Lexer.new(row['authors'])
-                                      authors = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
-                                      authors.names.each do |a|
-                                        n = Taxonifi::Model::Person.new()
-                                        n.last_name = a[:last_name]
-                                        n.initials = a[:initials]
-                                        r.authors.push n
-                                      end
-                                    end
+        # TODO: break out each of these lexes to a builder
+        if row['authors'] && !row['authors'].empty?
+          lexer = Taxonifi::Splitter::Lexer.new(row['authors'])
+          authors = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+          authors.names.each do |a|
+            n = Taxonifi::Model::Person.new()
+            n.last_name = a[:last_name]
+            n.initials = a[:initials]
+            r.authors.push n
+          end
+        end
 
-                                    if row['volume_number'] && !row['volume_number'].empty?
-                                      lexer = Taxonifi::Splitter::Lexer.new(row['volume_number'], :volume_number)
-                                      t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
-                                      r.volume = t.volume
-                                      r.number = t.number
-                                    end
+        if row['volume_number'] && !row['volume_number'].empty?
+          lexer = Taxonifi::Splitter::Lexer.new(row['volume_number'], :volume_number)
+          t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
+          r.volume = t.volume
+          r.number = t.number
+        end
 
-                                    if row['pages'] && !row['pages'].empty?
-                                      # If our regex doesn't match dump the field into pages
-                                      begin
-                                        lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
-                                        t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
-                                        r.pg_start = t.pg_start
-                                        r.pg_end = t.pg_end
-                                      rescue
-                                        r.pages = row['pages']
-                                      end
-                                    end
+        if row['pages'] && !row['pages'].empty?
+          # If our regex doesn't match dump the field into pages
+          begin
+            lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
+            t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
+            r.pg_start = t.pg_start
+            r.pg_end = t.pg_end
+          rescue
+            r.pages = row['pages']
+          end
+        end
 
-                                    # Do some indexing.
-                                    ref_str = r.compact_string 
-                                    if !ref_index.keys.include?(ref_str)
-                                      ref_id = rc.add_object(r)
-                                      ref_index.merge!(ref_str => ref_id)
-                                      rc.row_index[i] = r 
-                                    else
-                                      rc.row_index[i] = ref_index[ref_str] 
-                                    end
+        # Do some indexing.
+        ref_str = r.compact_string 
+        if !ref_index.keys.include?(ref_str)
+          ref_id = rc.add_object(r)
+          ref_index.merge!(ref_str => ref_id)
+          rc.row_index[i] = r 
+        else
+          rc.row_index[i] = ref_index[ref_str] 
+        end
       end
     end
     rc
   end
 
   # Takes 
-
 
   # Creates a generic Collection with Objects of GenericObject
   # Objects are assigned to parents (rank) according to the order provided in headers.
