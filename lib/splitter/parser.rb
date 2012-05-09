@@ -22,4 +22,11 @@ class Taxonifi::Splitter::Parser
     @builder.parens = t.parens
   end
 
+
+  def parse_species_name
+
+  end
+
+
+
 end

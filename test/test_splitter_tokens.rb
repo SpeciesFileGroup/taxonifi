@@ -12,7 +12,6 @@ class Test_TaxonifiSplitterLexer < Test::Unit::TestCase
 
 end
 
-
 class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
 
   def test_year

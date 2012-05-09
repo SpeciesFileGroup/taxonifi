@@ -58,6 +58,17 @@ module Taxonifi
         n = self.new
         n.rank = Taxonifi::Assessor::RowAssessor.lump_rank
       end
+
+      # Returns a formatted string, including parens for the name
+      def author_year
+        au = [self.author, self.year].compact.join(", ")
+        if self.original_combination == false
+          "(#{au})"        
+        else
+          au.size == 0 ? nil : au
+        end
+      end
+
     end
 
 
