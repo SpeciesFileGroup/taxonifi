@@ -1,4 +1,4 @@
-require 'helper'
+require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 require File.expand_path(File.join(File.dirname(__FILE__), '../lib/splitter/parser')) 
 
 class Test_TaxonifiSplitterParser < Test::Unit::TestCase
@@ -11,6 +11,7 @@ class Test_TaxonifiSplitterParser < Test::Unit::TestCase
       assert_equal "Foo", builder.genus.name
       assert_equal "Bar", builder.subgenus.name
       assert_equal builder.genus, builder.subgenus.parent 
+require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
       assert_equal "stuff", builder.species.name
       assert_equal builder.subgenus, builder.species.parent 
       assert_equal "things", builder.subspecies.name
