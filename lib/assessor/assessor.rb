@@ -1,38 +1,26 @@
 # The assessor assesses!
 
 module Taxonifi
+
+  require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
+  require File.expand_path(File.join(File.dirname(__FILE__), 'row_assessor'))
+
+  class AssessorError < StandardError; end
   module Assessor 
-
-    require File.expand_path(File.join(File.dirname(__FILE__), 'row_assessor'))
-
-    class AssessorError < StandardError; end
 
     INPUTS = { 
       name_and_heirarchy: {
-        complete_match:   true,
-        require_columns:  [ ],
-        optional_columns: [ ],
-      } 
+      complete_match:   true,
+      require_columns:  [ ],
+      optional_columns: [ ],
+    } 
     }
 
-    # UNPUT.key => /lumper/class
+    # INPUT.key => /lumper/class
     OUTPUTS = { 
-     name_and_heirarchy: [ ]
+      name_and_heirarchy: [ ]
     } 
 
-    class Assesor
-      attr_reader :outputs, :inputs
-      def initialze(columns)
-      end
-
-      def _assess_inputs
-      end
-
-      def _assess_outputs
-      end
-    end
-
-
-  end # end Splitter module
+  end # end Assessor module
 end # Taxonifi module
 

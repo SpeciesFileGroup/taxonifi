@@ -13,4 +13,11 @@ module Taxonifi::Splitter::Builder
       builder
     end
 
+    def self.build_species_name(text)
+      lexer = Taxonifi::Splitter::Lexer.new(text, :species_name)
+      builder = Taxonifi::Model::SpeciesName.new
+      Taxonifi::Splitter::Parser.new(lexer, builder).parse_species_name
+      builder
+    end
+
 end

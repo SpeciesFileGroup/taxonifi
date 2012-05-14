@@ -116,6 +116,18 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
     t = lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
     assert_equal "Foo",      t.genus
     assert_equal "stuff",      t.species
+
+    lexer = Taxonifi::Splitter::Lexer.new('Foo (Bar) stuff things (Smith, 1912) and some other...')
+    t = lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
+    assert_equal "Foo",      t.genus
+    assert_equal "Bar",      t.subgenus
+    assert_equal "stuff",    t.species
+    assert_equal "things",   t.subspecies
+
+
+
+
+
   end
 
   def test_authors

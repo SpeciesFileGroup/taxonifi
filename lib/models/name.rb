@@ -8,10 +8,10 @@ module Taxonifi
       ATTRIBUTES = [:name, :rank, :year, :original_combination, :parent, :author]
       attr_accessor :name                  # String
       attr_accessor :rank                  # String
+      attr_accessor :author                # String
       attr_accessor :year                  # String
       attr_accessor :original_combination  # Boolean = parens check on author year, perhaps subclass in SpeciesName < Name
       attr_accessor :parent                # Model::Name
-      attr_accessor :author                # String
 
       ATTRIBUTES.each do |a|
         attr_accessor a

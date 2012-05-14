@@ -2,7 +2,6 @@
 
 module Taxonifi
   module Assessor 
-
     module RowAssessor
 
       # Pass a CSV (require "csv") row as read with the following 
@@ -12,7 +11,7 @@ module Taxonifi
 
       class RowAssessorError < StandardError; end
 
-      class RowAssessor
+      class RowAssessor < Taxonifi::Assessor::Base
 
         # !! Note that there are various
         # !! CSV methods for returning row columns

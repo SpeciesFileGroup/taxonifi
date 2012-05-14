@@ -67,7 +67,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     n.rank = 'species'  
-    id = c.add_object(n)
+    id = c.add_object(n).id
     assert_equal id, c.object_by_id(id).id
   end
 
@@ -101,6 +101,29 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert_equal [0], c.parent_id_vector(1)
   end 
 
+  def test_that_name_collection_indexes_by_name_as_well_as_id
+    c = Taxonifi::Model::NameCollection.new
+    n1 = Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family")
+    c.add_object(n1) 
+    assert_equal "Fooidae", c.by_name_index['family'].keys.first
+  end
+
+  def test_name_exists?
+    c = Taxonifi::Model::NameCollection.new
+    n1 = Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family")
+    n2 = Taxonifi::Model::Name.new(:name => "Bar",     :rank => "genus", :parent => n1)
+    n3 = Taxonifi::Model::Name.new(:name => "Bar",     :rank => "genus", :parent => n1)
+    n4 = Taxonifi::Model::Name.new(:name => "Bar",     :rank => "subgenus", :parent => n2)
+    n5 = Taxonifi::Model::Name.new(:name => "foo",     :rank => "species", :parent => n2)
+    n6 = Taxonifi::Model::Name.new(:name => "foo",     :rank => "species", :parent => n2)
+    c.add_object(n1) 
+    c.add_object(n2) 
+    c.add_object(n5) 
+    assert c.name_exists?(n3), "Name exists, but not caught."
+    assert c.name_exists?(n6), "Name exists, but not caught."
+    assert !c.name_exists?(n4), "Name doesn't exist, but asserted to."
+    assert_equal n2.id, c.name_exists?(n3) 
+  end
 
 end
 

@@ -44,7 +44,7 @@ class TestTaxonifiCollection < Test::Unit::TestCase
   def test_that_object_by_id_returns
     c = Taxonifi::Model::RefCollection.new
     n = Taxonifi::Model::Ref.new
-    id = c.add_object(n)
+    id = c.add_object(n).id
     assert_equal id, c.object_by_id(id).id
   end
 

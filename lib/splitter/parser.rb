@@ -4,6 +4,7 @@ class Taxonifi::Splitter::Parser
     @builder = builder
   end
 
+  # TODO: This is only indirectly tested in lumper code
   def parse_author_year
     t = @lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
 
@@ -24,9 +25,24 @@ class Taxonifi::Splitter::Parser
 
 
   def parse_species_name
+    t = @lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
+    ranks = %w{genus subgenus species subspecies}
+    names = {} 
+    last_parent = nil
+    ranks.each do |r|
+      names.merge!(r: nil)
+      @builder.send("#{r}=", Taxonifi::Model::Name.new(:name => t.send(r), rank: r) ) if t.send(r)
+    end
 
+    if @lexer.peek(Taxonifi::Splitter::Tokens::AuthorYear)
+      t = @lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
+      @builder.names.last.author = t.authors
+      @builder.names.last.year = t.year
+      @builder.names.last.original_combination = t.parens
+    end
+  
+    @builder
   end
-
 
 
 end

@@ -28,20 +28,39 @@ module Taxonifi
       end
 
       def add_object(obj)
-        raise CollectionError, "Taxonifi::Model::#{object_class.class} not passed to Collection.add_object()." if !(obj.class == object_class)
-        raise CollectionError, "Taxonifi::Model::#{object_class.class}#id may not be pre-initialized if used in a Collection." if !obj.id.nil?
-        obj.id = @current_free_id
+        raise CollectionError, "Taxonifi::Model::#{object_class.class}#id may not be pre-initialized if used with #add_object, consider using #add_object_pre_indexed." if !obj.id.nil?
+        object_is_allowed?(obj)
+        obj.id = @current_free_id.to_i
         @current_free_id += 1
         @collection.push(obj)
-        @by_id_index.merge!(obj.id => obj)
-        return obj.id
+        @by_id_index.merge!(obj.id => obj) 
+        return obj
       end
 
-      def parent_id_vector(id)
+      def add_object_pre_indexed(obj)
+        object_is_allowed?(obj)
+        raise CollectionError, "Taxonifi::Model::#{object_class.class} does not have a pre-indexed id." if obj.id.nil?
+        @collection.push(obj)
+        @by_id_index.merge!(obj.id => obj)
+        return obj
+      end
+
+      # TODO: deprecate?
+      # More or less identical to Taxonifi::Name.parent_id except
+      # this checks against the indexed names in the collection
+      # rather than Name->Name relationships
+      # The two should be identical in all(?) conievable cases
+      def parent_id_vector(id = Fixnum)
         vector = []
-        while !@by_id_index[id].parent.nil? 
-          vector.unshift @by_id_index[id].parent.id
-          id = @by_id_index[id].parent.id 
+        return vector if @by_id_index[id].nil? || @by_id_index[id].parent.nil?
+        id = @by_id_index[id].parent.id
+        while !id.nil?
+          vector.unshift id
+          if @by_id_index[id].parent
+            id = @by_id_index[id].parent.id 
+          else
+            id = nil
+          end
         end
         vector
       end
@@ -50,6 +69,13 @@ module Taxonifi
       # all the roots
       def objects_without_parents
         collection.select{|o| o.parent.nil?}
+      end
+
+      protected
+
+      def object_is_allowed?(obj)
+        raise CollectionError, "Taxonifi::Model::#{object_class.class} not passed to Collection.add_object()." if !(obj.class == object_class)
+        true
       end
 
     end

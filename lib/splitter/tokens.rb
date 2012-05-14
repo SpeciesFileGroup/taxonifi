@@ -162,13 +162,15 @@ module Taxonifi::Splitter::Tokens
   # Foo (Bar) stuff things
   # Foo stuff
   # Foo stuff things
+  # TODO: This will likley erroroneously match on authors names that are uncapitalized, e.g.:
+  #   Foo stuff von Helsing, 1920
   class Quadrinomial < Token
     attr_reader :genus, :subgenus, :species, :subspecies
-    @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?)\s*\z/)
+    @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?)\s*/)
 
     def initialize(str)
       str.strip 
-      str =~ /\A\s*([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?\s*\z/i
+      str =~ /\A\s*([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?\s*/i
       @genus = $1 
       @subgenus = $2
       @species = $3
@@ -191,6 +193,7 @@ module Taxonifi::Splitter::Tokens
 
   def self.global_token_list
     [ 
+      Taxonifi::Splitter::Tokens::Quadrinomial,
       Taxonifi::Splitter::Tokens::LeftParen,
       Taxonifi::Splitter::Tokens::Year,
       Taxonifi::Splitter::Tokens::Comma,
@@ -211,6 +214,13 @@ module Taxonifi::Splitter::Tokens
   def self.pages
     [
       Taxonifi::Splitter::Tokens::Pages
+    ]
+  end
+
+  def self.species_name
+    [
+      Taxonifi::Splitter::Tokens::Quadrinomial,
+      Taxonifi::Splitter::Tokens::AuthorYear,
     ]
   end
 

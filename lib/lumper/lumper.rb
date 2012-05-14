@@ -2,10 +2,16 @@
 # functionality to determine whether your
 # columns match a given set.
 
-
 require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
 
 module Taxonifi::Lumper 
+
+  module Lumps
+    Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "lumps/*.rb") )) do |file|
+     require file
+    end
+  end
+
 
   class LumperError < StandardError; end
 
@@ -21,14 +27,17 @@ module Taxonifi::Lumper
     genera: ['genus', 'subgenus'],
     citation_basic: %w{authors year title publication volume number pages pg_start pg_end},
     citation_small: %w{authors year title publication volume_number pages},
-    basic_geog: %w{country state county} # add 'continent'
+    basic_geog: %w{country state county}, # add 'continent'
+    eol_basic: %w{identifier parent child rank synonyms}
   }
 
+  # Lumps for which all columns are represented (TODO: This is an assessor method realy)
   def self.available_lumps(columns)
     raise Taxonifi::Lumper::LumperError, 'Array not passed to Lumper.available_lumps.' if !(columns.class == Array)
     LUMPS.keys.select{|k| (LUMPS[k] - columns) == []}
   end
 
+  # Lumps for which any column is represented (TODO: This is an assessor method realy)
   def self.intersecting_lumps(columns)
     raise Taxonifi::Lumper::LumperError, 'Array not passed to Lumper.intersecting_lumps.' if !(columns.class == Array)
     intersections = []
@@ -38,11 +47,6 @@ module Taxonifi::Lumper
     intersections
   end
 
-  #
-  # TODO: Make this a generic parent/child indexer suitable for 
-  # any heirachical data.  Should be straightforward- make collections
-  # generic, and ensure that collection members respond_to id, parent etc.
-  #  
   def self.create_name_collection(csv)
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
     nc = Taxonifi::Model::NameCollection.new
@@ -113,7 +117,7 @@ module Taxonifi::Lumper
               n.original_combination = !builder.parens
             end
 
-            name_id = nc.add_object(n) 
+            name_id = nc.add_object(n).id
             # Add the name to the index of unique names
             name_index[rank][name] ||= []
             name_index[rank][name].push name_id                
@@ -177,7 +181,7 @@ module Taxonifi::Lumper
         # Do some indexing.
         ref_str = r.compact_string 
         if !ref_index.keys.include?(ref_str)
-          ref_id = rc.add_object(r)
+          ref_id = rc.add_object(r).id
           ref_index.merge!(ref_str => ref_id)
           rc.row_index[i] = r 
         else
@@ -252,7 +256,7 @@ module Taxonifi::Lumper
             o.row_number = i
             o.parent = c.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
 
-            name_id = c.add_object(o) 
+            name_id = c.add_object(o).id 
             name_index[rank][name] ||= []
             name_index[rank][name].push name_id                
 
@@ -301,7 +305,7 @@ module Taxonifi::Lumper
             name_id  = name_index[level][name] 
           else
             g = Taxonifi::Model::Geog.new()
-            name_id = gc.add_object(g) 
+            name_id = gc.add_object(g).id
           end
 
           if !g.nil? 
@@ -317,6 +321,7 @@ module Taxonifi::Lumper
     end
     gc
   end 
+
 
 end # end Lumper Module 
 

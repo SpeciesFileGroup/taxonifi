@@ -30,28 +30,28 @@ module Taxonifi
       def subgenus=(subgenus)
         raise Taxonifi::SpeciesNameError, "Species name must have a Genus name before subgenus can be assigned" if @genus.nil?
         @subgenus = subgenus
+        @subgenus.parent = @genus
       end
 
       def species=(species)
         raise Taxonifi::SpeciesNameError, "Species name must have a Genus name before species can be assigned" if @genus.nil?
         @species = species 
+        @species.parent = (@subgenus ? @subgenus : @genus)
       end
 
       def subspecies=(subspecies)
         raise Taxonifi::SpeciesNameError, "Subspecies name must have a species name before species can be assigned" if @species.nil?
         @subspecies = subspecies 
+        @subspecies.parent = @species
       end
 
       def parent=(parent)
-        if @rank.nil?
-          raise Taxonifi::SpeciesNameError, "Parent of name can not be set if rank of child is not set." 
-        end
 
         if parent.class != Taxonifi::Model::Name
-          raise NameError, "Parent is not a Taxonifi::Model::Name."
+          raise SpeciesNameError, "Parent is not a Taxonifi::Model::Name."
         end
 
-        if parent.rank.nil? ||  (Taxonifi::Ranks.index('genus') > Taxonifi::Ranks.index(parent.rank))
+        if parent.rank.nil? ||  (Taxonifi::RANKS.index('genus') <= Taxonifi::RANKS.index(parent.rank))
           raise Taxonifi::SpeciesNameError, "Parents of SpeciesNames must have rank higher than Genus."
         end
 
@@ -64,7 +64,6 @@ module Taxonifi
 
       def display_name
         strs = [] 
-
         self.names.each do |n|
           case n.rank
           when 'subgenus'

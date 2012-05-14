@@ -48,7 +48,7 @@ class Taxonifi::Splitter::Lexer
       end
       # no match, either end of string or lex-error
       if @input != ''
-        raise(Taxonifi::Splitter::SplitterError, "Lexer Error, unknown token at #{@input[0..10]}...", caller)
+        raise(Taxonifi::Splitter::SplitterError, "Lexer Error, unknown token at |#{@input[0..20]}...", caller)
       else
         return nil
       end

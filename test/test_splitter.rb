@@ -23,7 +23,5 @@ class Test_TaxonifiSplitterLexer < Test::Unit::TestCase
     assert lexer = Taxonifi::Splitter::Lexer.new("foo")
   end
 
-  # Token Tests
-
 end 
 
