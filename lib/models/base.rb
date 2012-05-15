@@ -5,7 +5,7 @@ module Taxonifi
   module Model
     class Base # < Struct.new(:id, :row_number)
 
-      attr_accessor :id, :row_number
+      attr_accessor :id, :row_number, :external_id
 
         # Check for valid opts in subclass prior to building
 
@@ -28,7 +28,7 @@ module Taxonifi
           while !p.nil?
             ids.unshift p.id
             p = p.parent
-            i+=1
+            i += 1
             raise Taxonifi::ModelError, "Infite recursion in parent string detected for Base model object #{id}." if i > 100
           end
           ids

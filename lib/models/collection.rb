@@ -19,12 +19,12 @@ module Taxonifi
         true
       end 
 
-      def object_by_id(id)
-        @by_id_index[id] 
-      end
-
       def object_class
         Taxonifi::Model::GenericObject
+      end
+
+      def object_by_id(id)
+        @by_id_index[id] 
       end
 
       def add_object(obj)
@@ -66,7 +66,7 @@ module Taxonifi
       end
 
       # Returns an Array which respresents
-      # all the roots
+      # all the "root" objects
       def objects_without_parents
         collection.select{|o| o.parent.nil?}
       end

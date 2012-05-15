@@ -13,6 +13,8 @@ class Test_TaxonifiLumperEolNameCollection < Test::Unit::TestCase
       csv << [2, "1", "Foo", "Genus", nil ]
       csv << [3, "2", "Foo bar", "species", nil ]                                          # case testing
       csv << [4, "2", "Foo bar stuff (Guy, 1921)", "species", "Foo bar blorf (Guy, 1921)"] # initial subspecies rank data had rank blank, assuming they will be called species
+      csv << [5, "0", "Bidae", "Family", nil ]
+     
     end
 
     @csv = CSV.parse(@csv_string, {headers: true})
@@ -35,6 +37,7 @@ class Test_TaxonifiLumperEolNameCollection < Test::Unit::TestCase
     assert @nc.names_at_rank("species").collect{|n| n.name}.include?("bar") 
     assert_equal 1, @nc.names_at_rank("genus").size 
     assert @nc.names_at_rank("subspecies").collect{|n| n.name}.include?("stuff") 
+    assert @nc.names_at_rank("subspecies").collect{|n| n.name}.include?("blorf") 
   end
 
 end 

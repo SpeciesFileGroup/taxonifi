@@ -63,6 +63,15 @@ module Taxonifi
         false 
       end
 
+      def add_species_name(sn)
+        sn.names.each do |o|
+          if !name_exists?(o)
+            add_object(o)
+          end
+        end
+      end
+
+      # TODO: deprecate?
       def add_species_name_unindexed(sn)
         sn.names.each do |o|
           if !name_exists?(o)
