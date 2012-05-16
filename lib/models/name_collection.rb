@@ -64,16 +64,16 @@ module Taxonifi
       end
 
       def add_species_name(sn)
-        # loop the names
-        #   if name exists
-        #      buffer the current_parent_id
-        current_parent_id = sn.genus.parent.id
+        raise "SpeciesName#genus#parent must be set with add_species_name" if sn.genus.parent.nil?
+        current_parent_id = sn.genus.parent.id # sn.genus.parent must be set
         sn.names.each do |o|
+          o.parent = object_by_id(current_parent_id)
           if id = name_exists?(o)
             cp_id = id 
           else
-            add_object(o)
             o.parent = object_by_id(current_parent_id)
+            add_object(o)
+            current_parent_id = o.id
             cp_id = o.id
           end
           current_parent_id = cp_id

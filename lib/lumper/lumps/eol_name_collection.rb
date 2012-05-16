@@ -4,7 +4,7 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
     names = Taxonifi::Splitter::Builder.build_species_name(string)
     # Attempt to assign the genus to its parent.  
     if p = nc.object_by_id(parent_id)
-      names.genus = p # swap out the genus to the id referenced # parent = p
+      names.genus = p # swap out the genus to the Model referenced by parent_id 
     else
       raise Taxonifi::Lumper::LumperError, "Parent genus #{names.genus.name} for species name #{names.display_name} not yet instantiated, you may have resort your import."
     end

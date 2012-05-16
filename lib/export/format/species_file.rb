@@ -46,7 +46,7 @@ module Taxonifi::Export
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
         @name_collection.collection.each do |n|
-          csv << [n.id, (n.parent ? n.parent.id : nil), n.display_name, n.rank]
+          csv << [n.id, (n.parent ? n.parent.id : nil), n.name, n.rank]
         end
       end
       
