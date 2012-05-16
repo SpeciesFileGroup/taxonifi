@@ -21,11 +21,8 @@ module Taxonifi
         opts = {
         }.merge!(options)
         @parent = nil
-          
         build(ATTRIBUTES, opts)
-
         @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
-
         true
       end 
 
@@ -66,6 +63,24 @@ module Taxonifi
           "(#{au})"        
         else
           au.size == 0 ? nil : au
+        end
+      end
+
+      def parent_name_at_rank(rank)
+        p = @parent
+        while !p.nil?
+          return p.name if p.rank == rank
+          p = p.parent
+        end
+        nil 
+      end
+
+      def display_name
+        case @rank
+        when 'species', 'subspecies'
+          [parent_name_at_rank('genus'), parent_name_at_rank('subgenus'), parent_name_at_rank('species'), @name, author_year].compact.join(" ")
+        else
+          [@name, author_year].compact.join(" ")
         end
       end
 

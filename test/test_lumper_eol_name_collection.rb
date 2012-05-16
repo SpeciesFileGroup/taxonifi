@@ -14,7 +14,6 @@ class Test_TaxonifiLumperEolNameCollection < Test::Unit::TestCase
       csv << [3, "2", "Foo bar", "species", nil ]                                          # case testing
       csv << [4, "2", "Foo bar stuff (Guy, 1921)", "species", "Foo bar blorf (Guy, 1921)"] # initial subspecies rank data had rank blank, assuming they will be called species
       csv << [5, "0", "Bidae", "Family", nil ]
-     
     end
 
     @csv = CSV.parse(@csv_string, {headers: true})

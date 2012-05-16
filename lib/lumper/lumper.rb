@@ -12,8 +12,10 @@ module Taxonifi::Lumper
     end
   end
 
-
   class LumperError < StandardError; end
+
+  # !! Todo: map DwC URIs to these labels (at present they largely correllate with Tokens,
+  # perhaps map URIs to tokens!?)
 
   QUAD =  ['genus', 'subgenus', 'species', 'subspecies']
   AUTHOR_YEAR = ['author', 'year']

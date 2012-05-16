@@ -4,6 +4,8 @@ The taxonifi gem is a suite of general purpose tools that act as a middle layer 
 
 Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading around 25k rows of nomenclature (class to species, inc. author year) in to memory as Taxonifi objects benchmarks at around 2-3 minutes.
 
+Think this is useful?  Before you jump on board you should also check out code at https://github.com/GlobalNamesArchitecture.
+
 = Requirements
 
 taxonifi is coded for Ruby 1.9.3, it has not been tested on earlier versions.
@@ -81,7 +83,6 @@ There are collections of specific types (e.g. taxonomic names, geographic names)
     nc.collection.last.name                            # => "foo" 
     nc.collection.last.author.first.last_name          # =>  "Smith"
     nc.collection.last.year                            # =>  "1854"
-
 
 There are *lots* more examples of code use in the test suite.
 

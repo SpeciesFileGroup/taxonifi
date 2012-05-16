@@ -9,6 +9,7 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
       raise Taxonifi::Lumper::LumperError, "Parent genus #{names.genus.name} for species name #{names.display_name} not yet instantiated, you may have resort your import."
     end
 
+    # At this point parents etc. must be assigned
     nc.add_species_name(names)
     true
   end

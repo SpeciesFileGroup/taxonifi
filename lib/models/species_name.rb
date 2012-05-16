@@ -4,14 +4,13 @@ module Taxonifi
 
   module Model
 
-    # The species name model is just a pointer to 5 TaxonifiNames.  The various metadata (author, year, original combination) is stored with the individual 
+    # The species name model is just a pointer to 5 Taxonifi::Model::Names. 
+    # The various metadata (author, year, original combination) is stored with the individual 
     # instances of those names.
+    # Taxonifi::Model::Names have no ids!  
 
     class SpeciesName < Taxonifi::Model::Base
-
       ATTRIBUTES = [:genus, :subgenus, :species, :subspecies, :parent]
-      attr_accessor :genus, :subgenus, :species, :subspecies, :parent  # Taxonifi::Name objects (?)
-
       ATTRIBUTES.each do |a|
         attr_accessor a
       end
@@ -46,7 +45,6 @@ module Taxonifi
       end
 
       def parent=(parent)
-
         if parent.class != Taxonifi::Model::Name
           raise SpeciesNameError, "Parent is not a Taxonifi::Model::Name."
         end
