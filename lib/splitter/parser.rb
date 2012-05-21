@@ -23,7 +23,6 @@ class Taxonifi::Splitter::Parser
     @builder.parens = t.parens
   end
 
-
   def parse_species_name
     t = @lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
     ranks = %w{genus subgenus species subspecies}
@@ -43,6 +42,5 @@ class Taxonifi::Splitter::Parser
   
     @builder
   end
-
 
 end

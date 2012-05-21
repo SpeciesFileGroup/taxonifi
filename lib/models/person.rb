@@ -23,6 +23,8 @@ module Taxonifi
       def compact_string
         s = [ATTRIBUTES.sort.collect{|a| send(a)}].join("|").downcase.gsub(/\s/, '')
       end
+
+    
     end
   end
 end

@@ -41,7 +41,7 @@ class TestTaxonifiRef < Test::Unit::TestCase
     assert n.respond_to?(:cited_page)
   end
 
-  def _create_a_ref
+  def create_a_ref
     @ref = Taxonifi::Model::Ref.new(
                                  :authors => [Taxonifi::Model::Person.new(:last_name => "Foo", :initials => "AC")],  
                                  :year => 2012,
@@ -54,15 +54,30 @@ class TestTaxonifiRef < Test::Unit::TestCase
                                 )
   end
 
+  def test_identical?
+    create_a_ref
+    foo = @ref.clone
+    bar = @ref.clone
+    assert foo.identical?(bar)
+    bar.title = "Foo"
+    assert !foo.identical?(bar)
+  end
+
   def test_that_ref_assigns_passed_options
-    _create_a_ref
+    create_a_ref
     assert_equal "Place to be", @ref.title
     assert_equal 4, @ref.number
   end
 
   def test_that_compact_string_is_compact
-    _create_a_ref
+    create_a_ref
     assert_equal '|ac|foo||2012|placetobe|journaldujour|3|4||1|2|', @ref.compact_string
+  end
+
+  def test_that_author_year_strings_translate_to_author_years
+    r = Taxonifi::Model::Ref.new(:author_year => 'Smith and Jones, 1920')
+    assert_equal 2, r.authors.size 
+    assert_equal '1920', r.year
   end
 
 end

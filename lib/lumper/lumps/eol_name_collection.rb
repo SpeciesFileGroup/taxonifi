@@ -1,6 +1,9 @@
+
+# This is really DwC, as dumped by EoL, revise to reflect that
+
 module Taxonifi::Lumper::Lumps::EolNameCollection
 
-  def self.add_species_names_from_string(nc, string, parent_id)
+  def self.add_species_names_from_string(nc, string, parent_id, synonym_id = nil)
     names = Taxonifi::Splitter::Builder.build_species_name(string)
     # Attempt to assign the genus to its parent.  
     if p = nc.object_by_id(parent_id)
@@ -10,10 +13,11 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
     end
 
     # At this point parents etc. must be assigned
-    nc.add_species_name(names)
-    true
+    last_id = nc.add_species_name(names) 
+    nc.object_by_id(last_id).related_name = nc.object_by_id(synonym_id) if !synonym_id.nil?
+    last_id
+    # nc.add_species_name(names) returns the id of the last name created, which is returned here 
   end
-
 
   def self.name_collection(csv)
     raise Taxonifi::Lumper::LumperError, "CSV does not have the required headers (#{Taxonifi::Lumper::LUMPS[:eol_basic].join(", ")})." if  !Taxonifi::Lumper.available_lumps(csv.headers).include?(:eol_basic)
@@ -26,10 +30,12 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
       rank = row['rank'].downcase
       parent_id = row['parent'].to_i
       external_id = row['identifier'].to_i
+      valid_species_id = nil
+
 
       case rank
       when 'species', nil
-        add_species_names_from_string(nc, name, parent_id) 
+       valid_species_id =  add_species_names_from_string(nc, name, parent_id) 
       else  # Just a single string, we don't have to break anything down.
         n = nil
 
@@ -56,7 +62,6 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
           n.name = name
           n.external_id = external_id
           n.row_number = i
-
           if parent = nc.object_by_id(parent_id) 
             n.parent = parent
           end
@@ -64,12 +69,12 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
           nc.add_object(n)
           external_index.merge!(external_id => n) 
         end
-      end # end case
+      end
 
       if !row['synonyms'].nil? && row['synonyms'].size > 0 
         other_names = row['synonyms'].split("|")
         other_names.each do |n|
-          add_species_names_from_string(nc, n, parent_id) 
+          add_species_names_from_string(nc, n, parent_id, valid_species_id) 
         end
       end
 

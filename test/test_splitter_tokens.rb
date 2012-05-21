@@ -59,7 +59,6 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
   end
 
   def test_author_year
-
     # let's try some combinations
     authors = ["Foo", "Foo ", "Kukalova-Peck", "Grimaldi, Michalski & Schmidt", "Smith and Adams", "Smith, J.H.", "Smith, J.H. and Jones, Y.K.", "Lin."]
     comma = [true, false]
@@ -123,13 +122,10 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
     assert_equal "Bar",      t.subgenus
     assert_equal "stuff",    t.species
     assert_equal "things",   t.subspecies
-
-
-
-
-
   end
 
+
+  # Modify Tokens
   def test_authors
     auths = [
         "Jepson, J.E.,Makarkin, V.N., & Jarzembowski, E.A.",  # 0
@@ -146,9 +142,16 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
         "Foo A, Bar ZA, Smith-Blorf A",                       # 11
         "Smith and Barnes",                                   # 12
         "Smith & Barnes",                                     # 13 
-        "Smith"                                               # 14 
+        "Smith",                                              # 14 
+        "Smith, Jones and Simon"                              # 15
     ]
 
+    lexer = Taxonifi::Splitter::Lexer.new(auths[15])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal 3, t.names.size
+    assert_equal "Smith", t.names[0][:last_name]
+    assert_equal "Jones", t.names[1][:last_name]
+    assert_equal "Simon", t.names[2][:last_name]
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[14])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
@@ -245,7 +248,6 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::VolumeNumber)
     assert_equal "74", t.volume
     assert_equal "1/2", t.number
-
   end
 
   def test_pages

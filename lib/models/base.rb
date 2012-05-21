@@ -34,6 +34,15 @@ module Taxonifi
           ids
         end
 
+        def identical?(obj)
+          raise Taxonifi::ModelError, "Objects are not comparible." if obj.class != self.class
+          self.class::ATTRIBUTES.each do |a|
+            next if a == :id # don't compare
+            return false if obj.send(a) != self.send(a)
+          end
+          return true
+        end
+
     end
   end
 end

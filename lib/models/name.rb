@@ -5,17 +5,14 @@ module Taxonifi
   module Model
     class Name < Taxonifi::Model::Base
 
-      ATTRIBUTES = [:name, :rank, :year, :original_combination, :parent, :author]
+      ATTRIBUTES = [:name, :rank, :year, :original_combination, :parent, :author, :related_name]
       attr_accessor :name                  # String
       attr_accessor :rank                  # String
       attr_accessor :author                # String
       attr_accessor :year                  # String
       attr_accessor :original_combination  # Boolean = parens check on author year, perhaps subclass in SpeciesName < Name
       attr_accessor :parent                # Model::Name
-
-      ATTRIBUTES.each do |a|
-        attr_accessor a
-      end
+      attr_accessor :related_name          # Model::Name
 
       def initialize(options = {})
         opts = {
@@ -57,13 +54,19 @@ module Taxonifi
       end
 
       # Returns a formatted string, including parens for the name
+      # TODO: rename to reflect parens
       def author_year
-        au = [self.author, self.year].compact.join(", ")
+        au = author_year_string
         if self.original_combination == false
           "(#{au})"        
         else
           au.size == 0 ? nil : au
         end
+      end
+
+      # No parens
+      def author_year_string
+        au = [self.author, self.year].compact.join(", ")
       end
 
       def parent_name_at_rank(rank)

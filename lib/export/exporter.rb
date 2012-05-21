@@ -6,6 +6,4 @@ module Taxonifi::Export
     require file
   end
 
-
-  
 end

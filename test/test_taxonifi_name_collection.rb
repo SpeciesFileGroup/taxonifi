@@ -33,7 +33,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     n1 = Taxonifi::Model::Name.new
     n1.rank = 'species'  
     c.add_object(n1)
- 
+
     assert_equal 2, c.names_at_rank('species').size 
   end
 
@@ -46,7 +46,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
       c.add_object(n)
     end
   end
-  
+
   def test_that_current_free_id_is_incremented
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
@@ -96,7 +96,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
 
     #  c.object_by_id(2).parent = c.object_by_id(1)
     #  c.object_by_id(1).parent = c.object_by_id(0)
-    
+
     assert_equal [0,1], c.parent_id_vector(2)
     assert_equal [0], c.parent_id_vector(1)
   end 
@@ -123,6 +123,34 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert c.name_exists?(n6), "Name exists, but not caught."
     assert !c.name_exists?(n4), "Name doesn't exist, but asserted to."
     assert_equal n2.id, c.name_exists?(n3) 
+  end
+
+  def test_that_name_collection_generate_ref_collection
+    c = Taxonifi::Model::NameCollection.new
+    c.generate_ref_collection
+    assert rc = c.ref_collection
+    assert_equal Taxonifi::Model::RefCollection,  rc.class
+  end 
+
+  def test_that_name_collection_populates_ref_collection
+    c = Taxonifi::Model::NameCollection.new
+    n1 = Taxonifi::Model::Name.new(:name => "Fooidae", :rank => "family", :author => "Smith and Jones", :year => 2002)
+    n2 = Taxonifi::Model::Name.new(:name => "Bar",     :rank => "genus", :parent => n1)
+    n3 = Taxonifi::Model::Name.new(:name => "foo",     :rank => "species", :parent => n2, :author => "Smith, Jones and Simon", :year => 2012)
+    n4 = Taxonifi::Model::Name.new(:name => "bar",     :rank => "species", :parent => n2, :author => "Jones", :year => 2011)
+    n5 = Taxonifi::Model::Name.new(:name => "blorf",   :rank => "species", :parent => n2, :author => "Jones", :year => 2011)
+
+    [n1,n2,n3,n4].each do |n| 
+      c.add_object(n) 
+    end
+
+    c.generate_ref_collection
+    assert_equal 3, c.ref_collection.collection.size 
+    # References are sorted 
+    assert_equal ['Jones'], c.ref_collection.collection.first.authors.collect{|r| r.last_name} 
+    assert_equal ['Smith', 'Jones'], c.ref_collection.collection[1].authors.collect{|r| r.last_name} 
+    assert_equal ['Smith', 'Jones', 'Simon'], c.ref_collection.collection.last.authors.collect{|r| r.last_name}
+    assert_equal '2011', c.ref_collection.collection.first.year
   end
 
 end

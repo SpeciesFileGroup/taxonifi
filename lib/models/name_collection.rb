@@ -7,6 +7,7 @@ module Taxonifi
     class NameCollection < Taxonifi::Model::Collection
 
       attr_accessor :by_name_index
+      attr_accessor :ref_collection
 
       def initialize(options = {})
         super 
@@ -14,6 +15,7 @@ module Taxonifi
         @by_name_index = {} # "foo => [1,2,3]"
         Taxonifi::RANKS.inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}
         @by_name_index['unknown'] = {} # unranked names get dumped in here
+        @ref_collection = nil
         true
       end 
 
@@ -65,19 +67,18 @@ module Taxonifi
 
       def add_species_name(sn)
         raise "SpeciesName#genus#parent must be set with add_species_name" if sn.genus.parent.nil?
-        current_parent_id = sn.genus.parent.id # sn.genus.parent must be set
+        current_parent_id = sn.genus.parent.id 
         sn.names.each do |o|
           o.parent = object_by_id(current_parent_id)
           if id = name_exists?(o)
             cp_id = id 
           else
-            o.parent = object_by_id(current_parent_id)
             add_object(o)
-            current_parent_id = o.id
             cp_id = o.id
           end
           current_parent_id = cp_id
         end
+        current_parent_id # return the id of the last name created
       end
 
       # TODO: deprecate?
@@ -99,6 +100,20 @@ module Taxonifi
         super
         index_by_name(obj)
         obj
+      end
+
+      def generate_ref_collection
+        rc = Taxonifi::Model::RefCollection.new
+        if collection.size > 0
+          uniques = collection.inject({}){|hsh, n| hsh.merge!(n.author_year => nil)}.keys.compact
+          if uniques.size > 0
+            uniques.sort.each_with_index do |r, i|
+              ref = Taxonifi::Model::Ref.new(:author_year => r)        
+              rc.add_object(ref)
+            end
+          end
+        end
+        @ref_collection = rc 
       end
 
       protected

@@ -61,9 +61,11 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
-  # See test_disolver_tokens.rb for scope. As with
+  # See test_splitter_tokens.rb for scope. As with
   # AuthorYear this will match just about anything.
   # If the match breakdown has "doubts" @flag == true
+  # Add exceptions at will, just test using test_authors.
+  # TODO: Unicode the [a-z] bits?
   class Authors < Token
     attr_reader :names
     @regexp = Regexp.new(/\A\s*([^\d]+)\s*/i)
@@ -71,6 +73,7 @@ module Taxonifi::Splitter::Tokens
     def initialize(str)
       @names = [] 
       str.strip!
+      naked_and = false # look for the pattern 'Foo, Bar and Smith', i.e. no initials
       individuals = []
 
       # We can simplify if there is an "and" or & 
@@ -78,6 +81,14 @@ module Taxonifi::Splitter::Tokens
         l,r = str.split(/\s+and\s+|\s+\&\s+/i, 2)
         individuals << r
         str = l  
+        naked_and = true
+      end
+
+      # Look for an exception case, no initials, "and" or "&" previously present, like:
+      #   Foo, Bar and Smith  
+      if naked_and && not(str =~ /\./) && str =~ /s*([A-Z][a-z]{1,})\s*\,+\s*([A-Z][a-z]{1,})/ 
+        individuals.unshift str.split(/\s*\,\s*/)
+        str = nil 
       end
 
       # Break down remaining individuals, do the most obvious matches first
@@ -86,11 +97,11 @@ module Taxonifi::Splitter::Tokens
       elsif str =~/[A-Z]\s*[,;]{1}/ # Capital followed by Comma also suggests split
         # Positive look behind (?<= ) FTW 
         individuals.unshift str.split(/(?<=[A-Z])\s*[;,]{1}\s*/) # we split on all commas
-      else # looks like a single individual
+      elsif str != nil # looks like a single individual
         individuals.unshift str
         @flag = true
       end
-     
+ 
       individuals.flatten!
 
       individuals.each do |i|
