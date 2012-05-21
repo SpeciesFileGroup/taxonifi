@@ -85,12 +85,17 @@ module Taxonifi::Export
 
       raise Taxonifi::Export::ExportError, 'NameCollection not passed to SpeciesFile export.' if ! opts[:nc].class == Taxonifi::Model::NameCollection
       @name_collection = opts[:nc]
+      @author_index = {}
     end 
 
     def export
       @name_collection.generate_ref_collection
-      @name_collection.ref_collection.enumerate_authors
-      @name_collection.ref_collection.build_author_index
+
+      # (incorrectly) assumes all authors matching on last names are the same Person
+      @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
+
+     #  @name_collection.ref_collection.enumerate_authors
+     #  @name_collection.ref_collection.build_author_index
       
       MANIFEST.each do |f|
         send(f)
@@ -149,21 +154,21 @@ module Taxonifi::Export
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
         i = 0
-        @name_collection.ref_collection.collection.each_with_index do |r,i|
-          r.authors.each do |a|
-            cols = {
-              PersonID: a.id,
-              FamilyName: a.last_name,
-              GivenName: a.first_name,
-              GivenInitials: a.initials,
-              Suffix: a.suffix,
-              Role: nil,
-              Status: nil,
-              LastUpdate: Time.now(),
-              ModifiedBy: 'todo'
-            }
-            csv <<  @headers.collect{|h| cols[h.to_sym]} 
-          end
+        @author_index.keys.each_with_index do |k,i|
+          a = @author_index[k] 
+          a.id = i
+          cols = {
+            PersonID: a.id,
+            FamilyName: a.last_name,
+            GivenName: a.first_name,
+            GivenInitials: a.initials,
+            Suffix: a.suffix,
+            Role: nil,
+            Status: nil,
+            LastUpdate: Time.now(),
+            ModifiedBy: 'todo'
+          }
+          csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
       end
       puts @csv_string
@@ -175,7 +180,8 @@ module Taxonifi::Export
         csv << @headers  
         i = 0
         @name_collection.ref_collection.collection.each_with_index do |r,i|
-          r.authors.each_with_index do |a,i|
+          r.authors.each_with_index do |x,i|
+            a = @author_index[x.compact_string] 
             cols = {
               RefID: r.id,
               PersonID: a.id,

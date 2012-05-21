@@ -40,8 +40,36 @@ module Taxonifi
         end
       end
 
+      def unique_author_strings
+        auths = {}
+        collection.each do |r|
+          r.authors.each do |a|
+            auths.merge!(a.display_name => nil)
+          end
+        end
+        auths.keys.sort
+      end
 
-
+      # Returns Array of Taxonifi::Model::Person
+      # Will need better indexing on big lists?
+      def unique_authors
+        auths = []
+        collection.each do |r|
+          r.authors.each do |a|
+            found = false
+            auths.each do |x|
+              if a.identical?(x)
+                found = true 
+                next           
+              end
+            end
+            if not found
+              auths.push a.clone
+            end
+          end
+        end
+        auths
+      end
 
     end
   end

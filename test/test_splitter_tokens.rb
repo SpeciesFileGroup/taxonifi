@@ -143,8 +143,15 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
         "Smith and Barnes",                                   # 12
         "Smith & Barnes",                                     # 13 
         "Smith",                                              # 14 
-        "Smith, Jones and Simon"                              # 15
+        "Smith, Jones and Simon",                             # 15
+        "Van Duzee"                                           # 16
     ]
+
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[16])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal 1, t.names.size
+    assert_equal "Van Duzee", t.names[0][:last_name]
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[15])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)

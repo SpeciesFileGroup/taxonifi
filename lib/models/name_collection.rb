@@ -66,7 +66,7 @@ module Taxonifi
       end
 
       def add_species_name(sn)
-        raise "SpeciesName#genus#parent must be set with add_species_name" if sn.genus.parent.nil?
+        raise "Failed trying to load [#{sn.display_name}]. SpeciesName#genus#parent must be set before using add_species_name." if sn.genus.parent.nil?
         current_parent_id = sn.genus.parent.id 
         sn.names.each do |o|
           o.parent = object_by_id(current_parent_id)

@@ -12,11 +12,8 @@ module Taxonifi
       def initialize(options = {})
         opts = {
         }.merge!(options)
-
         # Check for valid opts prior to building
-
         build(ATTRIBUTES, opts)
-        
         true
       end
 
@@ -24,6 +21,9 @@ module Taxonifi
         s = [ATTRIBUTES.sort.collect{|a| send(a)}].join("|").downcase.gsub(/\s/, '')
       end
 
+      def display_name
+        [@last_name, @first_name, @initials, @suffix].compact.join(" ")
+      end
     
     end
   end

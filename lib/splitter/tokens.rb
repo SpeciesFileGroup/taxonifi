@@ -101,7 +101,7 @@ module Taxonifi::Splitter::Tokens
         individuals.unshift str
         @flag = true
       end
- 
+
       individuals.flatten!
 
       individuals.each do |i|
@@ -109,6 +109,8 @@ module Taxonifi::Splitter::Tokens
         last_name = nil
         if i =~ /,/
           last_name, initials = i.split(/,/, 2)
+        elsif i =~ /s*(\w{1,})\s{1,}([A-Z][a-z]{1,})s*/ # Looks like a "Van Duzen" esque pattern, guess there is just one name
+          last_name = i
         else # space must indicate the split
           if i =~ /\s/
             last_name, initials = i.split(/\s/, 2)
