@@ -136,9 +136,9 @@ class TestTaxonifiName < Test::Unit::TestCase
     assert_equal '2', @n1.parent_ids_sf_style
   end 
  
-  def test_compact_author_year_index
+  def test_author_year_index
     n = Taxonifi::Model::Name.new(author_year: 'Smith and Jones, 1920')
-    assert_equal '1920-||smith|-||jones|', n.compact_author_year_index
+    assert_equal '1920-||smith|-||jones|', n.author_year_index
   end
 
 

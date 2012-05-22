@@ -22,6 +22,8 @@ module Taxonifi
         attr_accessor a
       end
 
+      attr_accessor :author_year_index 
+
       def initialize(options = {})
         opts = {
         }.merge!(options)
@@ -43,11 +45,13 @@ module Taxonifi
         s = [authors.collect{|a| a.compact_string}.join, year, self.title, publication, volume, number, pages, pg_start, pg_end, cited_page].join("|").downcase.gsub(/\s/, '')
       end
 
-      def compact_author_year_index
-        Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
+      def author_year_index
+        @author_year_index ||= generate_author_year_index
       end
 
-
+      def generate_author_year_index
+        @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
+      end
 
     end
   end

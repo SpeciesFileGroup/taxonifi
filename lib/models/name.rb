@@ -5,24 +5,33 @@ module Taxonifi
   module Model
     class Name < Taxonifi::Model::Base
 
-      ATTRIBUTES = [:name, :rank, :year, :parens, :parent, :author, :related_name]
-      attr_accessor :name                  # String
-      attr_accessor :rank                  # String
-      attr_accessor :author                # String, authors as originally read
-      attr_accessor :year                  # String
-      attr_accessor :parens                # Boolean, true if original combination, false if not
-      attr_accessor :parent                # Model::Name
-      attr_accessor :related_name          # Model::Name
-      attr_accessor :authors               # Array of Taxonifi::People, as optionally parsed from :author or on init
+      ATTRIBUTES = [
+        :name,         # String                                                  
+        :rank,         # String
+        :year,         # String, authors as originally read
+        :parens,       # String
+        :parent,       # Boolean, true if original combination, false if not
+        :author,       # Model::Name
+        :related_name  # Model::Name                                              
+      ]
+
+      ATTRIBUTES.each do |a|
+        attr_accessor a
+      end
+
+      # optionally parsed/index
+      attr_accessor :authors               
+      attr_accessor :author_year_index
 
       def initialize(options = {})
         opts = {
+          id: nil
         }.merge!(options)
         @parent = nil
         build(ATTRIBUTES, opts)
         add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
         @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
-        @id = opts[:id] if !opts[:id].nil? && opts[:id].size != 0
+        @id = opts[:id] # if !opts[:id].nil? && opts[:id].size != 0
         true
       end 
 
@@ -115,9 +124,12 @@ module Taxonifi
         ids.join("-")
       end
   
-      # todo: cache this 
-      def compact_author_year_index
-        Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
+      def author_year_index
+        @author_year_index ||= generate_author_year_index
+      end
+
+      def generate_author_year_index
+        @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
       end
 
     end 
