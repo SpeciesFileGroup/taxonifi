@@ -88,7 +88,7 @@ class TestTaxonifiSpeciesName < Test::Unit::TestCase
     sn3 = Taxonifi::Model::SpeciesName.new(:genus => g, :subgenus => sg, :species => s, :subspecies => ss) 
     assert_equal "Foo (Bar) stuff things Jones, 2012", sn3.display_name
   
-    ss.original_combination = false
+    ss.parens = false
     assert_equal "Foo (Bar) stuff things (Jones, 2012)", sn3.display_name
   end
 

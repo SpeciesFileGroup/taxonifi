@@ -6,7 +6,7 @@ module Taxonifi::Lumper::Lumps::EolNameCollection
   def self.name_collection(csv)
     raise Taxonifi::Lumper::LumperError, "CSV does not have the required headers (#{Taxonifi::Lumper::LUMPS[:eol_basic].join(", ")})." if  !Taxonifi::Lumper.available_lumps(csv.headers).include?(:eol_basic)
 
-    nc = Taxonifi::Model::NameCollection.new
+    nc = Taxonifi::Model::NameCollection.new(:initial_id => 1)
     external_index = {} # identifier => Taxonifi::Name
 
     csv.each_with_index do |row,i|

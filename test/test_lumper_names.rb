@@ -108,9 +108,9 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal nil, nc.collection[1].author
     assert_equal 1, nc.collection[2].author.size
 
-    assert_equal nil, nc.collection[0].original_combination
-    assert_equal true, nc.collection[2].original_combination
-    assert_equal false, nc.collection[3].original_combination
+    assert_equal nil, nc.collection[0].parens
+    assert_equal true, nc.collection[2].parens
+    assert_equal false, nc.collection[3].parens
   end
 
 #--- reference collections

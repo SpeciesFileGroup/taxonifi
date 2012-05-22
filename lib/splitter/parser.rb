@@ -37,7 +37,7 @@ class Taxonifi::Splitter::Parser
       t = @lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
       @builder.names.last.author = t.authors
       @builder.names.last.year = t.year
-      @builder.names.last.original_combination = !t.parens
+      @builder.names.last.parens = !t.parens
     end
   
     @builder

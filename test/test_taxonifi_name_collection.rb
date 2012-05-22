@@ -150,7 +150,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert_equal ['Jones'], c.ref_collection.collection.first.authors.collect{|r| r.last_name} 
     assert_equal ['Smith', 'Jones'], c.ref_collection.collection[1].authors.collect{|r| r.last_name} 
     assert_equal ['Smith', 'Jones', 'Simon'], c.ref_collection.collection.last.authors.collect{|r| r.last_name}
-    assert_equal '2011', c.ref_collection.collection.first.year
+    assert_equal 2011, c.ref_collection.collection.first.year
   end
 
 end

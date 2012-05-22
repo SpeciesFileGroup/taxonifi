@@ -21,7 +21,7 @@ module Taxonifi
         end
 
         # Immediate parent id [].last
-        def parent_ids
+        def ancestor_ids
           i = 0 # check for recursion
           ids = []
           p = parent 
@@ -32,6 +32,19 @@ module Taxonifi
             raise Taxonifi::ModelError, "Infite recursion in parent string detected for Base model object #{id}." if i > 100
           end
           ids
+        end
+
+        def ancestors
+          i = 0 # check for recursion
+          ancestors = []
+          p = parent 
+          while !p.nil?
+            ancestors.unshift p
+            p = p.parent
+            i += 1
+            raise Taxonifi::ModelError, "Infite recursion in parent string detected for Base model object #{id.display_name}." if i > 100
+          end
+          ancestors 
         end
 
         def identical?(obj)

@@ -4,10 +4,26 @@ module Taxonifi
   module Model
     class AuthorYear < Taxonifi::Model::Base
       attr_accessor :people, :year, :parens
-      def initialize
-        @parens = false  # whether this author year blob was parenthesized
-        @people = []     # Array of Taxonifi::Model::People
+      def initialize(options = {})
+        opts = {
+          :people => [],
+          :parens => false,
+          :year => nil
+        }.merge!(options)
+
+        @parens = opts[:parens] # whether this author year blob was parenthesized
+        @people = opts[:people] # Array of Taxonifi::Model::People
+        @year = opts[:year] 
       end
+
+      def compact_index
+        index = [@year]
+        @people.each do |a|
+          index.push a.compact_string
+        end
+        index.join("-")
+      end
+
     end
   end
 end

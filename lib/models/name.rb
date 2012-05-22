@@ -5,23 +5,36 @@ module Taxonifi
   module Model
     class Name < Taxonifi::Model::Base
 
-      ATTRIBUTES = [:name, :rank, :year, :original_combination, :parent, :author, :related_name]
+      ATTRIBUTES = [:name, :rank, :year, :parens, :parent, :author, :related_name]
       attr_accessor :name                  # String
       attr_accessor :rank                  # String
-      attr_accessor :author                # String
+      attr_accessor :author                # String, authors as originally read
       attr_accessor :year                  # String
-      attr_accessor :original_combination  # Boolean = parens check on author year, perhaps subclass in SpeciesName < Name
+      attr_accessor :parens                # Boolean, true if original combination, false if not
       attr_accessor :parent                # Model::Name
       attr_accessor :related_name          # Model::Name
+      attr_accessor :authors               # Array of Taxonifi::People, as optionally parsed from :author or on init
 
       def initialize(options = {})
         opts = {
         }.merge!(options)
         @parent = nil
         build(ATTRIBUTES, opts)
+        add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
         @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
+        @id = opts[:id] if !opts[:id].nil? && opts[:id].size != 0
         true
       end 
+
+      def add_author_year(string)
+        auth_yr = Taxonifi::Splitter::Builder.build_author_year(string)
+        @year = auth_yr.year
+        @authors = auth_yr.people
+      end
+
+      def derive_authors_year
+        add_author_year(author_year_string) 
+      end
 
       def rank=(rank)
         r = rank.to_s.downcase.strip
@@ -57,7 +70,7 @@ module Taxonifi
       # TODO: rename to reflect parens
       def author_year
         au = author_year_string
-        if self.original_combination == false
+        if self.parens == false
           "(#{au})"        
         else
           au.size == 0 ? nil : au
@@ -87,7 +100,27 @@ module Taxonifi
         end
       end
 
-    end
+      def parent_ids_sf_style
+        ids = [] 
+        ancestors.each do |a|
+         case a.rank
+         when 'genus'
+           ids.push "#{a.id}g"
+         when 'subgenus'
+           ids.push "#{a.id}s"
+         else
+          ids.push a.id.to_s
+         end
+        end
+        ids.join("-")
+      end
+  
+      # todo: cache this 
+      def compact_author_year_index
+        Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
+      end
+
+    end 
 
 
     # Candidates for IcznName < Taxonify::Model::Name

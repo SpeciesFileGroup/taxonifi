@@ -77,7 +77,14 @@ class TestTaxonifiRef < Test::Unit::TestCase
   def test_that_author_year_strings_translate_to_author_years
     r = Taxonifi::Model::Ref.new(:author_year => 'Smith and Jones, 1920')
     assert_equal 2, r.authors.size 
-    assert_equal '1920', r.year
+    assert_equal 1920, r.year
   end
+
+  def test_compact_author_year_index
+    r = Taxonifi::Model::Ref.new(:author_year => 'Smith and Jones, 1920')
+    assert_equal '1920-||smith|-||jones|', r.compact_author_year_index
+  end
+
+
 
 end

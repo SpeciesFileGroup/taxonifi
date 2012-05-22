@@ -116,7 +116,7 @@ module Taxonifi::Lumper
               builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
               n.author               = builder.people 
               n.year                 = builder.year 
-              n.original_combination = !builder.parens
+              n.parens               = !builder.parens
             end
 
             name_id = nc.add_object(n).id

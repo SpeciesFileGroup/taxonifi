@@ -28,26 +28,26 @@ module Taxonifi
         @parent = nil
         build(ATTRIBUTES, opts)
         @authors = [] if @authors.nil?
-        build_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
+        add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
         true
       end
 
-      def build_author_year(string)
-        lexer = Taxonifi::Splitter::Lexer.new(string)
-        t = lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
-        @year = t.year
-
-        lexer = Taxonifi::Splitter::Lexer.new(t.authors)
-        t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
-        t.names.each do |n|
-          @authors.push Taxonifi::Model::Person.new(n)
-        end
+      def add_author_year(string)
+        auth_yr = Taxonifi::Splitter::Builder.build_author_year(string)
+        @year = auth_yr.year
+        @authors = auth_yr.people
       end
 
       # Returns a pipe delimited representation of the reference.
       def compact_string
         s = [authors.collect{|a| a.compact_string}.join, year, self.title, publication, volume, number, pages, pg_start, pg_end, cited_page].join("|").downcase.gsub(/\s/, '')
       end
+
+      def compact_author_year_index
+        Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
+      end
+
+
 
     end
   end

@@ -46,7 +46,7 @@ module Taxonifi
       end
 
       # TODO: deprecate?
-      # More or less identical to Taxonifi::Name.parent_id except
+      # More or less identical to Taxonifi::Name.ancestor_ids except
       # this checks against the indexed names in the collection
       # rather than Name->Name relationships
       # The two should be identical in all(?) conievable cases

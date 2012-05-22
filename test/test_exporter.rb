@@ -34,11 +34,6 @@ class Test_TaxonifiExports < Test::Unit::TestCase
     assert foo = e.export
     puts "\n"
     puts foo
-
-    debugger
-    foo = 1
-
-
   end
 
 end 

@@ -12,7 +12,7 @@ module Taxonifi
       def initialize(options = {})
         super 
         @collection = []
-        @by_name_index = {} # "foo => [1,2,3]"
+        @by_name_index = {}             # "foo => [1,2,3]"
         Taxonifi::RANKS.inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}
         @by_name_index['unknown'] = {} # unranked names get dumped in here
         @ref_collection = nil

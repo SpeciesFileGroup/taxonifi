@@ -90,12 +90,8 @@ module Taxonifi::Export
 
     def export
       @name_collection.generate_ref_collection
-
       # (incorrectly) assumes all authors matching on last names are the same Person
       @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
-
-     #  @name_collection.ref_collection.enumerate_authors
-     #  @name_collection.ref_collection.build_author_index
       
       MANIFEST.each do |f|
         send(f)
@@ -110,10 +106,10 @@ module Taxonifi::Export
         @name_collection.collection.each do |n|
           cols = {
             TaxonNameId: n.id,
-            TaxonNameStr: 'todo',                       # closure -> ends with 1 
+            TaxonNameStr: n.parent_ids_sf_style,        # closure -> ends with 1 
             RankID: SPECIES_FILE_RANKS[n.rank], 
             Name: n.name,
-            Parens: n.original_combination ? 0 : 1,
+            Parens: n.parens ? 0 : 1,
             AboveID: n.related_name.nil? ? (n.parent ? n.parent.id : nil) : n.related_name.id,
             RefID: 'todo',
             DataFlags: 0,                               # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
