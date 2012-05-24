@@ -74,7 +74,7 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
             lexer = Taxonifi::Splitter::Lexer.new(s)
             assert t = lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
             assert_equal a.strip, t.authors
-            assert_equal (y.size > 0 ? y.strip : nil), t.year
+            assert_equal (y.size > 0 ? y.strip.to_i : nil), t.year
             assert_equal p, t.parens
             s = nil
           end

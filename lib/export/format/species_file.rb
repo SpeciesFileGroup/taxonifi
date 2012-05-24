@@ -75,35 +75,60 @@ module Taxonifi::Export
     }
 
     attr_accessor :name_collection
+    attr_accessor :genus_names, :species_names, :nomenclator
 
-    MANIFEST = %w{tblTaxa tblRefs tblPeople tblRefAuthors} 
+    # MANIFEST order is important
+    MANIFEST = %w{tblTaxa tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
 
     def initialize(options = {})
       opts = {
-        :nc => Taxonifi::Model::NameCollection.new
+        :nc => Taxonifi::Model::NameCollection.new,
+        :export_folder => 'species_file'
       }.merge!(options)
-
+      super(opts)
+      
       raise Taxonifi::Export::ExportError, 'NameCollection not passed to SpeciesFile export.' if ! opts[:nc].class == Taxonifi::Model::NameCollection
       @name_collection = opts[:nc]
+      
       @author_index = {}
+     
+      # 
+      # Careful here, at present we are just generating Reference microcitations from our names, so the indexing "just works"
+      # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
+      # include references external to the initialized name_collection. 
+      #
+      @by_author_reference_index = {}
+      @genus_names = {}
+      @species_names = {}
+      @nomenclator = {}
+      
     end 
 
     def export
+      super
+
       @name_collection.generate_ref_collection
       # (incorrectly) assumes all authors matching on last names are the same Person
       @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
-      
+
+      # See notes in initalize re potential key collisions!
+      @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
+      @name_collection.names_at_rank('genus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
+
       MANIFEST.each do |f|
-        send(f)
+        write_file(f, send(f))
       end
     end
 
-    # This maps Taxonifi::Name properties to SpeciesFile tblTaxa
     def tblTaxa
       @headers = %w{TaxonNameId TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
         @name_collection.collection.each do |n|
+          ref = @by_author_reference_index[n.author_year_index]
           cols = {
             TaxonNameId: n.id,
             TaxonNameStr: n.parent_ids_sf_style,        # closure -> ends with 1 
@@ -111,23 +136,21 @@ module Taxonifi::Export
             Name: n.name,
             Parens: n.parens ? 0 : 1,
             AboveID: n.related_name.nil? ? (n.parent ? n.parent.id : nil) : n.related_name.id,
-            RefID: 'todo',
-            DataFlags: 0,                               # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
+            RefID: (ref ? ref.id : nil),
+            DataFlags: 0,                                # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
             AccessCode: 0,             
-            NameStatus: 'todo',                         # 0 (valid, 1, synonym)
-            StatusFlags: 'todo',                        # 0: valid; 40000: jr. synonym
-            OriginalGenusId: 'todo',                    
+            NameStatus: (n.related_name.nil? ? 0 : 7),     # 0 :valid, 7: synonym)
+            StatusFlags: (n.related_name.nil? ? 0 : 262144), # 0 :valid, 262144: jr. synonym
+            OriginalGenusId: (n.parens ? n.parent_at_rank('genus').id : nil),                     
             LastUpdate: Time.now(),
             ModifiedBy: 'todo',
           }
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
       end
-
-      puts @csv_string
+     @csv_string
     end
 
-    # This maps Taxonifi::Name properties to SpeciesFile tblTaxa
     def tblRefs
       @headers = %w{RefID Title StatedYear ActualYear PubID Notes}
       @csv_string = CSV.generate() do |csv|
@@ -141,8 +164,7 @@ module Taxonifi::Export
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
       end
-
-      puts @csv_string
+      @csv_string
     end
 
     def tblPeople
@@ -167,7 +189,7 @@ module Taxonifi::Export
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
       end
-      puts @csv_string
+      @csv_string
     end
 
     def tblRefAuthors
@@ -190,7 +212,87 @@ module Taxonifi::Export
           end
         end
       end
-      puts @csv_string
+      @csv_string
+    end
+
+    def tblCites
+      @headers = %w{TaxonNameID SeqNum RefID NomenclatorID LastUpdate ModifiedBy NewNameStatus}
+      @csv_string = CSV.generate() do |csv|
+        csv << @headers  
+        @name_collection.collection.each_with_index do |n,i|
+          ref = @by_author_reference_index[n.author_year_index]
+          ref_id = ref.id if ref
+          cols = {
+            TaxonNameID: n.id,
+            SeqNum: 1,
+            RefID: ref_id,
+            NomenclatorID: @nomenclator[n.nomenclator_name], 
+            LastUpdate: Time.now(),
+            ModifiedBy: "todo",
+            NewNameStatus: 0,
+          }
+          csv <<  @headers.collect{|h| cols[h.to_sym]} 
+        end
+      end
+      @csv_string
+    end
+
+    def tblGenusNames
+      @csv_string = csv_for_genus_and_species_names_tables('Genus')
+      @csv_string
+    end
+
+    def tblSpeciesNames
+      @csv_string = csv_for_genus_and_species_names_tables('Species')
+      @csv_string
+    end
+
+    def csv_for_genus_and_species_names_tables(type)
+      col = "#{type}NameID"
+      @headers = [col, "Name", "LastUpdate", "ModifiedBy", "Italicize"]
+      @csv_string = CSV.generate() do |csv|
+        csv << @headers 
+        var = self.send("#{type.downcase}_names")
+        var.keys.each_with_index do |n,i|
+          var[n] = i
+          cols = {
+            col.to_sym => i,
+            Name: n,
+            LastUpdate: Time.now(),
+            ModifiedBy: 'todo',
+            Italicize: 1                 # always true for these data
+          }
+          csv <<  @headers.collect{|h| cols[h.to_sym]} 
+        end
+      end
+      @csv_string 
+    end
+
+    # must be called post tblGenusNames and tblSpeciesNames
+    def tblNomenclator
+      @headers = %w{NomenclatorID GenusNameID SubgenusNameID SpeciesNameID SubspeciesNameID LastUpdate ModifiedBy SuitableForGenus SuitableForSpecies}
+      @csv_string = CSV.generate() do |csv|
+        csv << @headers
+        i = 0
+        @name_collection.collection.each do |n|
+          next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('genus')
+          cols = {
+            NomenclatorID: i,
+            GenusNameID: @genus_names[n.parent_name_at_rank('genus')],
+            SubgenusNameID: @genus_names[n.parent_name_at_rank('subgenus')],
+            SpeciesNameID: @species_names[n.parent_name_at_rank('species')],
+            SubspeciesNameID: @species_names[n.parent_name_at_rank('subspecies')],
+            LastUpdate: Time.now(),   
+            ModifiedBy: 'todo',         
+            SuitableForGenus: 0,            # Set in SF 
+            SuitableForSpecies: 0           # Set in SF
+          }
+          @nomenclator.merge!(n.nomenclator_name => i)
+          i += 1
+          csv <<  @headers.collect{|h| cols[h.to_sym]} 
+        end
+      end
+      @csv_string
     end
 
   end

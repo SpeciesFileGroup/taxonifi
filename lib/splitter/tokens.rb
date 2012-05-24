@@ -51,7 +51,7 @@ module Taxonifi::Splitter::Tokens
       end
       # check for year
       if w =~ /(\d\d\d\d)\Z/
-        @year = $1
+        @year = $1.to_i
         w.gsub!(/\d\d\d\d\Z/, "")
         w.strip!
       end

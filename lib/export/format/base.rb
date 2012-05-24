@@ -2,23 +2,37 @@ module Taxonifi::Export
 
   class Base
 
-    EXPORT_PATH = ''
+    EXPORT_BASE =  File.expand_path(File.join(Dir.home(), 'taxonifi', 'export')) 
 
-    attr_accessor :export_path
+    attr_accessor :base_export_path, :export_folder
 
     def initialize(options = {})
       opts = {
-        :export_path => EXPORT_PATH
+        :base_export_path => EXPORT_BASE,
+        :export_folder => '.'
       }.merge!(options)
 
-      @export_path = opts[:export_path]  
+      @base_export_path = opts[:base_export_path]  
+      @export_folder = opts[:export_folder] 
     end
+
+    def export_path
+      File.expand_path(File.join(@base_export_path, @export_folder))
+    end 
 
     def export
-      # TODO: some tmp file configuration here
+      configure_folders
     end
 
-    def configure
+    def configure_folders
+      FileUtils.mkdir_p export_path
+    end
+
+    def write_file(filename = 'foo', string = nil)
+      raise ExportError, 'Nothing to export for #{filename}.' if string.nil? || string == ""
+      f = File.new( File.expand_path(File.join(export_path, filename)), 'w+')
+      f.puts string
+      f.close
     end
 
   end

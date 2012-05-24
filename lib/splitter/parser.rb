@@ -38,6 +38,7 @@ class Taxonifi::Splitter::Parser
       @builder.names.last.author = t.authors
       @builder.names.last.year = t.year
       @builder.names.last.parens = !t.parens
+      @builder.names.last.derive_authors_year
     end
   
     @builder

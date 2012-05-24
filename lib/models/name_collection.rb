@@ -116,6 +116,8 @@ module Taxonifi
         @ref_collection = rc 
       end
 
+
+
       protected
 
       def index_by_name(obj)

@@ -16,8 +16,6 @@ class Test_TaxonifiExports < Test::Unit::TestCase
     nc = Taxonifi::Lumper::Lumps::EolNameCollection.name_collection(@csv)
     e = Taxonifi::Export::SpeciesFile.new(:nc => nc)
     assert foo = e.export
-    puts "\n"
-    puts foo
   end 
 
   def test_big_file
@@ -32,8 +30,6 @@ class Test_TaxonifiExports < Test::Unit::TestCase
     nc = Taxonifi::Lumper::Lumps::EolNameCollection.name_collection(csv)
     e = Taxonifi::Export::SpeciesFile.new(:nc => nc)
     assert foo = e.export
-    puts "\n"
-    puts foo
   end
 
 end 

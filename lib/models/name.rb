@@ -32,6 +32,7 @@ module Taxonifi
         add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
         @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
         @id = opts[:id] # if !opts[:id].nil? && opts[:id].size != 0
+        @authors ||= []
         true
       end 
 
@@ -58,6 +59,7 @@ module Taxonifi
           raise Taxonifi::NameError, "Parent of name can not be set if rank of child is not set." 
         end
 
+        # todo: ICZN class over-ride
         if parent.class != Taxonifi::Model::Name
           raise NameError, "Parent is not a Taxonifi::Model::Name."
         end
@@ -92,20 +94,42 @@ module Taxonifi
       end
 
       def parent_name_at_rank(rank)
+        return self.name if self.rank == rank
         p = @parent
+        i = 0
         while !p.nil?
           return p.name if p.rank == rank
           p = p.parent
+          i+= 1
+          raise NameError, "Loop detected among parents for [#{self.display_name}]." if i > 75 
+        end
+        nil 
+      end
+
+      def parent_at_rank(rank)
+        return self if self.rank == rank
+        p = @parent
+        i = 0
+        while !p.nil?
+          return p if p.rank == rank
+          p = p.parent
+          raise NameError, "Loop detected among parents fo [#{self.display_name}]" if i > 75 
         end
         nil 
       end
 
       def display_name
+        [nomenclator_name, author_year].compact.join(" ")
+      end
+
+      def nomenclator_name 
         case @rank
         when 'species', 'subspecies'
-          [parent_name_at_rank('genus'), parent_name_at_rank('subgenus'), parent_name_at_rank('species'), @name, author_year].compact.join(" ")
+          [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "({parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'), @name].compact.join(" ")
+        when 'subgenus'
+          [parent_name_at_rank('genus'), "(#{@name})"].compact.join(" ")
         else
-          [@name, author_year].compact.join(" ")
+          [@name].compact.join(" ")
         end
       end
 
