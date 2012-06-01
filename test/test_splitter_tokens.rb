@@ -153,8 +153,20 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
         "Torre-Bueno, J. R. de la",                             # 22
         "Vollenhoven, S. C. S.",                                # 23
         "Usinger, R. L. and P. D. Ashlock",                     # 24
-        "van den Bosch, R. and K. Hagen",                       # 25
+        "van den Bosch, R. and K. Hagen",                       # 26
+        "Slater, J. A. and J. E. O'Donnell",                    # 26
+        "O'Donnell, J.E. and Slater, J. A.",                    # 27
     ]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[27])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["O'Donnell", "Slater" ], t.names.collect{|n| n[:last_name] }
+    assert_equal [["J", "E"],["J", "A"]] , t.names.collect{|n| n[:initials] }
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[26])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Slater", "O'Donnell"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["J", "A"],["J", "E"]] , t.names.collect{|n| n[:initials] }
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[25])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
