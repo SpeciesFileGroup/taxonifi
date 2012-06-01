@@ -130,19 +130,16 @@ class TestTaxonifiName < Test::Unit::TestCase
 
   def test_parent_ids_sf_style
     create_a_few_names 
-    assert_equal '2-15-14g-19s', @n4.parent_ids_sf_style
-    assert_equal '2-15-14g', @n3.parent_ids_sf_style
-    assert_equal '2-15', @n2.parent_ids_sf_style
-    assert_equal '2', @n1.parent_ids_sf_style
+    assert_equal '2-15-14g-19s-11', @n4.parent_ids_sf_style
+    assert_equal '2-15-14g-19s', @n3.parent_ids_sf_style
+    assert_equal '2-15-14g', @n2.parent_ids_sf_style
+    assert_equal '2-15', @n1.parent_ids_sf_style
   end 
  
   def test_author_year_index
     n = Taxonifi::Model::Name.new(author_year: 'Smith and Jones, 1920')
     assert_equal '1920-||smith|-||jones|', n.author_year_index
   end
-
-
-
 
   # 
   # ICZN Subclass

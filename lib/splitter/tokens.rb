@@ -63,23 +63,25 @@ module Taxonifi::Splitter::Tokens
 
   # See test_splitter_tokens.rb for scope. As with
   # AuthorYear this will match just about anything.
-  # If the match breakdown has "doubts" @flag == true
-  # Add exceptions at will, just test using test_authors.
+  # If the match breakdown has "doubts" then @flag is set to  true
+  # Add exceptions at will, just test using TestSplittTokens#test_authors.
   # TODO: Unicode the [a-z] bits?
   class Authors < Token
     attr_reader :names
     @regexp = Regexp.new(/\A\s*([^\d]+)\s*/i)
 
-    def initialize(str)
+    def initialize(input)
+      str = input 
       @names = [] 
       str.strip!
       naked_and = false # look for the pattern 'Foo, Bar and Smith', i.e. no initials
       individuals = []
+      last_individual = nil
 
       # We can simplify if there is an "and" or & 
       if str =~ /(\s+and\s+|\&)/i
-        l,r = str.split(/\s+and\s+|\s+\&\s+/i, 2)
-        individuals << r
+        l,r = str.split(/\s+\,?\s*and\s+|\s+\&\s+/i, 2) # added \, \s+
+        last_individual = r
         str = l  
         naked_and = true
       end
@@ -91,48 +93,107 @@ module Taxonifi::Splitter::Tokens
         str = nil 
       end
 
-      # Break down remaining individuals, do the most obvious matches first
-      if str =~ /\.\,\s*|\.;\s*/  # Period, comma for sure means a split
-        individuals.unshift str.split(/\.\,\s*|\.;\s*/)
-      elsif str =~/[A-Z]\s*[,;]{1}/ # Capital followed by Comma also suggests split
-        # Positive look behind (?<= ) FTW 
-        individuals.unshift str.split(/(?<=[A-Z])\s*[;,]{1}\s*/) # we split on all commas
-      elsif str != nil # looks like a single individual
-        individuals.unshift str
-        @flag = true
+      # Look for an exception case, no period and multiple commas, like:
+      #   Foo A, Bar ZA, Smith-Blorf A
+      if str && !naked_and && (str.split(",").size > 2) && !(str =~ /\./)
+        individuals = str.split(",")
+        str = nil
       end
+
+      m1 = Regexp.new(/^\s*((van\s*den)?\s*[A-Z][a-z]+(\-[A-Z][a-z]+)?\s*,\s*(\s*[A-Z](\-[A-Z])?\s*\.\s*){1,}(de la)?(,\s*Jr\.)?(\,\s*von)?)\s*/)
+      m2 = Regexp.new(/^\s*(([A-Z]\.\s*){1,}[A-Z][a-z]+),/) 
+      # /^\s*(
+      #       (van\s*den)?          # Optional prefix
+      #       [A-Z][a-z]+           # Capitalized name
+      #       (\-[A-Z][a-z]+)?      # Optional dashed name
+      #       \s*,\s*               # spaced comma
+      #       (\s*[A-Z]             # Initials
+      #        (\-[A-Z])?           # Optional dashed initial
+      #       \s*\.\s*){1,}         # One or more initials
+      #       (de la)?              # Optional post-fixes
+      #       (,\s*Jr\.)?
+      #       (,\s*von)?
+      #       )
+      #   /x 
+      #     (Watson, T. F.,),
+      # /^\s*(([A-Z]\.\s*){1,}[A-Z][a-z]+),/          (R. Watson | R.F. Watson),
+
+      # pick off remaining authors one at a time 
+      if str
+        parsing = true
+        i = 0
+        while parsing
+          individual = ''
+          check_for_more_individuals = false
+          [m2, m1].each do |regex|
+            if str =~ regex
+              individual = $1
+              str.slice!(individual)
+              str.strip!
+              str.slice!(",")
+              individuals.push(individual)
+              check_for_more_individuals = true # at least once match, keep going
+            end
+          end
+
+          # puts "[#{individual}] : #{str}"
+          if !check_for_more_individuals
+            if str && str.size != 0
+              individuals.push(str)
+              parsing = false
+            end
+          end
+
+          i += 1
+          raise if i > 100
+          parsing = false if str.size == 0
+        end
+      end
+
+      # Note to remember positive look behind (?<= ) for future hax
+      # str.split(/(?<=[A-Z])\s*[;,]{1}\s*/, 2)
+
+      individuals.push(last_individual) if !last_individual.nil?
+
+      # At this point we have isolated individuals.  Strategy is to slice out initials and remainder is last name.
+      # Initials regex matches any A-B. A. or " A ", "A-B" pattern (including repeats) 
+      # TODO: Make a Token
+      match_initials = Regexp.new(/(((\s([A-Z](\-[A-Z])?\s?){1,})$)|(([A-Z](\-[A-Z|a-z]\s*)?\.\s*){1,})|(\s([A-Z](\-[A-Z])?\s){1,}))/)
 
       individuals.flatten!
 
+      suffixes = [
+        Regexp.new(/(jr\.)/i),
+        Regexp.new(/(von)/i),
+        Regexp.new(/(de la)/i),
+      ]
+
       individuals.each do |i|
+        a = {}  # new author
+
         initials = nil
         last_name = nil
-        if i =~ /,/
-          last_name, initials = i.split(/,/, 2)
-        elsif i =~ /s*(\w{1,})\s{1,}([A-Z][a-z]{1,})s*/ # Looks like a "Van Duzen" esque pattern, guess there is just one name
+        if i =~ match_initials
+          initials = $1
+          i.slice!(initials)
+          i.strip! 
           last_name = i
-        else # space must indicate the split
-          if i =~ /\s/
-            last_name, initials = i.split(/\s/, 2)
-          else # TODO: this else not tested
-            last_name = i
+        else
+          last_name = i
+        end
+
+        suffixes.each do |s|
+          if last_name =~ s
+            a[:suffix] = $1
+            last_name.slice!(a[:suffix])
+            break  # TODO: suffix is single string now, "von Foobar Jr. III" is going to fail
           end
         end
-        
-        a = {} 
+
+        last_name.gsub!(/\.|\,/, '')
+
         a[:last_name] = last_name.strip if last_name # "if" not fully tested for consequences
-
-        if initials =~ /jr\./i 
-          a[:suffix] = "jr"
-          initials.gsub!(/jr\./i, '')
-        end
-
-        if initials =~ /\s*von\s*/ 
-          a[:suffix] = "von" 
-          initials.gsub!(/\s*von\s*/, '')
-        end
-      
-        a[:initials] = initials.strip.split(/\s|\./).collect{|v| v.strip} if initials && initials.size > 0
+        a[:initials] = initials.strip.split(/\s|\./).collect{|v| v.strip}.select{|x| x.size > 0} if initials && initials.size > 0
 
         @names << a
       end

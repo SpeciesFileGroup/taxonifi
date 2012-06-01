@@ -22,7 +22,11 @@ module Taxonifi
         attr_accessor a
       end
 
-      attr_accessor :author_year_index 
+      # Computed index (string) based on existing Ref#authors and Ref#year
+      attr_accessor :author_year_index
+
+      # The full text of the citation, as read from input or assigned, not computed from individual components. 
+      attr_accessor :full_citation   
 
       def initialize(options = {})
         opts = {
@@ -43,6 +47,7 @@ module Taxonifi
       # Returns a pipe delimited representation of the reference.
       def compact_string
         s = [authors.collect{|a| a.compact_string}.join, year, self.title, publication, volume, number, pages, pg_start, pg_end, cited_page].join("|").downcase.gsub(/\s/, '')
+        s
       end
 
       def author_year_index

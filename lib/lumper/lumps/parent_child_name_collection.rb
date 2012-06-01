@@ -1,7 +1,7 @@
 
-# This is really DwC, as dumped by EoL, revise to reflect that
+# This is really DwC, as dumped by EoL.
 
-module Taxonifi::Lumper::Lumps::EolNameCollection
+module Taxonifi::Lumper::Lumps::ParentChildNameCollection
 
   def self.name_collection(csv)
     raise Taxonifi::Lumper::LumperError, "CSV does not have the required headers (#{Taxonifi::Lumper::LUMPS[:eol_basic].join(", ")})." if  !Taxonifi::Lumper.available_lumps(csv.headers).include?(:eol_basic)

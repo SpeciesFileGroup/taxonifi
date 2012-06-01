@@ -3,7 +3,6 @@ module Taxonifi::Export
   class Base
 
     EXPORT_BASE =  File.expand_path(File.join(Dir.home(), 'taxonifi', 'export')) 
-
     attr_accessor :base_export_path, :export_folder
 
     def initialize(options = {})
@@ -19,7 +18,9 @@ module Taxonifi::Export
     def export_path
       File.expand_path(File.join(@base_export_path, @export_folder))
     end 
-
+      
+    # Subclassed models expand on this method, typically writing files
+    # to the folders created here.
     def export
       configure_folders
     end

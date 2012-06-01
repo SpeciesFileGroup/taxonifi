@@ -102,12 +102,13 @@ module Taxonifi
         obj
       end
 
-      def generate_ref_collection
-        rc = Taxonifi::Model::RefCollection.new
+      def generate_ref_collection(initial_id = 0)
+        rc = Taxonifi::Model::RefCollection.new(:initial_id => initial_id)
         if collection.size > 0
-          uniques = collection.inject({}){|hsh, n| hsh.merge!(n.author_year => nil)}.keys.compact
-          if uniques.size > 0
+          uniques = collection.inject({}){|hsh, n| hsh.merge!(n.author_year_string => nil)}.keys.compact
+          if  uniques.size > 0
             uniques.sort.each_with_index do |r, i|
+              next if r.size == 0
               ref = Taxonifi::Model::Ref.new(:author_year => r)        
               rc.add_object(ref)
             end
@@ -115,8 +116,6 @@ module Taxonifi
         end
         @ref_collection = rc 
       end
-
-
 
       protected
 

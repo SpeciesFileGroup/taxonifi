@@ -23,7 +23,8 @@ module Taxonifi
         @row_index[row_number]
       end
 
-      # (Re) Assigns the id of every associated
+      # (Re) Assigns the id of every associated author (Person).
+      # This is only really useful if you assume every author is unique.
       def enumerate_authors
         i = 0
         collection.each do |r|

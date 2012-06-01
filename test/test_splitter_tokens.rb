@@ -125,28 +125,85 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
   end
 
 
-  # Modify Tokens
+  # Token is very flexible.  
   def test_authors
     auths = [
-        "Jepson, J.E.,Makarkin, V.N., & Jarzembowski, E.A.",  # 0
-        "Ren, D & Meng, X-m.",                                # 1
-        "Ren, D and Meng, X-m.",                              # 2
-        "Smith, J.H. and Jones, Y.K.",                        # 3 
-        "Thomas jr. D.B.",                                    # 4
-        "Wighton, D.C., & Wilson, M.V.H.",                    # 5
-        "Heyden, C.H.G. von & Heyden, L.F.J.D. von",          # 6 
-        "Zhang, B., et al.",                                  # 7
-        " Zhang, J.F. ",                                      # 8
-        "Hong, Y-C.",                                         # 9 
-        "Yan, E.V.",                                          # 10
-        "Foo A, Bar ZA, Smith-Blorf A",                       # 11
-        "Smith and Barnes",                                   # 12
-        "Smith & Barnes",                                     # 13 
-        "Smith",                                              # 14 
-        "Smith, Jones and Simon",                             # 15
-        "Van Duzee"                                           # 16
+        "Jepson, J.E.,Makarkin, V.N., & Jarzembowski, E.A.",    # 0
+        "Ren, D & Meng, X-m.",                                  # 1
+        "Ren, D and Meng, X-m.",                                # 2
+        "Smith, J.H. and Jones, Y.K.",                          # 3 
+        "Thomas jr. D.B.",                                      # 4
+        "Wighton, D.C., & Wilson, M.V.H.",                      # 5
+        "Heyden, C.H.G. von & Heyden, L.F.J.D. von",            # 6 
+        "Zhang, B., et al.",                                    # 7
+        " Zhang, J.F. ",                                        # 8
+        "Hong, Y-C.",                                           # 9 
+        "Yan, E.V.",                                            # 10
+        "Foo A, Bar ZA, Smith-Blorf A",                         # 11
+        "Smith and Barnes",                                     # 12
+        "Smith & Barnes",                                       # 13 
+        "Smith",                                                # 14 
+        "Smith, Jones and Simon",                               # 15
+        "Van Duzee",                                            # 16
+        "Walker, F.",                                           # 17
+        "Watson, T. F., D. Langston, D. Fullerton, R. Rakickas, B. Engroff, R. Rokey, and L. Bricker",  # 18
+        "Wheeler, A. G., Jr. and T. J. Henry.",                 # 19
+        "Wheeler, A. G., Jr., B. R. Stinner, and T. J. Henry",  # 20
+        "Wilson, L. T. and A. P. Gutierrez",                    # 21
+        "Torre-Bueno, J. R. de la",                             # 22
+        "Vollenhoven, S. C. S.",                                # 23
+        "Usinger, R. L. and P. D. Ashlock",                     # 24
+        "van den Bosch, R. and K. Hagen",                       # 25
     ]
 
+    lexer = Taxonifi::Splitter::Lexer.new(auths[25])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["van den Bosch", "Hagen"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["R"],["K"]] , t.names.collect{|n| n[:initials] }
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[24])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Usinger", "Ashlock"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["R", "L"],["P", "D"]] , t.names.collect{|n| n[:initials] }
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[23])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Vollenhoven"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["S", "C", "S"]] , t.names.collect{|n| n[:initials] }
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[22])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Torre-Bueno"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["J", "R"]] , t.names.collect{|n| n[:initials] }
+    assert_equal "de la", t.names.first[:suffix]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[21])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Wilson", "Gutierrez"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["L", "T"], ["A", "P"]] , t.names.collect{|n| n[:initials] }
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[20])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Wheeler", "Stinner", "Henry"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["A", "G"], ["B", "R"], ["T", "J"]] , t.names.collect{|n| n[:initials] }
+    assert_equal "Jr.", t.names.first[:suffix]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[19])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Wheeler", "Henry"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["A", "G"], ["T", "J"]] , [t.names.first[:initials], t.names.last[:initials]]
+    assert_equal "Jr.", t.names.first[:suffix]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[18])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ["Watson", "Langston", "Fullerton", "Rakickas", "Engroff", "Rokey", "Bricker"], t.names.collect{|n| n[:last_name] }
+    assert_equal [["T", "F"], ["L"]] , [t.names.first[:initials], t.names.last[:initials]]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[17])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal 1, t.names.size
+    assert_equal "Walker", t.names[0][:last_name]
+    assert_equal ["F"], t.names[0][:initials]
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[16])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)

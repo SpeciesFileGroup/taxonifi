@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
 # Builder construction
 
-class Test_TaxonifiLumperEolNameCollection < Test::Unit::TestCase
+class Test_TaxonifiLumperParentChildNameCollection < Test::Unit::TestCase
 
   def setup
     @headers = %W{identifier parent child rank synonyms}
@@ -20,7 +20,7 @@ class Test_TaxonifiLumperEolNameCollection < Test::Unit::TestCase
   end
 
   def _create_a_collection
-    @nc = Taxonifi::Lumper::Lumps::EolNameCollection.name_collection(@csv)
+    @nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(@csv)
   end
 
   def test_that_name_collection_returns_a_name_collection

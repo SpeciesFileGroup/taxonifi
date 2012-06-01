@@ -13,6 +13,7 @@ module Taxonifi
         opts = {
           :initial_id => 0
         }.merge!(options)
+        raise CollectionError, "Can not start with an initial_id of nil." if opts[:initial_id].nil?
         @collection = []
         @by_id_index = {} 
         @current_free_id = opts[:initial_id]
