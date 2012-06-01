@@ -93,30 +93,35 @@ module Taxonifi::Splitter::Tokens
         str = nil 
       end
 
-      # Look for an exception case, no period and multiple commas, like:
+      # Look for an exception case, no periods and multiple commas, like:
       #   Foo A, Bar ZA, Smith-Blorf A
       if str && !naked_and && (str.split(",").size > 2) && !(str =~ /\./)
         individuals = str.split(",")
         str = nil
       end
 
-      m1 = Regexp.new(/^\s*((van\s*den)?\s*[A-Z][a-z]+(\-[A-Z][a-z]+)?\s*,\s*(\s*[A-Z](\-[A-Z])?\s*\.\s*){1,}(de la)?(,\s*Jr\.)?(\,\s*von)?)\s*/)
-      m2 = Regexp.new(/^\s*(([A-Z]\.\s*){1,}[A-Z][a-z]+),/) 
-      # /^\s*(
-      #       (van\s*den)?          # Optional prefix
-      #       [A-Z][a-z]+           # Capitalized name
-      #       (\-[A-Z][a-z]+)?      # Optional dashed name
-      #       \s*,\s*               # spaced comma
-      #       (\s*[A-Z]             # Initials
-      #        (\-[A-Z])?           # Optional dashed initial
-      #       \s*\.\s*){1,}         # One or more initials
-      #       (de la)?              # Optional post-fixes
-      #       (,\s*Jr\.)?
-      #       (,\s*von)?
-      #       )
-      #   /x 
-      #     (Watson, T. F.,),
-      # /^\s*(([A-Z]\.\s*){1,}[A-Z][a-z]+),/          (R. Watson | R.F. Watson),
+      prefix = ['van den ', 'Van ', "O'", "Mc", 'Campos ', 'Costa ']
+      pre_reg = prefix.collect{|p| "(#{Regexp.escape(p)})?"}.join
+
+      postfix = ['de la', ', Jr.', 'von', 'da'] 
+      post_reg = postfix.collect{|p| "(#{Regexp.escape(p)})?"}.join
+
+      m1 = Regexp.new(/^\s*(#{pre_reg}             # legal prefix words, includes space if present
+                            [A-Z][a-z]+            # a captialized Name 
+                            (\-[A-Z][a-z]+)?       # optional dashed addition
+                            \s*,\s*                # required comma
+                            (\s*                   #  initials, optionally surrounded by whitescape
+                             (\-)?                 # optional preceeding dash, hits second initials 
+                             [A-Z]                 # required capital initial
+                             (\-)?                 # optional initial dash   
+                             (\-[A-Z])?            # optional dashed initial
+                            \s*\.                  # required period
+                            \s*)              
+                            {1,}                   # repeat initials as necessary
+                            #{post_reg})           # optional legal postfixes
+                        \s*/x)
+
+      m2 = Regexp.new(/^\s*(([A-Z]\.\s*){1,}#{pre_reg}[A-Z][a-z]+#{post_reg}),/)  #  (R. Watson | R.F. Watson),
 
       # pick off remaining authors one at a time 
       if str
@@ -158,14 +163,15 @@ module Taxonifi::Splitter::Tokens
       # At this point we have isolated individuals.  Strategy is to slice out initials and remainder is last name.
       # Initials regex matches any A-B. A. or " A ", "A-B" pattern (including repeats) 
       # TODO: Make a Token
-      match_initials = Regexp.new(/(((\s([A-Z](\-[A-Z])?\s?){1,})$)|(([A-Z](\-[A-Z|a-z]\s*)?\.\s*){1,})|(\s([A-Z](\-[A-Z])?\s){1,}))/)
+      match_initials = Regexp.new(/(((\s((\-)?[A-Z](\-[A-Z])?\s?){1,})$)|(((\-)?[A-Z](\-[A-Z|a-z]\s*)?\.\s*){1,})|(\s((\-)?[A-Z](\-[A-Z])?\s){1,}))/)
 
       individuals.flatten!
 
       suffixes = [
-        Regexp.new(/(jr\.)/i),
-        Regexp.new(/(von)/i),
-        Regexp.new(/(de la)/i),
+        Regexp.new(/\s(jr\.)/i),
+        Regexp.new(/\s(von)\s?/i),
+        Regexp.new(/\s(de la)\s?/i),
+        Regexp.new(/\s(da)\s?/i),
       ]
 
       individuals.each do |i|
@@ -182,7 +188,7 @@ module Taxonifi::Splitter::Tokens
           last_name = i
         end
 
-        suffixes.each do |s|
+        suffixes.each do |s| # .collect{|p| Regexp.escape(p)}.each do |s|
           if last_name =~ s
             a[:suffix] = $1
             last_name.slice!(a[:suffix])
