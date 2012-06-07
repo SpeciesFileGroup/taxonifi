@@ -1,5 +1,9 @@
 
 module Taxonifi::Export
+
+  # Dumps tables identical to the existing structure in SpeciesFile.
+  # Will only work in the pre Identity world.  Will reconfigure
+  # as templates for Jim's work after the fact.
   class SpeciesFile < Taxonifi::Export::Base
 
     # tblRanks 5/17/2012
@@ -49,9 +53,10 @@ module Taxonifi::Export
     }
 
     attr_accessor :name_collection
+    attr_accessor :ref_collection
+    attr_accessor :author_index
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
-    
 
     # MANIFEST order is important
     MANIFEST = %w{tblTaxa tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
@@ -68,31 +73,53 @@ module Taxonifi::Export
       raise Taxonifi::Export::ExportError, 'You must provide authorized_user_id for species_file export initialization.' if opts[:authorized_user_id].nil?
       @name_collection = opts[:nc]
       @authorized_user_id = opts[:authorized_user_id]
-      
       @author_index = {}
      
       # 
-      # Careful here, at present we are just generating Reference microcitations from our names, so the indexing "just works"
+      # Careful here, at present we are just generating Reference micro-citations from our names, so the indexing "just works"
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
-      # include references external to the initialized name_collection. 
+      # include references external to the initialized name_collection.  See also export_references.
       #
       @by_author_reference_index = {}
       @genus_names = {}
       @species_names = {}
       @nomenclator = {}
       @time = Time.now.strftime("%F %T") 
-
-      
     end 
 
-    def export
-      super
+    # Export only the ref_collection. Sidesteps the main name-centric exports
+    # Note that this still uses the base @name_collection object as a starting reference,
+    # it just references @name_collection.ref_collection.  So you can do:
+    #   nc = Taxonifi::Model::NameCollection.new
+    #   nc.ref_collection = Taxonifi::Model::RefCollection.new
+    #   etc.
+    def export_references(options = {})
+      opts = {
+        :starting_ref_id => 0,
+        :starting_author_id => 0
+      }
 
-      @name_collection.generate_ref_collection(1)
-      @temp_ref_ids = @name_collection.ref_collection.collection.collect{|r| r.id} # UNUSED DEBBUGER
+      configure_folders
+      build_author_index 
 
-      # (incorrectly) assumes all authors matching on last names are the same Person
+      # order matters
+      ['tblPeople', 'tblRefs', 'tblRefAuthors', 'sqlRefs' ].each do |t|
+        write_file(t, send(t))
+      end
+    end
+
+    # Assumes names that are the same are the same person. 
+    def build_author_index
       @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
+    end
+      
+    def export()
+      super
+      @name_collection.generate_ref_collection(1)
+
+      # Give authors unique ids
+      @name_collection.ref_collection.uniquify_authors(1)
+      build_author_index 
 
       # See notes in #initalize re potential key collisions!
       @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
@@ -101,7 +128,6 @@ module Taxonifi::Export
       @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
-
 
       MANIFEST.each do |f|
         write_file(f, send(f))
@@ -136,9 +162,10 @@ module Taxonifi::Export
      @csv_string
     end
 
+    # Generate a tblRefs string.
     def tblRefs
-      @headers = %w{RefID Title PubID StatedYear ActualYear}
-      @csv_string = CSV.generate() do |csv|
+      @headers = %w{RefID ActualYear Title PubID  Verbatim}
+      @csv_string = CSV.generate(:col_sep => "\t") do |csv|
         csv << @headers  
         @name_collection.ref_collection.collection.each_with_index do |r,i|
           cols = {
@@ -146,7 +173,7 @@ module Taxonifi::Export
             Title: (r.title.nil? ? """""" : r.title),
             PubID: 0,                                   # Careful - assumes you have a pre-generated PubID of Zero in there, PubID table is not included in CSV imports
             ActualYear: r.year,
-            StatedYear: nil,
+            Verbatim: r.full_citation
           }
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
@@ -154,18 +181,37 @@ module Taxonifi::Export
       @csv_string
     end
 
+    # TODO make a standard transaction wrapper
+    def sqlRefs
+      sql = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
+      @headers = %w{RefID ActualYear Title PubID  Verbatim}
+      @name_collection.ref_collection.collection.each_with_index do |r,i|
+        cols = {
+          RefID: r.id, #  i + 1,
+          Title: (r.title.nil? ? """""" : r.title),
+          PubID: 0,                                   # Careful - assumes you have a pre-generated PubID of Zero in there, PubID table is not included in CSV imports
+          ActualYear: r.year,
+          Verbatim: r.full_citation
+        }
+        sql <<  "INSERT INTO tblRefs (#{@headers.sort.join(",")}) VALUES (#{@headers.sort.collect{|h| "'#{cols[h.to_sym].to_s.gsub(/'/,"''")}'"}.join(",")});"
+      end
+      sql << ['COMMIT', 'END TRY', 'BEGIN CATCH', 'ROLLBACK', 'END CATCH']
+      sql.join("\n") 
+    end
+
+    # Generate tblPeople string.
     def tblPeople
       @headers = %w{PersonID FamilyName GivenNames GivenInitials Suffix Role LastUpdate ModifiedBy}
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
         @author_index.keys.each_with_index do |k,i|
           a = @author_index[k] 
-          a.id = i + 1
+          # a.id = i + 1
           cols = {
             PersonID: a.id,
             FamilyName: a.last_name,
             GivenName: a.first_name,
-            GivenInitials: a.initials,
+            GivenInitials: a.initials_string,
             Suffix: a.suffix,
             Role: 1,                          # authors 
             LastUpdate: @time,
@@ -177,7 +223,8 @@ module Taxonifi::Export
       @csv_string
     end
 
-    def tblRefAuthors
+    # Generate tblRefAuthors string.
+    def tblRefAuthors 
       @headers = %w{RefID PersonID SeqNum AuthorCount LastUpdate ModifiedBy}
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
@@ -199,6 +246,7 @@ module Taxonifi::Export
       @csv_string
     end
 
+    # Generate tblCites string.
     def tblCites
       @headers = %w{TaxonNameID SeqNum RefID NomenclatorID LastUpdate ModifiedBy NewNameStatus CitePages Note TypeClarification CurrentConcept ConceptChange InfoFlags InfoFlagStatus PolynomialStatus}
       @csv_string = CSV.generate() do |csv|

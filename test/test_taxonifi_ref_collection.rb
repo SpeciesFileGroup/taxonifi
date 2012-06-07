@@ -48,6 +48,21 @@ class TestTaxonifiCollection < Test::Unit::TestCase
     assert_equal id, c.object_by_id(id).id
   end
 
+  def test_uniquify_authors
+    c = Taxonifi::Model::RefCollection.new
+    ['Smith, A.R. 1920', 'Jones, A.R. and Smith, A.R. 1940', 'Jones, B. 1999', 'Jones, A. R. 1922', 'Jones, A. R., Smith, A.R. and Frank, A. 1943'].each do |a|
+      n = Taxonifi::Model::Ref.new(:author_year => a)
+      c.add_object(n)
+    end
+    assert_equal 4, c.unique_authors.size
+    assert_not_equal c.collection.first.authors.first, c.collection[1].authors.last
+    c.uniquify_authors(5)
+    assert_equal c.collection.first.authors.first, c.collection[1].authors.last
+    assert_equal c.collection.first.authors.first, c.collection[4].authors[1]
+    assert_equal c.collection[1].authors.first, c.collection[3].authors.first
+    assert_equal 5, c.collection.first.authors.first.id 
+  end
+
 
 
 end

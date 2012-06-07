@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '../lib/export/exporter')) 
+require File.expand_path(File.join(File.dirname(__FILE__), '../lib/export/export')) 
 
 class Test_TaxonifiExports < Test::Unit::TestCase
 
@@ -9,7 +9,7 @@ class Test_TaxonifiExports < Test::Unit::TestCase
 
   def dont_test_that_species_file_export_does_stuff
     csv = generic_csv_with_names
-    nc = Taxonifi::Lumper::Lumps::EolNameCollection.name_collection(@csv)
+    nc = Taxonifi::Lumper::Lumps::EolNameCollection.name_collection(csv)
     e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 15)
     assert foo = e.export
   end 

@@ -166,8 +166,14 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
         "Maa, T.-C. and K.-S. Lin",                                                                                   # 35
         "Costa Lima, A. M. da, C. A. Campos Seabra, and C. R. Hathaway",                                              # 36
         "Falcon, L. A., R. van den Bosch, C. A. Ferris, L. K. Stromberg, L. K. Etzel, R. E. Stinner, and T. F. Leigh",  # 37
-        "Kinzer, R. E., J. W. Davis, Jr., J. R. Coppedge, and S. L. Jones"                # 38
+        "Kinzer, R. E., J. W. Davis, Jr., J. R. Coppedge, and S. L. Jones",                                           # 38
+        "Doesburg, P. H. van, Jr. "                                                                                   # 39
     ]
+
+    lexer = Taxonifi::Splitter::Lexer.new(auths[39])
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)
+    assert_equal ['Doesburg'], t.names.collect{|n| n[:last_name] }
+    assert_equal "van Jr.", t.names[0][:suffix]
 
     lexer = Taxonifi::Splitter::Lexer.new(auths[38])
     assert t = lexer.pop(Taxonifi::Splitter::Tokens::Authors)

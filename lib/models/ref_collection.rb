@@ -25,14 +25,29 @@ module Taxonifi
 
       # (Re) Assigns the id of every associated author (Person).
       # This is only really useful if you assume every author is unique.
-      def enumerate_authors
-        i = 0
+      def enumerate_authors(initial_id = 0)
+        i = initial_id 
         collection.each do |r|
           r.authors.each do |a|
             a.id = i
             i += 1
           end
         end
+      end
+
+      def uniquify_authors(initial_id = 0)
+        auth_index = {}
+        unique_authors.each_with_index do |a, i|
+          a.id = i + initial_id
+          auth_index.merge!(a.compact_string => a)
+        end
+        
+        collection.each do |r|
+          new_authors = []
+          r.authors.inject(new_authors){|ary, a| ary.push(auth_index[a.compact_string])}
+          r.authors = new_authors
+        end
+        true 
       end
 
       def build_author_index

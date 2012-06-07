@@ -4,6 +4,7 @@ module Taxonifi
 
   module Model
 
+    # TODO: add addition and re-indexing options
     class Collection
       attr_accessor :by_id_index
       attr_accessor :current_free_id

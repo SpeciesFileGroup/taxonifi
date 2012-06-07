@@ -1,12 +1,13 @@
 module Taxonifi
-
   class RefError < StandardError; end
-
   module Model
+
+    # A basic reference object.  
     class Ref < Taxonifi::Model::Base
 
+      # These attributes are set automatically on #new()
       ATTRIBUTES = [
-        :authors,      # Array of Taxonifi::Model::Person   
+        :authors,     
         :title, 
         :year,
         :publication,
@@ -15,25 +16,44 @@ module Taxonifi
         :pages,
         :pg_start,
         :pg_end,
-        :cited_page
+        :cited_page,   
+        :full_citation
       ]
 
-      ATTRIBUTES.each do |a|
-        attr_accessor a
-      end
-
-      # Computed index (string) based on existing Ref#authors and Ref#year
+      # Array of Taxonifi::Model::Person   
+      attr_accessor :authors      
+      # String
+      attr_accessor :title 
+      # String
+      attr_accessor :year
+      # String
+      attr_accessor :publication
+      # String
+      attr_accessor :volume
+      # String
+      attr_accessor :number
+      # String.  Anything that doesn't fit in a page range.
+      attr_accessor :pages
+      # String
+      attr_accessor :pg_start
+      # String
+      attr_accessor :pg_end
+      # String.  Some specific page(s) of note.
+      attr_accessor :cited_page   
+      # String. The full text of the citation, as read from input or assigned, not computed from individual components. 
+      attr_accessor :full_citation 
+      
+      # String. Computed index based on existing Ref#authors and Ref#year
       attr_accessor :author_year_index
 
-      # The full text of the citation, as read from input or assigned, not computed from individual components. 
-      attr_accessor :full_citation   
-
+      # If :author_year is passed it is broken down into People + year. 
       def initialize(options = {})
         opts = {
         }.merge!(options)
         @parent = nil
         build(ATTRIBUTES, opts)
         @authors = [] if @authors.nil?
+        raise Taxonifi::RefError, 'If :author_year is provided then authors and year must not be.' if opts[:author_year] && (!opts[:year].nil? || !opts[:authors].nil?)
         add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
         true
       end

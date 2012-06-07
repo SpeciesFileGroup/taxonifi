@@ -117,6 +117,10 @@ module Taxonifi
         @ref_collection = rc 
       end
 
+      def ref_collection=(ref_collection)
+        @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
+      end
+
       protected
 
       def index_by_name(obj)

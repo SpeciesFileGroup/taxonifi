@@ -103,9 +103,10 @@ module Taxonifi::Splitter::Tokens
       prefix = ['van den ', 'Van ', "O'", "Mc", 'Campos ', 'Costa ']
       pre_reg = prefix.collect{|p| "(#{Regexp.escape(p)})?"}.join
 
-      postfix = ['de la', ', Jr.', 'von', 'da'] 
+      postfix = ['de la', 'von', 'da', 'van', ', Jr.'] 
       post_reg = postfix.collect{|p| "(#{Regexp.escape(p)})?"}.join
 
+      # Initials second
       m1 = Regexp.new(/^\s*(#{pre_reg}             # legal prefix words, includes space if present
                             [A-Z][a-z]+            # a captialized Name 
                             (\-[A-Z][a-z]+)?       # optional dashed addition
@@ -121,6 +122,7 @@ module Taxonifi::Splitter::Tokens
                             #{post_reg})           # optional legal postfixes
                         \s*/x)
 
+      # Initials first
       m2 = Regexp.new(/^\s*(([A-Z]\.\s*){1,}#{pre_reg}[A-Z][a-z]+#{post_reg}),/)  #  (R. Watson | R.F. Watson),
 
       # pick off remaining authors one at a time 
@@ -159,15 +161,16 @@ module Taxonifi::Splitter::Tokens
       # str.split(/(?<=[A-Z])\s*[;,]{1}\s*/, 2)
 
       individuals.push(last_individual) if !last_individual.nil?
+      individuals.flatten!
 
       # At this point we have isolated individuals.  Strategy is to slice out initials and remainder is last name.
       # Initials regex matches any A-B. A. or " A ", "A-B" pattern (including repeats) 
       # TODO: Make a Token
       match_initials = Regexp.new(/(((\s((\-)?[A-Z](\-[A-Z])?\s?){1,})$)|(((\-)?[A-Z](\-[A-Z|a-z]\s*)?\.\s*){1,})|(\s((\-)?[A-Z](\-[A-Z])?\s){1,}))/)
 
-      individuals.flatten!
-
+      # TODO: merge with pre/postfix list
       suffixes = [
+        Regexp.new(/\s(van)\s?/i),
         Regexp.new(/\s(jr\.)/i),
         Regexp.new(/\s(von)\s?/i),
         Regexp.new(/\s(de la)\s?/i),
@@ -188,13 +191,15 @@ module Taxonifi::Splitter::Tokens
           last_name = i
         end
 
+        suffix = [] 
         suffixes.each do |s| # .collect{|p| Regexp.escape(p)}.each do |s|
           if last_name =~ s
-            a[:suffix] = $1
-            last_name.slice!(a[:suffix])
-            break  # TODO: suffix is single string now, "von Foobar Jr. III" is going to fail
+            t = $1 
+            suffix.push(t) 
+            last_name.slice!(t)
           end
         end
+        a[:suffix] = suffix.join(" ") if suffix.size > 0 
 
         last_name.gsub!(/\.|\,/, '')
 

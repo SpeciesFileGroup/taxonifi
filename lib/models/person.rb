@@ -2,8 +2,16 @@ require File.expand_path(File.join(File.dirname(__FILE__), "../models/base.rb"))
 
 module Taxonifi
   module Model
+
+    # Simple Person class. 
+    # You can store multiple initials and suffixes.
     class Person < Taxonifi::Model::Base
-      ATTRIBUTES = [:first_name, :last_name, :initials, :suffix]
+      ATTRIBUTES = [
+        :first_name,
+        :last_name,
+        :initials,    # an Array
+        :suffix       # an Array
+      ]
       
       ATTRIBUTES.each do |a|
         attr_accessor a
@@ -17,14 +25,23 @@ module Taxonifi
         true
       end
 
+      # Used in identity comparisons.
       def compact_string
         s = [ATTRIBUTES.sort.collect{|a| send(a)}].join("|").downcase.gsub(/\s/, '')
       end
 
+      # Nothing fancy, just the data.
       def display_name
-        [@last_name, @first_name, @initials, @suffix].compact.join(" ")
+        [@last_name, @first_name, @initials, @suffix].compact.flatten.join(" ")
       end
-    
+
+      def initials_string
+        if @initials.nil? 
+          nil
+        else 
+          @initials.join(".") + "." 
+        end 
+      end
     end
   end
 end
