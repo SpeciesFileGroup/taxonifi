@@ -1,15 +1,22 @@
 = taxonifi
-The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases). Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading, and fully parsing into objects, around 25k rows of nomenclature (class to species, inc. author year, = ~45k names) in to memory as Taxonifi objects benchmarks at around 2 minutes. Faster indexing is planned as needed, likely using Redis (see GNA link below).
+There will always be "legacy" taxonomic data that needs shuffling around. The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases).  It's first application was to convert DwC-style data downloaded from EoL into a Species File.  If you've considered building a collection of regular expressions particular to biodiversity data look at the Tokens code and related tests. 
+
+Overall, the goal is to provide well documented (and unit-tested) coded that is broadly useful, and vanilla enough to encourage other to fork and hack on their own.
 
 == Source
-Source is available at https://github.com/speciesfile.
+Source is available athttps://github.com/SpeciesFile/taxonifi.
 
-== Think this is useful?
-Before you jump on board you should also check out similar code from the Global Names team at https://github.com/GlobalNamesArchitecture. Merging functionality there into taxonifi is being planned.
+== What's next?
+
+Before you jump on board you should also check out similar code from the Global Names team at https://github.com/GlobalNamesArchitecture. Future integration and merging of shared functionality is planned.  Code will be released in an "early-and-often" approach 
 
 = Getting started
 taxonifi is coded for Ruby 1.9.3, it has not been tested on earlier versions (though it will certainly not work with 1.8.7). 
 Using Ruby Version Manager (RVM, https://rvm.io/ ) is highly recommend. You can test your version of Ruby by doinging "ruby -v" in your terminal.
+
+Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading, and fully parsing into objects, around 25k rows of nomenclature (class to species, inc. author year, = ~45k names) in to memory as Taxonifi objects benchmarks at around 2 minutes. Faster indexing is planned as needed, likely using Redis (see GNA link below).
+
+
 
 To install:
 
