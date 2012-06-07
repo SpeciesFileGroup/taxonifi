@@ -1,7 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
-# Builder construction
-
 class Test_TaxonifiLumperParentChildNameCollection < Test::Unit::TestCase
 
   def setup

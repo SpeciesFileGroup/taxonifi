@@ -1,12 +1,12 @@
-
+#
+# Tokens are simple classes that return a regular expression (pattern to match).
+# You should write a test in test_resolver.rb before defining a token.
+# Remember to register tokens in lists at the bottom of this file.
+#
 module Taxonifi::Splitter::Tokens
 
-  # Tokens are simple classes that return a regular expression (pattern to match).
-  # You should write a test in test_resolver.rb before defining a token.
-  # Remember to register tokens in lists at the bottom of this file.
-
   class Token 
-    # this allows access the to class attribute regexp, without using a class variable
+    # This allows access the to class attribute regexp, without using a class variable
     class << self 
       attr_reader :regexp
     end
@@ -33,6 +33,8 @@ module Taxonifi::Splitter::Tokens
     @regexp = Regexp.new(/\A\s*(\,)\s*/i)
   end
 
+  # A token to match an author year combination, breaks
+  # the string into three parts.
   class AuthorYear < Token
     attr_reader :authors, :year, :parens
     # This is going to hit just everything, should only be used 
@@ -61,9 +63,10 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
+  # Complex breakdown of author strings. Handles
+  # a wide variety of formats.   
   # See test_splitter_tokens.rb for scope. As with
-  # AuthorYear this will match just about anything.
-  # If the match breakdown has "doubts" then @flag is set to  true
+  # AuthorYear this will match just about anything when used alone.
   # Add exceptions at will, just test using TestSplittTokens#test_authors.
   # TODO: Unicode the [a-z] bits?
   class Authors < Token
@@ -211,6 +214,7 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
+  # A token to match volume-number combinations, with various possible formats.
   class VolumeNumber  < Token
     attr_reader :volume, :number
 
@@ -227,6 +231,7 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
+  # A token to match page ranges, with remainders noted. 
   class Pages < Token
     attr_reader :pg_start, :pg_end, :remainder
     @regexp = Regexp.new(/\A\s*((\d+)\s*[-]?\s*(\d+)?\)?\s*[\.\,]?(.*)?)/i)
@@ -240,6 +245,7 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
+  # A token to match quadrinomial.s
   # Matches: 
   # Foo
   # Foo (Bar)
@@ -275,7 +281,8 @@ module Taxonifi::Splitter::Tokens
   # re-order an list ensure that unit tests fail.
   # Create an untested list at your own risk, any proposed
   # ordering will be accepted as long as tests pass.
-
+  
+  # All tokens.
   def self.global_token_list
     [ 
       Taxonifi::Splitter::Tokens::Quadrinomial,
@@ -290,25 +297,26 @@ module Taxonifi::Splitter::Tokens
     ]   
   end
 
+  # Tokens used in breaking down volume/number ranges.
   def self.volume_number
     [
       Taxonifi::Splitter::Tokens::VolumeNumber
     ]
   end
 
+  # Tokens used in breaking down page ranges.
   def self.pages
     [
       Taxonifi::Splitter::Tokens::Pages
     ]
   end
 
+  # Tokens used in breaking down species names.
   def self.species_name
     [
       Taxonifi::Splitter::Tokens::Quadrinomial,
       Taxonifi::Splitter::Tokens::AuthorYear,
     ]
   end
-
-
 
 end

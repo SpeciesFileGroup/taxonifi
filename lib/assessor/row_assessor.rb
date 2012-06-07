@@ -1,24 +1,21 @@
-# The assessor assesses!
-
 module Taxonifi
   module Assessor 
+
+    # Code to assess the metadata properties of a csv row.
+    #
+    # !! Note that there are various
+    # !! CSV methods for returning row columns
+    # !! that have particular attributes
     module RowAssessor
+
+      class RowAssessorError < StandardError; end
 
       # Pass a CSV (require "csv") row as read with the following 
       # parameters: 
       #   headers: true
       #   header_converters: :symbol
-
-      class RowAssessorError < StandardError; end
-
       class RowAssessor < Taxonifi::Assessor::Base
-
-        # !! Note that there are various
-        # !! CSV methods for returning row columns
-        # !! that have particular attributes
-
         attr_reader :lumps # the lumps present in this row
-
         def initialze(csv_row)
           cols = []
           cols = csv_row.entries.select{|c,v| !v.nil?}.collect{|c| c[0]}
@@ -26,6 +23,7 @@ module Taxonifi
         end
       end
 
+      # Return the first column with data, scoped by lump if provided. 
       def self.first_available(csv_row, lump = nil)
         if lump.nil?
           csv_row.entries.each do |c,v| 
@@ -37,7 +35,8 @@ module Taxonifi
           end
         end
       end
-
+      
+      # Return the last column with data, scoped by lump if provided. 
       def self.last_available(csv_row, lump = nil)
         if lump.nil?
           csv_row.entries.reverse.each do |c,v| 
@@ -50,6 +49,8 @@ module Taxonifi
         end
       end
 
+      # Return the rank (symbol) of the taxon name rank.  Raises
+      # if no name detected.
       def self.lump_name_rank(csv_row)
         lumps = Taxonifi::Lumper.available_lumps(csv_row.headers)        
         if lumps.include?(:species) # has to be a species name
@@ -72,20 +73,25 @@ module Taxonifi
         raise RowAssessor::RowAssessorError
       end
 
+      # Return the column representing the parent of the name
+      # represented in this row.
       def self.parent_taxon_column(csv_row)
         lumps = Taxonifi::Lumper.available_lumps(csv_row.headers)
         last = last_available(csv_row, Taxonifi::RANKS)
         last_available(csv_row, Taxonifi::RANKS[0..Taxonifi::RANKS.index(last[0])-1])
       end
 
+      # Return an Array of headers that represent taxonomic ranks.
       def self.rank_headers(headers)
         Taxonifi::RANKS & headers
       end
 
+      # Return an Array of headers that represent geographic columns.
       def self.geog_headers(headers)
         Taxonifi::Lumper::LUMPS[:basic_geog] & headers
       end
 
+      # Return lumps for which at least one column has data.
       def self.intersecting_lumps_with_data(row, lumps_to_try = nil)
         lumps_to_try ||= Taxonifi::Lumper::LUMPS.keys 
         lumps = [] 
@@ -102,6 +108,7 @@ module Taxonifi
         lumps
       end
 
+      # Return lumps that have data for all columns.
       def self.lumps_with_data(row, lumps_to_try = nil)
         lumps_to_try ||= Taxonifi::Lumper::LUMPS.keys 
         lumps = [] 
@@ -119,6 +126,6 @@ module Taxonifi
       end
 
     end
-  end # end Splitter module
-end # Taxonifi module
+  end 
+end 
 

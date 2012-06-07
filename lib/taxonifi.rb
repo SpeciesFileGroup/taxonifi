@@ -1,8 +1,10 @@
 require 'csv'
 
+# Everything in Taxonifi is in here.
 module Taxonifi
 
-   RANKS = %w{
+  # Taxonomic ranks. 
+  RANKS = %w{
       kingdom
       phylum
       class
@@ -19,26 +21,16 @@ module Taxonifi
       subgenus
       species
       subspecies
-    }
+  }
 
 
-   require File.expand_path(File.join(File.dirname(__FILE__), 'lumper/lumper'))
-   require File.expand_path(File.join(File.dirname(__FILE__), 'splitter/splitter'))
-   require File.expand_path(File.join(File.dirname(__FILE__), 'assessor/assessor'))
-   require File.expand_path(File.join(File.dirname(__FILE__), 'export/export'))
+  require File.expand_path(File.join(File.dirname(__FILE__), 'lumper/lumper'))
+  require File.expand_path(File.join(File.dirname(__FILE__), 'splitter/splitter'))
+  require File.expand_path(File.join(File.dirname(__FILE__), 'assessor/assessor'))
+  require File.expand_path(File.join(File.dirname(__FILE__), 'export/export'))
 
-   Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "models/*.rb") )) do |file|
-     require file
-   end
-
-   # an aliase for Taxonifi::Revisor.revise
-   #def self.transform(options)
-   #  opt = {
-   #    :from => nil,
-   #    :to => nil
-   #  }.merge!(options)
-   #  raise if opt[:from].nil? || opt[:to].nil?
-   #  Taxonifi::Revisor.revise(opt) 
-   #end
+  Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "models/*.rb") )) do |file|
+    require file
+  end
 
 end

@@ -9,7 +9,7 @@ module Taxonifi
       ATTRIBUTES = [
         :first_name,
         :last_name,
-        :initials,    # an Array
+        :initials,    # an Array, no periods.
         :suffix       # an Array
       ]
       
@@ -25,6 +25,7 @@ module Taxonifi
         true
       end
 
+      # Returns a string with data delimited by pipes.
       # Used in identity comparisons.
       def compact_string
         s = [ATTRIBUTES.sort.collect{|a| send(a)}].join("|").downcase.gsub(/\s/, '')
@@ -35,6 +36,7 @@ module Taxonifi
         [@last_name, @first_name, @initials, @suffix].compact.flatten.join(" ")
       end
 
+      # Return a string representing the initials, periods added.
       def initials_string
         if @initials.nil? 
           nil

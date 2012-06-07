@@ -1,10 +1,8 @@
 module Taxonifi
-
   class CollectionError < StandardError; end
-
   module Model
 
-    # TODO: add addition and re-indexing options
+    # The base class that all collection classes are derived from.
     class Collection
       attr_accessor :by_id_index
       attr_accessor :current_free_id
@@ -21,14 +19,18 @@ module Taxonifi
         true
       end 
 
+      # Define the default class. Over-ridden in 
+      # specific collections. 
       def object_class
         Taxonifi::Model::GenericObject
       end
 
+      # Return an object in this collection by id.
       def object_by_id(id)
         @by_id_index[id] 
       end
 
+      # Add an object to the collection. 
       def add_object(obj)
         raise CollectionError, "Taxonifi::Model::#{object_class.class}#id may not be pre-initialized if used with #add_object, consider using #add_object_pre_indexed." if !obj.id.nil?
         object_is_allowed?(obj)
@@ -39,6 +41,7 @@ module Taxonifi
         return obj
       end
 
+      # Add an object without setting its ID. 
       def add_object_pre_indexed(obj)
         object_is_allowed?(obj)
         raise CollectionError, "Taxonifi::Model::#{object_class.class} does not have a pre-indexed id." if obj.id.nil?
@@ -47,6 +50,8 @@ module Taxonifi
         return obj
       end
 
+
+      # Return an array of ancestor (parent) ids.
       # TODO: deprecate?
       # More or less identical to Taxonifi::Name.ancestor_ids except
       # this checks against the indexed names in the collection
@@ -68,13 +73,14 @@ module Taxonifi
       end
 
       # Returns an Array which respresents
-      # all the "root" objects
+      # all the "root" objects.
       def objects_without_parents
         collection.select{|o| o.parent.nil?}
       end
 
       protected
 
+      # Check to see that the object can be added to this collection.
       def object_is_allowed?(obj)
         raise CollectionError, "Taxonifi::Model::#{object_class.class} not passed to Collection.add_object()." if !(obj.class == object_class)
         true

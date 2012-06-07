@@ -2,8 +2,16 @@ require File.expand_path(File.join(File.dirname(__FILE__), "../models/base.rb"))
 
 module Taxonifi
   module Model
-    class AuthorYear < Taxonifi::Model::Base
-      attr_accessor :people, :year, :parens
+    # A class to aggregate People and Year combinations.
+   class AuthorYear < Taxonifi::Model::Base
+      # Array of Taxonifi::Model::People
+      attr_accessor :people
+      # String 
+      attr_accessor :year
+      # The parens attribute reflects that this combinations was
+      # cited in parentheses.
+      attr_accessor :parens
+
       def initialize(options = {})
         opts = {
           :people => [],
@@ -11,11 +19,12 @@ module Taxonifi
           :year => nil
         }.merge!(options)
 
-        @parens = opts[:parens] # whether this author year blob was parenthesized
-        @people = opts[:people] # Array of Taxonifi::Model::People
+        @parens = opts[:parens] 
+        @people = opts[:people] 
         @year = opts[:year] 
       end
 
+      # Return a string representing all data, used in indexing.
       def compact_index
         index = [@year]
         @people.each do |a|

@@ -70,10 +70,12 @@ module Taxonifi
         s
       end
 
+      # Return a by author_year index.
       def author_year_index
         @author_year_index ||= generate_author_year_index
       end
 
+      # (re-) generate the author year index.
       def generate_author_year_index
         @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
       end

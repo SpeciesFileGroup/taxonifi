@@ -1,14 +1,20 @@
 module Taxonifi
-
   class ModelError < StandardError; end
-
   module Model
-    class Base # < Struct.new(:id, :row_number)
+  
+    # A base class for all Taxonifi::Models that represent
+    # "individuals" (as opposed to collections of indviduals).  
+    class Base 
+      # The id of this object.
+      attr_accessor :id
+      # Optionly store the row this came from
+      attr_accessor :row_number
+      # Optionally store an id representing the original id usef for this record. 
+      attr_accessor :external_id
 
-      attr_accessor :id, :row_number, :external_id
-
-        # Check for valid opts in subclass prior to building
-
+        # Assign on new() all attributes for the ATTRIBUTES 
+        # constant in a given subclass. 
+        # !! Check validity prior to building.
         def build(attributes, opts)
           attributes.each do |c|
             self.send("#{c}=",opts[c]) if !opts[c].nil?
@@ -20,7 +26,8 @@ module Taxonifi
           @id = id
         end
 
-        # Immediate parent id [].last
+        # The ids only of ancestors.
+        # Immediate ancestor id is in [].last
         def ancestor_ids
           i = 0 # check for recursion
           ids = []
@@ -34,6 +41,9 @@ module Taxonifi
           ids
         end
 
+        # Ancestor objects for subclasses
+        # that have a parent property.
+        # TODO: check for parent attributes
         def ancestors
           i = 0 # check for recursion
           ancestors = []
@@ -47,6 +57,8 @@ module Taxonifi
           ancestors 
         end
 
+        # Determines identity base ONLY
+        # on attributes in ATTRIBUTES.
         def identical?(obj)
           raise Taxonifi::ModelError, "Objects are not comparible." if obj.class != self.class
           self.class::ATTRIBUTES.each do |a|

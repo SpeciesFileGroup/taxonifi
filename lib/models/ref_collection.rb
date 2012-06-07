@@ -3,10 +3,15 @@ module Taxonifi
 
   module Model
 
+    # A collection of references.
     class RefCollection < Taxonifi::Model::Collection
-    
+
+      # An options index when there is one reference per row.
       attr_accessor :row_index
-      attr_accessor :author_index # Built on request, keep from ATTRIBUTES
+     
+      # Points a Ref#id to an array of Person#ids.  
+      # Built on request.
+      attr_accessor :author_index 
 
       def initialize(options = {})
         super
@@ -15,15 +20,18 @@ module Taxonifi
         true
       end 
 
+      # The instance collection class.
       def object_class
         Taxonifi::Model::Ref  
       end
-         
+        
+      # The object at a given row.
+      # TODO: inherit from Collection? 
       def object_from_row(row_number)
         @row_index[row_number]
       end
 
-      # (Re) Assigns the id of every associated author (Person).
+      # Incrementally (re-)assigns the id of every associated author (Person) 
       # This is only really useful if you assume every author is unique.
       def enumerate_authors(initial_id = 0)
         i = initial_id 
@@ -35,6 +43,8 @@ module Taxonifi
         end
       end
 
+      # Finds unique authors, and combines them, then 
+      # rebuilds author lists using references to the new unique set.
       def uniquify_authors(initial_id = 0)
         auth_index = {}
         unique_authors.each_with_index do |a, i|
@@ -50,12 +60,15 @@ module Taxonifi
         true 
       end
 
+      # Build the author index. 
+      #   {Ref#id => [a1#id, ... an#id]}
       def build_author_index
         collection.each do |r|
           @author_index.merge!(r.id => r.authors.collect{|a| a.id ? a.id : -1})
         end
       end
 
+      # Return an array the unique author strings in this collection.
       def unique_author_strings
         auths = {}
         collection.each do |r|

@@ -1,21 +1,16 @@
-
-# require 'geokit'
-# include Geokit::Geocoders
-
 module Taxonifi
-
-
   class GeogError < StandardError; end
-
   module Model
 
-
+    # An instance of some geopolitical unit.
+    # Not fully developed yet.
     class Geog < Taxonifi::Model::Base
 
+      # require 'geokit'
+      # include Geokit::Geocoders
+
       GEOG_RANKS = ['country', 'state', 'county']
-
       ATTRIBUTES = [:name, :rank, :parent]
-
       ATTRIBUTES.each do |a|
         attr_accessor a
       end
@@ -29,6 +24,7 @@ module Taxonifi
         true
       end 
 
+      # Set the "rank" of this geographic unit.
       def rank=(rank)
         r = rank.to_s.downcase.strip
         if !GEOG_RANKS.include?(r) 
@@ -37,8 +33,8 @@ module Taxonifi
         @rank = r
       end
 
+      # Set parent of this rank (also a Taxonifi::Model::Geog instance).
       def parent=(parent)
-
        if parent.nil?
          raise GeogError, "Parent can't be set to nil in Taxonifi::Model::Geog."
        end
@@ -47,7 +43,6 @@ module Taxonifi
           raise Taxonifi::GeogError, "Parent of geog can not be set if rank of child is not set." 
         end
 
-        # debugger
         if parent.class != Taxonifi::Model::Geog
           raise GeogError, "Parent is not a Taxonifi::Model::Geog."
         end

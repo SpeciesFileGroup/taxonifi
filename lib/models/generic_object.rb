@@ -1,13 +1,15 @@
 module Taxonifi
-
   class ModelError < StandardError; end
-
   module Model
-    class GenericObject < Base # < Struct.new(:id, :row_number)
 
-      attr_accessor :name, :parent, :rank
-
-        # Check for valid opts in subclass prior to building
+    # A generic object, has name, parent, rank properties. 
+    class GenericObject < Base 
+      # String
+      attr_accessor :name
+      # Parent object, same class as self
+      attr_accessor :parent
+      # String, arbitrarily assignable rank
+      attr_accessor  :rank
     end
   end
 end

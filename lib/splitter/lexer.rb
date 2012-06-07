@@ -1,5 +1,6 @@
-# Lexer from OboParser and other mjy gems.  
-
+#
+# Lexer taken verbatim from OboParser and other mjy gems.  
+#
 class Taxonifi::Splitter::Lexer
   attr_reader :input, :token_list
   def initialize(input, token_list = nil)
@@ -12,13 +13,13 @@ class Taxonifi::Splitter::Lexer
     @next_token = nil
   end
 
-  # checks whether the next token is of the specified class. 
+  # Checks whether the next token is of the specified class. 
   def peek(token_class, token_list = nil)
     token = read_next_token(token_class)
     return token.class == token_class
   end
 
-  # return (and delete) the next token from the input stream, or raise an exception
+  # Return (and delete) the next token from the input stream, or raise an exception
   # if the next token is not of the given class.
   def pop(token_class)
     token = read_next_token(token_class)
@@ -31,8 +32,8 @@ class Taxonifi::Splitter::Lexer
   end
 
   private
-  # read (and store) the next token from the input, if it has not already been read.
-
+  
+  # Read (and store) the next token from the input, if it has not already been read.
   def read_next_token(token_class)
     if @next_token
       return @next_token
@@ -55,6 +56,7 @@ class Taxonifi::Splitter::Lexer
     end
   end
 
+  # Match a token to the input.
   def match(token_class)
     if (m = token_class.regexp.match(@input))
       @next_token = token_class.new(m[1])

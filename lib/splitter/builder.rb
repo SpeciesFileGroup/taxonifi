@@ -1,3 +1,4 @@
+# Builder functionality for parsing/lexing framework. 
 module Taxonifi::Splitter::Builder
 
     # Load all builders (= models)
@@ -6,6 +7,7 @@ module Taxonifi::Splitter::Builder
       require file
     end
 
+    # Build and return Taxonifi::Model::AuthorYear from a string.
     def self.build_author_year(text)
       lexer = Taxonifi::Splitter::Lexer.new(text)
       builder = Taxonifi::Model::AuthorYear.new
@@ -13,6 +15,7 @@ module Taxonifi::Splitter::Builder
       builder
     end
 
+    # Build and return Taxonifi::Model::SpeciesName from a string.
     def self.build_species_name(text)
       lexer = Taxonifi::Splitter::Lexer.new(text, :species_name)
       builder = Taxonifi::Model::SpeciesName.new

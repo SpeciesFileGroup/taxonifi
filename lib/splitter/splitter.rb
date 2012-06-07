@@ -1,10 +1,8 @@
-# An implementation of the parser/lexer/token pattern by Krishna Dole which in turn was based on
-# Thomas Mailund's <mailund@birc.dk> 'newick-1.0.5' Python library
-
-#== Outstanding issues:
-# * 
-
 module Taxonifi
+
+  # An implementation of the parser/lexer/token pattern by Krishna Dole which in turn was based on
+  # Thomas Mailund's <mailund@birc.dk> 'newick-1.0.5' Python library, which has evolved
+  # into mjy's obo_parser/nexus_parser libraries.
   module Splitter
 
     TOKEN_LISTS = [

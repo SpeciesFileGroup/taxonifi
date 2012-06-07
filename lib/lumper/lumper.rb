@@ -1,25 +1,29 @@
-# Define groups of columns/fields and include
-# functionality to determine whether your
-# columns match a given set.
-
 require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
 
+# The lumper lumps! Tools for recognizing and using 
+# combinations of column types. 
 module Taxonifi::Lumper 
 
+  # Define groups of columns/fields and include
+  # functionality to determine whether your
+  # columns match a given set.
   module Lumps
     Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "lumps/*.rb") )) do |file|
-     require file
+      require file
     end
   end
 
   class LumperError < StandardError; end
 
+  # Columns used for species epithets.
   # !! Todo: map DwC URIs to these labels (at present they largely correllate with Tokens,
   # perhaps map URIs to tokens!?)
-
   QUAD =  ['genus', 'subgenus', 'species', 'subspecies']
+  
+  # Columns representing author and year 
   AUTHOR_YEAR = ['author', 'year']
 
+  # A Hash of named column combinations
   LUMPS = {
     quadrinomial: QUAD,
     quad_author_year: QUAD + AUTHOR_YEAR,
@@ -33,13 +37,15 @@ module Taxonifi::Lumper
     eol_basic: %w{identifier parent child rank synonyms}
   }
 
-  # Lumps for which all columns are represented (TODO: This is an assessor method realy)
+  # Lumps for which all columns are represented 
+  # TODO: This is really an assessor method 
   def self.available_lumps(columns)
     raise Taxonifi::Lumper::LumperError, 'Array not passed to Lumper.available_lumps.' if !(columns.class == Array)
     LUMPS.keys.select{|k| (LUMPS[k] - columns) == []}
   end
 
-  # Lumps for which any column is represented (TODO: This is an assessor method realy)
+  # Lumps for which any column is represented 
+  # # TODO: This is really an assessor method 
   def self.intersecting_lumps(columns)
     raise Taxonifi::Lumper::LumperError, 'Array not passed to Lumper.intersecting_lumps.' if !(columns.class == Array)
     intersections = []
@@ -49,6 +55,7 @@ module Taxonifi::Lumper
     intersections
   end
 
+  # Return a Taxonifi::Model::NameCollection from a csv file.
   def self.create_name_collection(csv)
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
     nc = Taxonifi::Model::NameCollection.new
@@ -135,6 +142,7 @@ module Taxonifi::Lumper
     nc
   end 
 
+  # Return a Taxonifi::Model::RefCollection from a CSV file.
   def self.create_ref_collection(csv)
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_ref_collection.' if csv.class != CSV::Table
     rc = Taxonifi::Model::RefCollection.new
@@ -144,10 +152,10 @@ module Taxonifi::Lumper
     csv.each_with_index do |row, i|
       if Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(row, [:citation_small]).include?(:citation_small)
         r = Taxonifi::Model::Ref.new(
-                                     :year => row['year'],
-                                     :title => row['title'],
-                                     :publication => row['publication']
-                                    ) 
+          :year => row['year'],
+          :title => row['title'],
+          :publication => row['publication']
+        ) 
 
         # TODO: break out each of these lexes to a builder
         if row['authors'] && !row['authors'].empty?
@@ -193,8 +201,6 @@ module Taxonifi::Lumper
     end
     rc
   end
-
-  # Takes 
 
   # Creates a generic Collection with Objects of GenericObject
   # Objects are assigned to parents (rank) according to the order provided in headers.
@@ -268,9 +274,9 @@ module Taxonifi::Lumper
       end
     end
     c
-
   end
 
+  # Return a geog collection from a csv file. 
   def self.create_geog_collection(csv)
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_geog_collection.' if csv.class != CSV::Table
     gc = Taxonifi::Model::GeogCollection.new
@@ -323,7 +329,6 @@ module Taxonifi::Lumper
     end
     gc
   end 
-
 
 end # end Lumper Module 
 

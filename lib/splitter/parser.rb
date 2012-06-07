@@ -1,9 +1,15 @@
+#
+# Parser pattern taken from OboParser and other mjy gems.  
+#
+# The parser takes a builder and a lexer and does the actual breakdown.
+#
 class Taxonifi::Splitter::Parser
   def initialize(lexer, builder )
     @lexer = lexer
     @builder = builder
   end
 
+  # parse out an author year combination. 
   # TODO: This is only indirectly tested in lumper code
   def parse_author_year
     t = @lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
@@ -23,6 +29,7 @@ class Taxonifi::Splitter::Parser
     @builder.parens = t.parens
   end
 
+  # Parse a species name 
   def parse_species_name
     t = @lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
     ranks = %w{genus subgenus species subspecies}
