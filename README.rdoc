@@ -1,10 +1,10 @@
 = taxonifi
-There will always be "legacy" taxonomic data that needs shuffling around. The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases).  It's first application was to convert DwC-style data downloaded from EoL into a Species File.  If you've considered building a collection of regular expressions particular to biodiversity data look at the Tokens code and related tests. 
+There will always be "legacy" taxonomic data that needs shuffling around. The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases).  It's first application was to convert DwC-style data downloaded from EoL into a Species File.  The code is well documented in unit tests, poke around to see if it might be useful.  In particular, if you've considered building a collection of regular expressions particular to biodiversity data look at the Tokens code and related tests. 
 
 Overall, the goal is to provide well documented (and unit-tested) coded that is broadly useful, and vanilla enough to encourage other to fork and hack on their own.
 
 == Source
-Source is available athttps://github.com/SpeciesFile/taxonifi.
+Source is available at https://github.com/SpeciesFile/taxonifi.  The rdoc API is also viewable at http://taxonifi.speciesfile.org, (though those docs may lag behind commits to github).
 
 == What's next?
 
@@ -14,8 +14,7 @@ Before you jump on board you should also check out similar code from the Global 
 taxonifi is coded for Ruby 1.9.3, it has not been tested on earlier versions (though it will certainly not work with 1.8.7). 
 Using Ruby Version Manager (RVM, https://rvm.io/ ) is highly recommend. You can test your version of Ruby by doinging "ruby -v" in your terminal.
 
-Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading, and fully parsing into objects, around 25k rows of nomenclature (class to species, inc. author year, = ~45k names) in to memory as Taxonifi objects benchmarks at around 2 minutes. Faster indexing is planned as needed, likely using Redis (see GNA link below).
-
+Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading, and fully parsing into objects, around 25k rows of nomenclature (class to species, inc. author year, = ~45k names) in to memory as Taxonifi objects benchmarks at around 2 minutes. Faster indexing is planned as needed, likely using Redis (see GNA link above).
 
 
 To install:
