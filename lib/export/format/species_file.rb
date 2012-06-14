@@ -315,7 +315,10 @@ module Taxonifi::Export
         csv << @headers
         i = 1
         @name_collection.collection.each do |n|
-          next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('genus')
+         next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('genus')
+         ref = @by_author_reference_index[n.author_year_index]
+         next if ref.nil?
+
           cols = {
             NomenclatorID: i,
             GenusNameID: @genus_names[n.parent_name_at_rank('genus')] || 0,

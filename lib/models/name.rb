@@ -6,25 +6,27 @@ module Taxonifi
 
     # String
     attr_accessor  :name      
+   
     # String 
     attr_accessor  :rank   
-    # String, authors as originally read 
-    attr_accessor  :year         
-    # Boolean, true if parens present (i.e. _not_ in original combination) 
-    attr_accessor  :parens       
-    # A Taxonifi::Model::Name 
-    attr_accessor  :parent      
+  
     # String
     attr_accessor  :author        
+ 
+    # String, authors as originally read 
+    attr_accessor  :year         
+
+    # Boolean, true if parens present (i.e. _not_ in original combination) 
+    attr_accessor  :parens       
+
+    # A Taxonifi::Model::Name 
+    attr_accessor  :parent      
+
     # General purpose relationship, typically used to indicate synonymy.  A Taxonifi::Model::Name 
     attr_accessor  :related_name 
 
     # Array, contains properties assignable in Taxonifi::Model::Name#new()
-    ATTRIBUTES = [:name, :rank, :year, :parens, :parent, :author, :related_name]
-
-    ATTRIBUTES.each do |a|
-      attr_accessor a
-    end
+    @@ATTRIBUTES = [:name, :rank, :year, :parens, :parent, :author, :related_name]
 
     # optionally parsed/index
     attr_accessor :authors                    
@@ -37,7 +39,7 @@ module Taxonifi
         id: nil
       }.merge!(options)
       @parent = nil
-      build(ATTRIBUTES, opts)
+      build(@@ATTRIBUTES, opts)
       add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
       @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
       @id = opts[:id] # if !opts[:id].nil? && opts[:id].size != 0
@@ -67,6 +69,22 @@ module Taxonifi
       @rank = r
     end
 
+    # Return a string indicating at what level this name 
+    # is indexed within a NameCollection.
+    # TODO: Family group extension; ICZN specific 
+    def index_rank
+      case rank
+      when 'species', 'subspecies'
+        'species_group'
+      when 'genus', 'subgenus'
+        'genus_group'
+      when nil, ""
+        'unknown'
+      else
+        rank.downcase
+      end
+    end
+
     # Set the parent (a Taxonifi::Model::Name) 
     def parent=(parent)
       if @rank.nil?
@@ -89,16 +107,30 @@ module Taxonifi
     # TODO: rename to reflect parens
     def author_year
       au = author_year_string
-      if self.parens == false
-        "(#{au})"        
-      else
-        au.size == 0 ? nil : au
-      end
+      return nil if au.nil?
+      (self.parens == true) ? "(#{au})" : au
     end
 
     # Return the author year string. 
     def author_year_string
       au = [self.author, self.year].compact.join(", ")
+      return nil if au.size == 0
+      au
+    end
+
+    # Return a Taxonifi::Model::Name representing the finest genus_group_parent.
+    # TODO: ICZN specific(?)
+    def genus_group_parent
+      [ parent_at_rank('subgenus'), parent_at_rank('genus')].compact.first
+    end
+  
+    # Returns just the name and author year, no parens, no parents. 
+    # Like:
+    #   foo Smith, 1927
+    #   Foo Smith, 1927
+    #   Fooidae
+    def name_author_year_string
+      [name, author_year_string].compact.join(" ")
     end
 
     # Return the name of a parent at a given rank.
@@ -139,7 +171,7 @@ module Taxonifi
     def nomenclator_name 
       case @rank
       when 'species', 'subspecies'
-        [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "({parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'), @name].compact.join(" ")
+        [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "(#{parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'),  parent_name_at_rank('subspecies')].compact.join(" ")
       when 'subgenus'
         [parent_name_at_rank('genus'), "(#{@name})"].compact.join(" ")
       else
@@ -150,6 +182,7 @@ module Taxonifi
     # Return a dashed "vector" of ids representing the ancestor parent closure, like:
     #  0-1-14-29g-45s-99-100.
     #  Postfixed g means "genus", postifed s means "subgenus.  As per SpecieFile usage.
+    #  TODO: !! malformed because the valid name is not injected.  Note that this can be generated internally post import.
     def parent_ids_sf_style
       ids = [] 
       (ancestors.push self).each do |a|

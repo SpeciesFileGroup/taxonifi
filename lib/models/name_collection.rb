@@ -5,16 +5,26 @@ module Taxonifi
     # A collection of taxonomic names. 
     class NameCollection < Taxonifi::Model::Collection
 
+      # A by-name (string index) 
       attr_accessor :by_name_index
+     
+      # A Taxonifi::Model::RefCollection, optionally generated from Author/Year strings 
       attr_accessor :ref_collection
+
+      # An optional collection of existing combinations of species names, as represented by 
+      # individual arrays of Taxonifi::Model::Names.  Note you can not use a Taxonifi::Model::SpeciesName
+      # because getting/setting names therin will affect other combinations
+      attr_accessor :combinations
 
       def initialize(options = {})
         super 
         @collection = []
-        @by_name_index = {}             # "foo => [1,2,3]"
-        Taxonifi::RANKS.inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}
+        @by_name_index = {'genus_group' => {}, 'species_group' => {} }                 # "foo => [1,2,3]"
+        Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}  # Lumping species and genus group names 
+
         @by_name_index['unknown'] = {} # unranked names get dumped in here
         @ref_collection = nil
+        @combinations = [] 
         true
       end 
 
@@ -45,18 +55,27 @@ module Taxonifi
       end
 
       # Returns id of matching existing name
-      # or false if there i s no match.
-      # Matches against name (string) and parents ("identity")
+      # or false if there is no match.
+      # !! assumes parent is set
+      # Matches against name, year, and all parents (by id).
+      # 
+      # !! nominotypic names are considered to be the same (species and generic).  See 
+      #   @combinations to instantiate these
+      #
+      # TODO: This is likely already overly ICZN flavoured.
       def name_exists?(name = Taxonifi::Model::Name) 
-        # Does the name (string) exist? 
-        rank = name.rank.downcase 
-        rank ||= 'unknown'
-        if by_name_index[rank][name.name]
-          # Yes, check to see if parents match
-          by_name_index[rank][name.name].each do |id|
+        # species/genus group names are indexed for indexing purposes 
+        rank = name.index_rank
+
+        if by_name_index[rank][name.name_author_year_string]
+          by_name_index[rank][name.name_author_year_string].each do |id|
+            full_parent_vector = parent_id_vector(name.parent.id) 
+            return id if full_parent_vector == parent_id_vector(id)  # this hits species/genus group names
+            
             vector = parent_id_vector(id)
-            vector.pop
-            if vector == parent_id_vector(name.parent.id)
+            next if vector.last != name.parent.id                    # can stop looking at this possiblity
+            vector.pop                                               # compare just parents
+            if vector == full_parent_vector 
               exists = true
               return id
             end
@@ -108,6 +127,11 @@ module Taxonifi
         end
       end
 
+      # Return an array of the names in the collection
+      def name_string_array
+        collection.collect{|n| n.display_name}
+      end 
+    
       # Take the author/years of these names and generate a reference collection.
       # Start the ids assigned to the references with initial_id.
       def generate_ref_collection(initial_id = 0)
@@ -139,11 +163,12 @@ module Taxonifi
       #  {"Foo bar" => [1,2,93]})
       def index_by_name(obj)
         rank = obj.rank
+        rank = 'species_group' if %w{species subspecies}.include?(rank)
+        rank = 'genus_group' if %w{genus subgenus}.include?(rank)
         rank ||= 'unknown'
-        by_name_index[rank][obj.name] ||= [] 
-        by_name_index[rank][obj.name].push obj.id 
+        by_name_index[rank][obj.name_author_year_string] ||= [] 
+        by_name_index[rank][obj.name_author_year_string].push obj.id 
       end
-
     end
   end
 end

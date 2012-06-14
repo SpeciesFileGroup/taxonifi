@@ -65,20 +65,22 @@ module Taxonifi
       end
 
       # Return a string representation of the species name.
+      # Becuase we build parent relationships on setters
+      # this is the same as the last names display_name
       def display_name
-        strs = [] 
-        self.names.each do |n|
-          case n.rank
-          when 'subgenus'
-            strs.push "(#{n.name})"
-          else
-            strs.push n.name 
-          end
-        end
-        strs.push self.names.last.author_year
-        txt = strs.compact.join(" ")  
-        txt
+        names.last.display_name 
       end
+
+      # Returns true if this combination contains a nominotypic subspecies name 
+      def nominotypical_species
+        names.species && names.subspecies && (names.species.name == names.subspecies.name)
+      end
+
+      # Returns true if this combinations contains a nominotypic subgenus 
+      def nominotypical_genus
+        names.genus && names.subgenus && (names.genus.name == names.subgenus.name)
+      end
+
     end
   end
 end

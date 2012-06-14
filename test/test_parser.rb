@@ -17,7 +17,8 @@ class Test_TaxonifiSplitterParser < Test::Unit::TestCase
       assert_equal builder.species, builder.subspecies.parent 
       assert_equal "Smith", builder.names.last.author
       assert_equal 1912, builder.names.last.year
-      assert_equal false, builder.names.last.parens
+      assert_equal true, builder.names.last.parens
+      assert_equal "Foo (Bar) stuff things (Smith, 1912)", builder.display_name 
 
       lexer = Taxonifi::Splitter::Lexer.new("Foo stuff things Smith, 1912", :species_name)
       builder = Taxonifi::Model::SpeciesName.new
@@ -27,7 +28,8 @@ class Test_TaxonifiSplitterParser < Test::Unit::TestCase
       assert_equal "things", builder.subspecies.name
       assert_equal "Smith", builder.names.last.author
       assert_equal 1912 ,  builder.names.last.year
-      assert_equal true, builder.names.last.parens
+      assert_equal false, builder.names.last.parens
+      assert_equal "Foo stuff things Smith, 1912", builder.display_name 
   end
 
 end 

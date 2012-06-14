@@ -118,6 +118,26 @@ class TestTaxonifiName < Test::Unit::TestCase
    @n4 = Taxonifi::Model::Name.new(:name => "boo", :rank => "Species", :author => "Frank", :year => 2020, :id => 11,  :parent => @n3 )
   end
 
+  def test_name_author_year_string
+    create_a_few_names
+    assert_equal 'Baridae', @n0.name_author_year_string
+    assert_equal 'Barinae', @n1.name_author_year_string
+    assert_equal 'Foo Frank, 2020', @n2.name_author_year_string
+    assert_equal 'Bar Frank, 2020', @n3.name_author_year_string
+    assert_equal 'boo Frank, 2020', @n4.name_author_year_string
+  end
+
+  def test_nomenclator_name
+    create_a_few_names
+    n5 = Taxonifi::Model::Name.new(:name => "beep", :rank => "Subspecies", :author => "Frank", :year => 2020, :id => 11,  :parent => @n4 )
+    
+    assert_equal 'Foo', @n2.nomenclator_name 
+    assert_equal 'Foo (Bar)', @n3.nomenclator_name
+    assert_equal 'Foo (Bar) boo', @n4.nomenclator_name
+    assert_equal 'Foo (Bar) boo beep', n5.nomenclator_name
+  end
+  
+
   def test_ancestors
     create_a_few_names 
     assert_equal [@n0, @n1], @n2.ancestors
@@ -128,6 +148,7 @@ class TestTaxonifiName < Test::Unit::TestCase
     assert_equal [2,15], @n2.ancestor_ids
   end
 
+  # TODO: fix to inject valid id to confirm to SF
   def test_parent_ids_sf_style
     create_a_few_names 
     assert_equal '2-15-14g-19s-11', @n4.parent_ids_sf_style
@@ -139,6 +160,18 @@ class TestTaxonifiName < Test::Unit::TestCase
   def test_author_year_index
     n = Taxonifi::Model::Name.new(author_year: 'Smith and Jones, 1920')
     assert_equal '1920-||smith|-||jones|', n.author_year_index
+  end
+
+
+  def test_genus_group_parent
+    n1 = Taxonifi::Model::Name.new(name: "Fooidae", rank: "family",     author: nil ,    year: nil)                      # 
+    n2 = Taxonifi::Model::Name.new(name: "Foo",     rank: "genus",      author: nil ,    year: nil,   :parent => n1)     # Foo
+    n3 = Taxonifi::Model::Name.new(name: "Bar",     rank: "subgenus",   author: nil ,    year: nil,   :parent => n2)     # Foo (Bar)
+    n4 = Taxonifi::Model::Name.new(name: "aus",     rank: "species",    author: nil ,    year: nil,   :parent => n3)     # Foo (Bar) aus 
+    n5 = Taxonifi::Model::Name.new(name: "bus",     rank: "subspecies", author: 'Smith', year: 1920,  :parent => n4)     # Foo (Bar) aus bus
+
+    assert_equal n3, n4.genus_group_parent
+    assert_equal n3, n5.genus_group_parent
   end
 
   # 
@@ -179,7 +212,7 @@ class TestTaxonifiName < Test::Unit::TestCase
     assert n.name = "Fooina"
   end
 
-
+  
 
 
 

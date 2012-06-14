@@ -17,6 +17,11 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
       external_id = row['identifier'].to_i
       valid_species_id = nil
 
+      # Fix me
+      index_rank = 'species_group' if rank == 'species' || rank == 'subspecies'
+      index_rank = 'genus_group' if rank == 'subgenus' || rank == 'genus'
+      index_rank ||= rank
+
       case rank
       when 'species', nil
        valid_species_id = add_species_names_from_string(nc, name, external_index[parent_id])
@@ -24,10 +29,10 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
       else  # Just a single string, we don't have to break anything down.
         n = nil
 
-        if nc.by_name_index[rank][name]
+        if nc.by_name_index[index_rank][name]
           exists = false
           # TODO: this hasn't been hit yet
-          nc.by_name_index[rank][name].each do |id|
+          nc.by_name_index[index_rank][name].each do |id|
             if nc.parent_id_vector(id).pop == nc.parent_id_vector(parent_id)
               exists = true
               break
@@ -52,8 +57,10 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
             n.parent = parent
           end
 
-          nc.add_object(n)
-          external_index.merge!(external_id => n) 
+          if !nc.name_exists?(n)
+            nc.add_object(n)
+            external_index.merge!(external_id => n) 
+          end
         end
       end
 
@@ -68,16 +75,63 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
     nc 
   end
 
-  # Add the individual names in a species epithet string.  Assumes parents all previously created.
+  # Add the last name in a species epithet string if new, record a new combination otherwise.  
+  # Assumes ALL parents have been previously added, including those used in Synonym combinations.
+  # For example, given a row with name, synonym fields like:
+  #    'Neortholomus scolopax (Say, 1832)', 'Lygaeus scolopax Say, 1832']
+  # The names Neortholomus and Lygaeus must exist.
+  #
   def self.add_species_names_from_string(nc, string, parent = nil, synonym_id = nil)
     names = Taxonifi::Splitter::Builder.build_species_name(string) # A Taxonifi::Model::SpeciesName instance
     if !parent.nil?                                                # nc.object_by_id(parent_id)
-      names.names.last.parent = parent                             # swap out the genus to the Model referenced by parent_id 
+      names.names.last.parent = parent                             # swap out the parent with the id referenced by the parent_id 
     else
       raise Taxonifi::Lumper::LumperError, "Parent of [#{names.names.last.name}] within [#{names.display_name}] not yet instantiated. \n !! To resolve: \n\t 1) If this is not a species name your file may be missing a value in the 'Rank' column (nil values are assumed to be species, all other ranks must be populated). \n\t 2) Parent names must be read before children, check that this is the case."
     end
-    last_id = nc.add_object(names.names.last).id
-    nc.object_by_id(last_id).related_name = nc.object_by_id(synonym_id) if !synonym_id.nil?
+
+    last_id = nil
+    if !nc.name_exists?(names.names.last)
+      last_id = nc.add_object(names.names.last).id
+      nc.object_by_id(last_id).related_name = nc.object_by_id(synonym_id) if !synonym_id.nil?
+    else
+
+      tmp_genus = names.genus.clone
+      tmp_subgenus = names.subgenus.clone if !names.subgenus.nil?
+      tmp_species = names.species.clone
+      tmp_subspecies = names.subspecies.clone if !names.subspecies.nil?
+
+      case parent.rank
+      when 'genus' 
+        tmp_genus.parent = parent.parent # OK
+      when 'subgenus'
+
+        tmp_genus.parent = parent.parent # OK
+      when 'species'
+        tmp_genus.parent = parent.parent.parent
+        tmp_species = parent
+        tmp_subspecies.parent = tmp_species
+      end
+
+      
+     # tmp_subgenus.parent = tmp_genus if !tmp_subgenus.nil?
+     # real_subgenus = nc.object_by_id(nc.name_exists?(tmp_subgenus)) if !tmp_subgenus.nil? 
+      
+      real_genus = nc.object_by_id(nc.name_exists?(tmp_genus)) 
+      real_species = nc.object_by_id(nc.name_exists?(tmp_species)) 
+
+      real_subspecies = nc.object_by_id(nc.name_exists?(tmp_subspecies))  if !tmp_subspecies.nil?
+
+     #tmp_subspecies.parent = tmp_species if !tmp_subspecies.nil?
+     
+
+     real_subgenus = nil
+    
+      rc =  [real_genus, real_subgenus, real_species, real_subspecies]
+
+      # puts rc.collect{|c| (c.nil? ? 'NONE' : c.id)}.join(":")
+      nc.combinations.push rc
+    end
+
     last_id
   end
 
