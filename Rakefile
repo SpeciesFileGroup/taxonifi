@@ -15,7 +15,7 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "taxonifi"
-  gem.homepage = "http://github.com/mjy/taxonifi"
+  gem.homepage = "http://github.com/SpeciesFile/taxonifi"
   gem.license = "MIT"
   gem.summary = %Q{A general purpose framework for scripted handling of taxonomic names}
   gem.description = %Q{Taxonifi contains simple models and utilties of use in for parsing lists of taxonomic name (life) related metadata}
