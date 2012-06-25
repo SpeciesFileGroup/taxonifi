@@ -74,7 +74,7 @@ module Taxonifi::Export
       @name_collection = opts[:nc]
       @authorized_user_id = opts[:authorized_user_id]
       @author_index = {}
-     
+
       # 
       # Careful here, at present we are just generating Reference micro-citations from our names, so the indexing "just works"
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
@@ -112,7 +112,7 @@ module Taxonifi::Export
     def build_author_index
       @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
     end
-      
+
     def export()
       super
       @name_collection.generate_ref_collection(1)
@@ -123,7 +123,7 @@ module Taxonifi::Export
 
       # See notes in #initalize re potential key collisions!
       @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
-      
+
       @name_collection.names_at_rank('genus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
@@ -159,7 +159,7 @@ module Taxonifi::Export
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
       end
-     @csv_string
+      @csv_string
     end
 
     # Generate a tblRefs string.
@@ -315,10 +315,9 @@ module Taxonifi::Export
         csv << @headers
         i = 1
         @name_collection.collection.each do |n|
-         next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('genus')
-         ref = @by_author_reference_index[n.author_year_index]
-         next if ref.nil?
-
+          next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('genus')
+          ref = @by_author_reference_index[n.author_year_index]
+          next if ref.nil?
           cols = {
             NomenclatorID: i,
             GenusNameID: @genus_names[n.parent_name_at_rank('genus')] || 0,
@@ -336,6 +335,30 @@ module Taxonifi::Export
           i += 1
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
+
+        # TODO: DRY this up with above- but good number of subtle differences exist!?
+        @name_collection.combinations.each do |c|
+          ref = @by_author_reference_index[c.compact.last.author_year_index]
+          next if ref.nil?
+          cols = {
+            NomenclatorID: i,
+            GenusNameID: (c[0] ? c[0].id : 0),
+            SubgenusNameID: (c[1] ? c[1].id : 0),
+            SpeciesNameID: (c[2] ? c[2].id : 0),
+            SubspeciesNameID: (c[3] ? c[3].id : 0),
+            InfrasubspeciesNameID: 0,
+            InfrasubKind: 0,                          # this might be wrong
+            LastUpdate: @time,  
+            ModifiedBy: @authorized_user_id, 
+            SuitableForGenus: 0,                      # Set in SF 
+            SuitableForSpecies: 0                     # Set in SF
+          }
+          # check!?
+          @nomenclator.merge!(c.compact.last.display_name => i)
+          i += 1
+          csv <<  @headers.collect{|h| cols[h.to_sym]} 
+        end
+
       end
       @csv_string
     end

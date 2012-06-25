@@ -67,11 +67,12 @@ class Test_TaxonifiLumperParentChildNameCollection < Test::Unit::TestCase
     
     assert_equal 2, nc.combinations.size
 
-    assert_equal 'Lygaeus', nc.combinations.first.first.name
-    assert_equal [3, nil, 5, nil], nc.combinations.first.collect{|n| n.nil? ? nil : n.id } # ids start at 1 by default
+    # These tests a little too dependent on array order (word of warning), which is meaningless
+    assert_equal 'Lygaeus', nc.combinations.last.first.name
+    assert_equal [3, nil, 5, nil], nc.combinations.last.collect{|n| n.nil? ? nil : n.id } # ids start at 1 by default
 
-    assert_equal 'Neortholomus', nc.combinations[1].first.name
-    assert_equal [4, nil, 7,7], nc.combinations[1].collect{|n| n.nil? ? nil : n.id } # ids start at 1 by default
+    assert_equal 'Neortholomus', nc.combinations[0].first.name
+    assert_equal [4, nil, 7,7], nc.combinations[0].collect{|n| n.nil? ? nil : n.id } # ids start at 1 by default
 
     # when author/year the same ignore?!
     # examine tblTaxonHIstory?  ... the name *is* present but the taxon history won't be.

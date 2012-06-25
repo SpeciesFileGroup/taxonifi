@@ -8,7 +8,12 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
     raise Taxonifi::Lumper::LumperError, "CSV does not have the required headers (#{Taxonifi::Lumper::LUMPS[:eol_basic].join(", ")})." if  !Taxonifi::Lumper.available_lumps(csv.headers).include?(:eol_basic)
 
     nc = Taxonifi::Model::NameCollection.new(:initial_id => 1)
-    external_index = {} # identifier => Taxonifi::Name
+
+    # identifier => Taxonifi::Name
+    external_index = {} 
+
+    # Array of Hashes {:synonyms => "Name|Name1|Name2", :external_index => external_index[parent_id], :valid_species_id => valid_species_id}, {} ...
+    synonym_list = [] 
 
     csv.each_with_index do |row,i|
       name = row['child']
@@ -65,13 +70,21 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
       end
 
       if !row['synonyms'].nil? && row['synonyms'].size > 0 
-        other_names = row['synonyms'].split("|")
-        other_names.each do |n|
-          add_species_names_from_string(nc, n, external_index[parent_id], valid_species_id) 
-        end
+        #  puts n.name if external_index[parent_id].nil?
+        synonym_list.push({:synonyms => row['synonyms'], :valid_species_id => valid_species_id, :external_index => external_index[parent_id]})
       end
 
     end # end row
+
+    # parse the synonyms last, because names might have been mixed
+    synonym_list.each do |s|
+      other_names = s[:synonyms].split("|")
+      other_names.each do |n|
+        # puts ":: #{n} :: #{s[:external_index]} :: #{s[:valid_species_id]}" if s[:external_index].nil?
+        add_species_names_from_string(nc, n, s[:external_index], s[:valid_species_id]) 
+      end
+    end
+
     nc 
   end
 
@@ -104,31 +117,27 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
       when 'genus' 
         tmp_genus.parent = parent.parent # OK
       when 'subgenus'
-
         tmp_genus.parent = parent.parent # OK
       when 'species'
         tmp_genus.parent = parent.parent.parent
         tmp_species = parent
         tmp_subspecies.parent = tmp_species
       end
+      
+      # tmp_subgenus.parent = tmp_genus if !tmp_subgenus.nil?
+      # real_subgenus = nc.object_by_id(nc.name_exists?(tmp_subgenus)) if !tmp_subgenus.nil? 
 
-      
-     # tmp_subgenus.parent = tmp_genus if !tmp_subgenus.nil?
-     # real_subgenus = nc.object_by_id(nc.name_exists?(tmp_subgenus)) if !tmp_subgenus.nil? 
-      
       real_genus = nc.object_by_id(nc.name_exists?(tmp_genus)) 
       real_species = nc.object_by_id(nc.name_exists?(tmp_species)) 
 
+      # !! Existing demo data Lygaeoidea have synonyms in which the genus name is not instantiated.  This might be a problem with DwC file 
+      # validation in general, something to look at, for now, throw up our hands and move on.
+      return last_id if (real_genus.nil? || real_species.nil?)
+
+      real_subgenus = nil # revisit
       real_subspecies = nc.object_by_id(nc.name_exists?(tmp_subspecies))  if !tmp_subspecies.nil?
-
-     #tmp_subspecies.parent = tmp_species if !tmp_subspecies.nil?
-     
-
-     real_subgenus = nil
     
-      rc =  [real_genus, real_subgenus, real_species, real_subspecies]
-
-      # puts rc.collect{|c| (c.nil? ? 'NONE' : c.id)}.join(":")
+      rc = [real_genus, real_subgenus, real_species, real_subspecies]
       nc.combinations.push rc
     end
 

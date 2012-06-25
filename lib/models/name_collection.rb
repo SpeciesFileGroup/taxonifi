@@ -12,8 +12,8 @@ module Taxonifi
       attr_accessor :ref_collection
 
       # An optional collection of existing combinations of species names, as represented by 
-      # individual arrays of Taxonifi::Model::Names.  Note you can not use a Taxonifi::Model::SpeciesName
-      # because getting/setting names therin will affect other combinations
+      # individual arrays of Taxonifi::Model::Names.  Note you can not use a Taxonifi::Model::SpeciesName 
+      # for this purpose because getting/setting names therin will affect other combinations
       attr_accessor :combinations
 
       def initialize(options = {})
@@ -53,6 +53,7 @@ module Taxonifi
         end
         names
       end
+
 
       # Returns id of matching existing name
       # or false if there is no match.
