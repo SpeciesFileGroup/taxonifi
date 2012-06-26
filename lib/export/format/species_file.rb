@@ -336,16 +336,16 @@ module Taxonifi::Export
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end
 
-        # TODO: DRY this up with above- but good number of subtle differences exist!?
+        # TODO: DRY this up with above?!
         @name_collection.combinations.each do |c|
           ref = @by_author_reference_index[c.compact.last.author_year_index]
           next if ref.nil?
           cols = {
             NomenclatorID: i,
-            GenusNameID: (c[0] ? c[0].id : 0),
-            SubgenusNameID: (c[1] ? c[1].id : 0),
-            SpeciesNameID: (c[2] ? c[2].id : 0),
-            SubspeciesNameID: (c[3] ? c[3].id : 0),
+            GenusNameID: (c[0].nil? ? 0 : @genus_names[c[0].name]),
+            SubgenusNameID: (c[1].nil? ? 0 : @genus_names[c[1].name]),
+            SpeciesNameID: (c[2].nil? ? 0 : @species_names[c[2].name]),
+            SubspeciesNameID: (c[3].nil? ? 0 : @species_names[c[3].name]),
             InfrasubspeciesNameID: 0,
             InfrasubKind: 0,                          # this might be wrong
             LastUpdate: @time,  
@@ -354,7 +354,7 @@ module Taxonifi::Export
             SuitableForSpecies: 0                     # Set in SF
           }
           # check!?
-          @nomenclator.merge!(c.compact.last.display_name => i)
+          @nomenclator.merge!(c.compact.last.nomenclator_name => i)
           i += 1
           csv <<  @headers.collect{|h| cols[h.to_sym]} 
         end

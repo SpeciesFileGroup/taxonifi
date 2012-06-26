@@ -134,6 +134,7 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
       # validation in general, something to look at, for now, throw up our hands and move on.
       return last_id if (real_genus.nil? || real_species.nil?)
 
+      # debugger if real_genus.id == 399
       real_subgenus = nil # revisit
       real_subspecies = nc.object_by_id(nc.name_exists?(tmp_subspecies))  if !tmp_subspecies.nil?
     
