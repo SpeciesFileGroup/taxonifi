@@ -29,7 +29,7 @@ module Taxonifi::Export
       'superfamily group' =>       44,         
       'subinfraordinal group' =>   45,             
       'infraorder' =>              46,  
-      'suborder' =>                8,
+      'suborder' =>                48,
       'order' =>                   50,
       'mirorder' =>                51,
       'superorder' =>              52,  
@@ -252,6 +252,7 @@ module Taxonifi::Export
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
         @name_collection.collection.each do |n|
+          next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
           ref = @by_author_reference_index[n.author_year_index]
           next if ref.nil?
           cols = {
@@ -278,11 +279,15 @@ module Taxonifi::Export
     end
 
     def tblGenusNames
+      # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
+      # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
       @csv_string = csv_for_genus_and_species_names_tables('Genus')
       @csv_string
     end
 
     def tblSpeciesNames
+      # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
+      # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
       @csv_string = csv_for_genus_and_species_names_tables('Species')
       @csv_string
     end
@@ -308,22 +313,33 @@ module Taxonifi::Export
       @csv_string 
     end
 
-    # must be called post tblGenusNames and tblSpeciesNames
+    # Must be called post tblGenusNames and tblSpeciesNames.
+    # Some records are not used but can be cleaned by SF 
     def tblNomenclator
       @headers = %w{NomenclatorID GenusNameID SubgenusNameID SpeciesNameID SubspeciesNameID LastUpdate ModifiedBy SuitableForGenus SuitableForSpecies InfrasubspeciesNameID InfrasubKind}
       @csv_string = CSV.generate() do |csv|
         csv << @headers
         i = 1
         @name_collection.collection.each do |n|
-          next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('genus')
+
+          gid, sgid = 0,0
+          sid = @species_names[n.parent_name_at_rank('species')] || 0
+          ssid = @species_names[n.parent_name_at_rank('subspecies')] || 0
+
+          if n.parens == false
+            gid = @genus_names[n.parent_name_at_rank('genus')] || 0
+            sgid = @genus_names[n.parent_name_at_rank('subgenus')] || 0
+          end 
+
+          next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
           ref = @by_author_reference_index[n.author_year_index]
           next if ref.nil?
           cols = {
             NomenclatorID: i,
-            GenusNameID: @genus_names[n.parent_name_at_rank('genus')] || 0,
-            SubgenusNameID: @genus_names[n.parent_name_at_rank('subgenus')] || 0,
-            SpeciesNameID: @species_names[n.parent_name_at_rank('species')] || 0,
-            SubspeciesNameID: @species_names[n.parent_name_at_rank('subspecies')] || 0,
+            GenusNameID: gid,
+            SubgenusNameID: sgid, 
+            SpeciesNameID: sid, 
+            SubspeciesNameID: ssid,
             InfrasubspeciesNameID: 0,
             InfrasubKind: 0,                          # this might be wrong
             LastUpdate: @time,  
@@ -338,14 +354,24 @@ module Taxonifi::Export
 
         # TODO: DRY this up with above?!
         @name_collection.combinations.each do |c|
+
+          gid, sgid = 0,0
+          sid = (c[2].nil? ? 0 : @species_names[c[2].name])
+          ssid = (c[3].nil? ? 0 : @species_names[c[3].name])
+
+          if c.compact.last.parens == false
+            gid = (c[0].nil? ? 0 : @genus_names[c[0].name])
+            sgid = (c[1].nil? ? 0 : @genus_names[c[1].name])
+          end 
+
           ref = @by_author_reference_index[c.compact.last.author_year_index]
           next if ref.nil?
           cols = {
             NomenclatorID: i,
-            GenusNameID: (c[0].nil? ? 0 : @genus_names[c[0].name]),
-            SubgenusNameID: (c[1].nil? ? 0 : @genus_names[c[1].name]),
-            SpeciesNameID: (c[2].nil? ? 0 : @species_names[c[2].name]),
-            SubspeciesNameID: (c[3].nil? ? 0 : @species_names[c[3].name]),
+            GenusNameID: gid ,
+            SubgenusNameID: sgid ,
+            SpeciesNameID: sid ,
+            SubspeciesNameID: ssid ,
             InfrasubspeciesNameID: 0,
             InfrasubKind: 0,                          # this might be wrong
             LastUpdate: @time,  

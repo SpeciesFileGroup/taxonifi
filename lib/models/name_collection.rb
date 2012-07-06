@@ -20,7 +20,7 @@ module Taxonifi
         super 
         @collection = []
         @by_name_index = {'genus_group' => {}, 'species_group' => {} }                 # "foo => [1,2,3]"
-        Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}  # Lumping species and genus group names 
+         Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}  # Lumping species and genus group names 
 
         @by_name_index['unknown'] = {} # unranked names get dumped in here
         @ref_collection = nil
