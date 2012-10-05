@@ -32,30 +32,30 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
   end
 
   def test_create_name_collection_creates_a_name_collection
-    assert_equal Taxonifi::Model::NameCollection, Taxonifi::Lumper.create_name_collection(@csv).class
+    assert_equal Taxonifi::Model::NameCollection, Taxonifi::Lumper.create_name_collection(:csv => @csv).class
   end
 
   def test_that_create_name_collection_raises_when_fed_non_csv
     assert_raises Taxonifi::Lumper::LumperError do
-      Taxonifi::Lumper.create_name_collection("FOO")
+      Taxonifi::Lumper.create_name_collection(:csv => "FOO")
     end
   end
 
   def test_that_create_name_collection_populates_a_name_collection
-    nc = Taxonifi::Lumper.create_name_collection(@csv)
+    nc = Taxonifi::Lumper.create_name_collection(:csv => @csv)
     assert_equal 3, nc.collection.size
     assert_equal ["Fooidae", "Foo", "bar"], nc.collection.collect{|n| n.name}
   end
 
   def test_that_create_name_collection_assigns_row_number
-    nc = Taxonifi::Lumper.create_name_collection(@csv)
+    nc = Taxonifi::Lumper.create_name_collection(:csv => @csv)
     assert_equal 0, nc.collection.first.row_number
     assert_equal 0, nc.collection.last.row_number
   end
   
 
   def test_that_create_name_collection_parentifies
-    nc = Taxonifi::Lumper.create_name_collection(@csv)
+    nc = Taxonifi::Lumper.create_name_collection(:csv => @csv)
     assert_equal nc.collection[0], nc.collection[1].parent
     assert_equal nc.collection[1], nc.collection[2].parent
   end
@@ -74,7 +74,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 0 4 7
 
     csv = CSV.parse(string, {headers: true})
-    nc = Taxonifi::Lumper.create_name_collection(csv)
+    nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
 
     assert_equal nc.collection[2], nc.collection[5].parent
     assert_equal nc.collection[0], nc.collection[2].parent
@@ -98,7 +98,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 3  foo 
 
     csv = CSV.parse(string, {headers: true})
-    nc = Taxonifi::Lumper.create_name_collection(csv)
+    nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
     assert_equal 1, nc.collection[3].author.size
     assert_equal 'Smith', nc.collection[3].author.first.last_name
     assert_equal 1854, nc.collection[3].year

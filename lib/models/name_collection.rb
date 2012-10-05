@@ -18,7 +18,6 @@ module Taxonifi
 
       def initialize(options = {})
         super 
-        @collection = []
         @by_name_index = {'genus_group' => {}, 'species_group' => {} }                 # "foo => [1,2,3]"
          Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}  # Lumping species and genus group names 
 
@@ -162,14 +161,17 @@ module Taxonifi
       # Index the object by name into the
       # @by_name_index variable (this looks like:
       #  {"Foo bar" => [1,2,93]})
-      def index_by_name(obj)
-        rank = obj.rank
+      #  Pass a Taxonifi::Name
+      def index_by_name(name)
+        rank = name.rank
         rank = 'species_group' if %w{species subspecies}.include?(rank)
         rank = 'genus_group' if %w{genus subgenus}.include?(rank)
         rank ||= 'unknown'
-        by_name_index[rank][obj.name_author_year_string] ||= [] 
-        by_name_index[rank][obj.name_author_year_string].push obj.id 
+
+        by_name_index[rank][name.name_author_year_string] ||= [] 
+        by_name_index[rank][name.name_author_year_string].push name.id 
       end
     end
+
   end
 end

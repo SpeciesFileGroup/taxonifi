@@ -50,7 +50,6 @@ module Taxonifi
         return obj
       end
 
-
       # Return an array of ancestor (parent) ids.
       # TODO: deprecate?
       # More or less identical to Taxonifi::Name.ancestor_ids except

@@ -75,7 +75,7 @@ There are collections of specific types (e.g. taxonomic names, geographic names)
    
     csv = CSV.parse(string, {headers: true})
 
-    nc = Taxonifi::Lumper.create_name_collection(csv)  # => Taxonifi::Model::NameCollection
+    nc = Taxonifi::Lumper.create_name_collection(:csv => csv)  # => Taxonifi::Model::NameCollection
 
     nc.collection.first                                # => Taxonifi::Model::Name 
     nc.collection.first.name                           # => "Fooidae"

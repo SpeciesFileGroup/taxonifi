@@ -56,9 +56,16 @@ module Taxonifi::Lumper
   end
 
   # Return a Taxonifi::Model::NameCollection from a csv file.
-  def self.create_name_collection(csv)
+  def self.create_name_collection(options = {})
+    opts = {
+      :csv => [],
+      :initial_id => 0
+    }.merge!(options)
+    
+    csv = opts[:csv]
+
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
-    nc = Taxonifi::Model::NameCollection.new
+    nc = Taxonifi::Model::NameCollection.new(:initial_id => opts[:initial_id])
 
     row_size = csv.size
 
