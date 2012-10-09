@@ -36,7 +36,8 @@ module Taxonifi
         end
       end
       
-      # Return the last column with data, scoped by lump if provided. 
+      # Return an Array of ["header", value] for the last column with data, scoped by lump if provided.
+      # If there is nothing available in the scope provided return [nil, nil] 
       def self.last_available(csv_row, lump = nil)
         if lump.nil?
           csv_row.entries.reverse.each do |c,v| 
@@ -47,25 +48,31 @@ module Taxonifi
             return [l, csv_row[l.to_s]] if !csv_row[l.to_s].nil?
           end
         end
+        [nil, nil]
       end
 
       # Return the rank (symbol) of the taxon name rank.  Raises
       # if no name detected.
       def self.lump_name_rank(csv_row)
-        lumps = Taxonifi::Lumper.available_lumps(csv_row.headers)        
+        # Rather than just check individual columns for data ensure a complete lump is present      
+        lumps = intersecting_lumps_with_data(csv_row, [:species, :genera, :higher])
         if lumps.include?(:species) # has to be a species name
-          if csv_row[:subspecies].nil?
-            return :species
+          if !csv_row['variety'].nil?
+            return :variety
           else
-            return :subspecies
+            if csv_row['subspecies'].nil?
+              return :species
+            else
+              return :subspecies
+            end
           end
         elsif lumps.include?(:genera)
-          if csv_row[:subgenus].nil?
+          if csv_row['subgenus'].nil?
             return :genus
           else
             return :subgenus
           end
-        else
+        elsif lumps.include?(:higher)
           return Taxonifi::Assessor::RowAssessor.last_available(csv_row, Taxonifi::Lumper::LUMPS[:higher]).first.to_sym
         end
 
@@ -75,11 +82,11 @@ module Taxonifi
 
       # Return the column representing the parent of the name
       # represented in this row.
-      def self.parent_taxon_column(csv_row)
-        lumps = Taxonifi::Lumper.available_lumps(csv_row.headers)
-        last = last_available(csv_row, Taxonifi::RANKS)
-        last_available(csv_row, Taxonifi::RANKS[0..Taxonifi::RANKS.index(last[0])-1])
-      end
+      # TODO: DEPRECATE, same f(n) as last_available when scoped properly
+      # def self.parent_taxon_column(csv_row)
+      #   last = last_available(csv_row, Taxonifi::RANKS)
+      #   last_available(csv_row, Taxonifi::RANKS[0..Taxonifi::RANKS.index(last[0])-1])
+      # end
 
       # Return an Array of headers that represent taxonomic ranks.
       def self.rank_headers(headers)
@@ -92,13 +99,13 @@ module Taxonifi
       end
 
       # Return lumps for which at least one column has data.
-      def self.intersecting_lumps_with_data(row, lumps_to_try = nil)
-        lumps_to_try ||= Taxonifi::Lumper::LUMPS.keys 
+      def self.intersecting_lumps_with_data(csv_row, lumps_to_try = nil)
+        lumps_to_try ||= Taxonifi::Lumper.intersecting_lumps(csv_row.headers) 
         lumps = [] 
         lumps_to_try.each do |l|  
           has_data = false 
           Taxonifi::Lumper::LUMPS[l].each do |c|
-            if !row[c].nil? && !row[c].empty?
+            if !csv_row[c].nil? && !csv_row[c].empty?
               has_data = true 
               break
             end
@@ -109,13 +116,13 @@ module Taxonifi
       end
 
       # Return lumps that have data for all columns.
-      def self.lumps_with_data(row, lumps_to_try = nil)
-        lumps_to_try ||= Taxonifi::Lumper::LUMPS.keys 
+      def self.lumps_with_data(csv_row, lumps_to_try = nil)
+        lumps_to_try ||= Taxonifi::Lumper.available_lumps(csv_row.headers) # Taxonifi::Lumper::LUMPS.keys 
         lumps = [] 
         lumps_to_try.each do |l|  
           has_data = true 
           Taxonifi::Lumper::LUMPS[l].each do |c|
-            if row[c].nil? || row[c].empty?
+            if csv_row[c].nil? || csv_row[c].empty?
               has_data = false 
               break
             end

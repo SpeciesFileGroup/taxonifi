@@ -2,17 +2,17 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
 
 class TestTaxonifiNameCollection < Test::Unit::TestCase
 
+  def test_that_name_collections_have_collections
+    c = Taxonifi::Model::NameCollection.new
+    assert c.respond_to?(:collection)
+    assert_equal([], c.collection)
+  end
+
   def test_that_add_objects_adds_to_collection
     c = Taxonifi::Model::NameCollection.new
     n = Taxonifi::Model::Name.new
     assert c.add_object(n)
     assert_equal(1, c.collection.size)
-  end
-
-  def test_that_name_collections_have_collections
-    c = Taxonifi::Model::NameCollection.new
-    assert c.respond_to?(:collection)
-    assert_equal([], c.collection)
   end
 
   def test_that_name_collection_returns_encompassing_rank
@@ -116,8 +116,6 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     n4 = Taxonifi::Model::Name.new(name: "Bar",     rank: "subgenus", author: nil ,    year: nil,   :parent => n2)
     n5 = Taxonifi::Model::Name.new(name: "foo",     rank: "species",  author: 'Smith', year: 1920,  :parent => n2)
     n6 = Taxonifi::Model::Name.new(name: "foo",     rank: "species",  author: 'Smith', year: 1920,  :parent => n2)
-
-
     n7  = Taxonifi::Model::Name.new(name: "Blorf",  rank: "genus",      author: 'Smith', year: 1920,  :parent => n1)
     n8  = Taxonifi::Model::Name.new(name: "foo",    rank: "species",    author: 'Smith', year: 1920,  :parent => n7)
     n9  = Taxonifi::Model::Name.new(name: "foo",    rank: "species",    author: 'Jones', year: nil,   :parent => n7)
@@ -191,6 +189,7 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert_equal 2011, c.ref_collection.collection.first.year
     foo = 1
   end
+
 
 end
 

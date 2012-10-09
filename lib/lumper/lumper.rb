@@ -29,7 +29,7 @@ module Taxonifi::Lumper
     quad_author_year: QUAD + AUTHOR_YEAR,
     names:  Taxonifi::RANKS + AUTHOR_YEAR,
     higher: Taxonifi::RANKS - [QUAD + AUTHOR_YEAR],
-    species: ['species', 'subspecies'],
+    species: ['species', 'subspecies', 'variety'],
     genera: ['genus', 'subgenus'],
     citation_basic: %w{authors year title publication volume number pages pg_start pg_end},
     citation_small: %w{authors year title publication volume_number pages},
@@ -88,8 +88,7 @@ module Taxonifi::Lumper
     Taxonifi::Assessor::RowAssessor.rank_headers(csv.headers).each do |rank|
       name_index[rank] = {}
       csv.each_with_index do |row, i|
-        row_rank = Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s # metadata (e.g. author year) apply to this rank 
-
+        
         name = row[rank] 
 
         if !name.nil?     # cell has data
@@ -126,7 +125,8 @@ module Taxonifi::Lumper
             # Name/year needs to be standardized / cased out
             # headers are overlapping at times
 
-            if row['author_year'] && row_rank == rank
+            # Check to see if metadata (e.g. author year) apply to this rank, attach if so.
+            if row['author_year'] && rank ==  Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s 
               builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
               n.author               = builder.people 
               n.year                 = builder.year 
@@ -137,6 +137,10 @@ module Taxonifi::Lumper
             # Add the name to the index of unique names
             name_index[rank][name] ||= []
             name_index[rank][name].push name_id                
+
+            $DEBUG && $stderr.puts("added #{nc.collection.size - 1} | #{n.name} | #{n.rank} | #{n.parent ? n.parent.name : '-'} | #{n.parent ? n.parent.id : '-'}")
+          else
+            $DEBUG && $stderr.puts("already present #{rank} | #{name}")
           end
 
           # build a by row vector of parent child relationships
@@ -153,7 +157,6 @@ module Taxonifi::Lumper
   def self.create_ref_collection(csv)
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_ref_collection.' if csv.class != CSV::Table
     rc = Taxonifi::Model::RefCollection.new
-    row_size = csv.size
 
     ref_index = {}
     csv.each_with_index do |row, i|
@@ -207,6 +210,10 @@ module Taxonifi::Lumper
       end
     end
     rc
+  end
+
+  def self.link_name_and_ref_collections_by_row(nc, rc)
+
   end
 
   # Creates a generic Collection with Objects of GenericObject

@@ -28,7 +28,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
   def test_available_lumps
     assert Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::QUAD ).include?(:quadrinomial)
     assert Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::AUTHOR_YEAR + Taxonifi::Lumper::QUAD ).include?(:quad_author_year)
-    assert (not Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::AUTHOR_YEAR + Taxonifi::Lumper::QUAD ).include?(:names) )
+    assert !Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::AUTHOR_YEAR + Taxonifi::Lumper::QUAD ).include?(:names) 
   end
 
   def test_create_name_collection_creates_a_name_collection
@@ -53,7 +53,6 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal 0, nc.collection.last.row_number
   end
   
-
   def test_that_create_name_collection_parentifies
     nc = Taxonifi::Lumper.create_name_collection(:csv => @csv)
     assert_equal nc.collection[0], nc.collection[1].parent
@@ -111,6 +110,48 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal nil, nc.collection[0].parens
     assert_equal true, nc.collection[2].parens
     assert_equal false, nc.collection[3].parens
+  end
+
+  def test_that_create_a_name_collection_handles_varieties
+    string = CSV.generate() do |csv|
+      csv << %w{family genus species variety author_year}
+      csv << ["Fooidae", "Foo", "bar", "varblorf", "Smith, 1854"]
+      csv << ["Fooidae", "Foo", "foo", "varblorf", "(Smith, 1854)"]
+      csv << ["Fooidae", "Foo", "bar", "varbliff", "(Smith, 1854)"]
+    end
+
+    # Names added by rank
+    # 0  Fooidae
+    # 1  Foo
+    # 2  bar
+    # 3  foo
+    # 4  varblorf 
+    # 5  varblorf 
+    # 6  varbliff 
+
+    csv = CSV.parse(string, {headers: true})
+    nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
+
+    assert_equal nc.collection[1], nc.collection[2].parent
+    assert_equal nc.collection[1], nc.collection[3].parent
+    assert_equal nc.collection[2], nc.collection[4].parent
+    assert_equal 'variety', nc.collection[4].rank
+    assert_equal 'varblorf', nc.collection[5].name
+    assert_equal 'Smith', nc.collection[6].author.first.last_name
+
+  # assert_equal 1, nc.collection[3].author.size
+
+  # assert_equal 1854, nc.collection[3].year
+
+  # # Name only applies to the "last" name in the order.
+  # assert_equal nil, nc.collection[0].author
+  # assert_equal nil, nc.collection[1].author
+  # assert_equal 1, nc.collection[2].author.size
+
+  # assert_equal nil, nc.collection[0].parens
+  # assert_equal true, nc.collection[2].parens
+  # assert_equal false, nc.collection[3].parens
+
   end
 
 #--- reference collections

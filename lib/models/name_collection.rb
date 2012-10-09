@@ -156,6 +156,7 @@ module Taxonifi
         @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
       end
 
+      
       protected
 
       # Index the object by name into the
@@ -164,7 +165,7 @@ module Taxonifi
       #  Pass a Taxonifi::Name
       def index_by_name(name)
         rank = name.rank
-        rank = 'species_group' if %w{species subspecies}.include?(rank)
+        rank = 'species_group' if %w{species subspecies variety}.include?(rank)
         rank = 'genus_group' if %w{genus subgenus}.include?(rank)
         rank ||= 'unknown'
 

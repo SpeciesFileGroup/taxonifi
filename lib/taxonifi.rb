@@ -21,6 +21,7 @@ module Taxonifi
       subgenus
       species
       subspecies
+      variety
   }
 
 

@@ -34,7 +34,6 @@ class Taxonifi::Splitter::Parser
     t = @lexer.pop(Taxonifi::Splitter::Tokens::Quadrinomial)
     ranks = %w{genus subgenus species subspecies}
     names = {} 
-    last_parent = nil
     ranks.each do |r|
       names.merge!(r: nil)
       @builder.send("#{r}=", Taxonifi::Model::Name.new(:name => t.send(r), rank: r) ) if t.send(r)

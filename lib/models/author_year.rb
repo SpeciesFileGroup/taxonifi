@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), "../models/base.rb"))
 module Taxonifi
   module Model
     # A class to aggregate People and Year combinations.
-   class AuthorYear < Taxonifi::Model::Base
+    class AuthorYear < Taxonifi::Model::Base
       # Array of Taxonifi::Model::People
       attr_accessor :people
       # String 
@@ -32,7 +32,6 @@ module Taxonifi
         end
         index.join("-")
       end
-
     end
   end
 end

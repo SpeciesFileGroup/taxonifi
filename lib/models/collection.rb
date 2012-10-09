@@ -15,6 +15,7 @@ module Taxonifi
         raise CollectionError, "Can not start with an initial_id of nil." if opts[:initial_id].nil?
         @collection = []
         @by_id_index = {} 
+        @by_row_index = {}
         @current_free_id = opts[:initial_id]
         true
       end 

@@ -109,7 +109,7 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
     else
 
       tmp_genus = names.genus.clone
-      tmp_subgenus = names.subgenus.clone if !names.subgenus.nil?
+      # tmp_subgenus = names.subgenus.clone if !names.subgenus.nil?
       tmp_species = names.species.clone
       tmp_subspecies = names.subspecies.clone if !names.subspecies.nil?
 
