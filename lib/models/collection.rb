@@ -8,6 +8,23 @@ module Taxonifi
       attr_accessor :current_free_id
       attr_accessor :collection 
 
+      # Return an array of the classes derived from the collection class.
+      # Punked from http://www.ruby-forum.com/topic/163430
+      def self.subclasses
+        classes = []
+        ObjectSpace.each_object do |klass|
+          next unless Module === klass
+          classes << klass if self > klass
+        end
+        classes
+      end
+
+      # Returns an array of (downcased) strings representing the prefixes of the Collection based subclasses, like
+      # ['name', 'geog', 'ref'] etc.
+      def self.subclass_prefixes
+        self.subclasses.collect{|c| c.to_s.split("::").last}.collect{|n| n.gsub(/Collection/, "").downcase}
+      end
+
       def initialize(options = {})
         opts = {
           :initial_id => 0
@@ -78,13 +95,14 @@ module Taxonifi
         collection.select{|o| o.parent.nil?}
       end
 
-      protected
+            protected
 
       # Check to see that the object can be added to this collection.
       def object_is_allowed?(obj)
         raise CollectionError, "Taxonifi::Model::#{object_class.class} not passed to Collection.add_object()." if !(obj.class == object_class)
         true
       end
+
 
     end
   end

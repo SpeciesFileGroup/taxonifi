@@ -136,7 +136,6 @@ class TestTaxonifiName < Test::Unit::TestCase
     assert_equal 'Foo (Bar) boo', @n4.nomenclator_name
     assert_equal 'Foo (Bar) boo beep', n5.nomenclator_name
   end
-  
 
   def test_ancestors
     create_a_few_names 
@@ -161,7 +160,6 @@ class TestTaxonifiName < Test::Unit::TestCase
     n = Taxonifi::Model::Name.new(author_year: 'Smith and Jones, 1920')
     assert_equal '1920-||smith|-||jones|', n.author_year_index
   end
-
 
   def test_genus_group_parent
     n1 = Taxonifi::Model::Name.new(name: "Fooidae", rank: "family",     author: nil ,    year: nil)                      # 

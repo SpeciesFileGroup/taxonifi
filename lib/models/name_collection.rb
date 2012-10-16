@@ -155,7 +155,6 @@ module Taxonifi
       def ref_collection=(ref_collection)
         @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
       end
-
       
       protected
 

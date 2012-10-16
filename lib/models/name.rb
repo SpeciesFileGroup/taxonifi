@@ -22,7 +22,7 @@ module Taxonifi
     # A Taxonifi::Model::Name 
     attr_accessor  :parent      
 
-    # General purpose relationship, typically used to indicate synonymy.  A Taxonifi::Model::Name 
+    #  A Taxonifi::Model::Name General purpose relationship, typically used to indicate synonymy.
     attr_accessor  :related_name 
 
     # Array, contains properties assignable in Taxonifi::Model::Name#new()

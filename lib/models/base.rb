@@ -7,10 +7,26 @@ module Taxonifi
     class Base 
       # The id of this object.
       attr_accessor :id
+
       # Optionly store the row this came from
       attr_accessor :row_number
+
       # Optionally store an id representing the original id usef for this record. 
       attr_accessor :external_id
+
+      # A general purpose hash populable as needed for related metadata
+      attr_accessor :related
+
+      # Return an array of the classes derived from the base class.
+      # TODO: DRY with collection code.
+      def self.subclasses
+        classes = []
+        ObjectSpace.each_object do |klass|
+          next unless Module === klass
+          classes << klass if self > klass
+        end
+        classes
+      end
 
         # Assign on new() all attributes for the ATTRIBUTES 
         # constant in a given subclass. 
