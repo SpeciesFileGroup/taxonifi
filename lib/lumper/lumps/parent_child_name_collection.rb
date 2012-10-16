@@ -55,9 +55,9 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
           # TODO: No author, year have yet been observed for genus and higher names
           n.rank = rank
           n.name = name
-          n.external_id = external_id
           n.row_number = i
-    
+          n.related.merge!(:external_id => external_id)
+
           if parent = external_index[parent_id] 
             n.parent = parent
           end

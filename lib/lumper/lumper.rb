@@ -131,6 +131,8 @@ module Taxonifi::Lumper
               n.author               = builder.people 
               n.year                 = builder.year 
               n.parens               = !builder.parens
+
+              n.related.merge!(:link_to_ref_from_row => i)
             end
 
             name_id = nc.add_object(n).id

@@ -35,9 +35,11 @@ module Taxonifi
     attr_accessor :author_year_index    
 
     def initialize(options = {})
+      super
       opts = {
         id: nil
       }.merge!(options)
+
       @parent = nil
       build(@@ATTRIBUTES, opts)
       add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
