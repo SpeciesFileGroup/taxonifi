@@ -28,6 +28,7 @@ module Taxonifi
       # The object at a given row.
       # TODO: inherit from Collection? 
       def object_from_row(row_number)
+        return nil if row_number.nil?
         @row_index[row_number]
       end
 

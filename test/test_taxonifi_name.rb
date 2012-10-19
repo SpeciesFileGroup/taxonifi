@@ -210,8 +210,4 @@ class TestTaxonifiName < Test::Unit::TestCase
     assert n.name = "Fooina"
   end
 
-  
-
-
-
 end

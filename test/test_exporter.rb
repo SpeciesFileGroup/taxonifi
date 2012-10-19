@@ -24,6 +24,8 @@ class Test_TaxonifiExports < Test::Unit::TestCase
     } ) 
 
     nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
+    nc.generate_ref_collection(1)
+
     e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 15)
     assert foo = e.export
   end

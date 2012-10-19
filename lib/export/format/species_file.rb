@@ -80,7 +80,7 @@ module Taxonifi::Export
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
       # include references external to the initialized name_collection.  See also export_references.
       #
-      @by_author_reference_index = {}
+      # @by_author_reference_index = {}
       @genus_names = {}
       @species_names = {}
       @nomenclator = {}
@@ -115,14 +115,18 @@ module Taxonifi::Export
 
     def export()
       super
-      @name_collection.generate_ref_collection(1)
 
+      # This is deprecated for a pre-handling approach, i.e. you should determine
+      # how to create and link the reference IDs.
+      # Reference related approaches
+      # @name_collection.generate_ref_collection(1)
       # Give authors unique ids
-      @name_collection.ref_collection.uniquify_authors(1)
+      # @name_collection.ref_collection.uniquify_authors(1) 
+     
       build_author_index 
 
       # See notes in #initalize re potential key collisions!
-      @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
+      # @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
 
       @name_collection.names_at_rank('genus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
@@ -134,13 +138,23 @@ module Taxonifi::Export
       end
     end
 
+    # Get's the reference for a name as referenced
+    # by .related[:link_to_ref_from_row]
+    def get_ref(name)
+      return @name_collection.ref_collection.object_from_row(name.related[:link_to_ref_from_row]) if !name.related[:link_to_ref_from_row].nil?
+      nil
+    end
+
     def tblTaxa
       @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       @csv_string = CSV.generate() do |csv|
         csv << @headers  
         @name_collection.collection.each do |n|
-          ref = @by_author_reference_index[n.author_year_index]
-          cols = {
+
+          # ref = @by_author_reference_index[n.author_year_index]
+          ref = get_ref(n) 
+
+                cols = {
             TaxonNameID: n.id,
             TaxonNameStr: n.parent_ids_sf_style,        # closure -> ends with 1 
             RankID: SPECIES_FILE_RANKS[n.rank], 
@@ -253,7 +267,9 @@ module Taxonifi::Export
         csv << @headers  
         @name_collection.collection.each do |n|
           next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
-          ref = @by_author_reference_index[n.author_year_index]
+          ref = get_ref(n)
+ 
+          # ref = @by_author_reference_index[n.author_year_index]
           next if ref.nil?
           cols = {
             TaxonNameID: n.id,
@@ -332,7 +348,10 @@ module Taxonifi::Export
           end 
 
           next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
-          ref = @by_author_reference_index[n.author_year_index]
+        
+          ref = get_ref(n)  
+          # ref = @by_author_reference_index[n.author_year_index]
+         
           next if ref.nil?
           cols = {
             NomenclatorID: i,
@@ -364,8 +383,11 @@ module Taxonifi::Export
             sgid = (c[1].nil? ? 0 : @genus_names[c[1].name])
           end 
 
-          ref = @by_author_reference_index[c.compact.last.author_year_index]
+          # ref = @by_author_reference_index[c.compact.last.author_year_index]
+          ref =  @name_collection.ref_collection.object_from_row(c.compact.last.related[:link_to_ref_from_row]) 
+
           next if ref.nil?
+
           cols = {
             NomenclatorID: i,
             GenusNameID: gid ,

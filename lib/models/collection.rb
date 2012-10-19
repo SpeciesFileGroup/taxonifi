@@ -2,22 +2,20 @@ module Taxonifi
   class CollectionError < StandardError; end
   module Model
 
+    require File.expand_path(File.join(File.dirname(__FILE__), 'shared_class_methods'))
+
     # The base class that all collection classes are derived from.
     class Collection
-      attr_accessor :by_id_index
-      attr_accessor :current_free_id
-      attr_accessor :collection 
+      include Taxonifi::Model::SharedClassMethods
 
-      # Return an array of the classes derived from the collection class.
-      # Punked from http://www.ruby-forum.com/topic/163430
-      def self.subclasses
-        classes = []
-        ObjectSpace.each_object do |klass|
-          next unless Module === klass
-          classes << klass if self > klass
-        end
-        classes
-      end
+      # A Hash indexing object by id like {Integer => SomeBaseSubclass} 
+      attr_accessor :by_id_index
+
+      # A Integer representing the current free id to be used for an accessioned a collection object. Not used in non-indexed collections.
+      attr_accessor :current_free_id
+
+      # An Array, the collection.
+      attr_accessor :collection 
 
       # Returns an array of (downcased) strings representing the prefixes of the Collection based subclasses, like
       # ['name', 'geog', 'ref'] etc.
@@ -32,7 +30,7 @@ module Taxonifi
         raise CollectionError, "Can not start with an initial_id of nil." if opts[:initial_id].nil?
         @collection = []
         @by_id_index = {} 
-        @by_row_index = {}
+        # @by_row_index = {}
         @current_free_id = opts[:initial_id]
         true
       end 
@@ -95,14 +93,13 @@ module Taxonifi
         collection.select{|o| o.parent.nil?}
       end
 
-            protected
+      protected
 
       # Check to see that the object can be added to this collection.
       def object_is_allowed?(obj)
         raise CollectionError, "Taxonifi::Model::#{object_class.class} not passed to Collection.add_object()." if !(obj.class == object_class)
         true
       end
-
 
     end
   end

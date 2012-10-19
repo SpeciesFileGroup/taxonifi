@@ -2,35 +2,28 @@ module Taxonifi
   class ModelError < StandardError; end
   module Model
 
+    require File.expand_path(File.join(File.dirname(__FILE__), 'shared_class_methods'))
+
     # A base class for all Taxonifi::Models that represent
     # "individuals" (as opposed to collections of indviduals).  
     class Base 
+
+      include Taxonifi::Model::SharedClassMethods
+
       # The id of this object.
       attr_accessor :id
 
       # Optionly store the row this came from
       attr_accessor :row_number
 
-      # Optionally store an id representing the original id usef for this record. 
-      # Deprecated for :related 
-      # attr_accessor :external_id
-
       # A general purpose hash populable as needed for related metadata
-      attr_accessor :related
+      attr_accessor :related 
+
+      # TODO: Rethink this. See @@ATTRIBUTES in subclasses.
+      ATTRIBUTES = [:row_number]
 
       def initialize(options = {})
         @related = {}
-      end
-
-      # Return an array of the classes derived from the base class.
-      # TODO: DRY with collection code.
-      def self.subclasses
-        classes = []
-        ObjectSpace.each_object do |klass|
-          next unless Module === klass
-          classes << klass if self > klass
-        end
-        classes
       end
 
       # Assign on new() all attributes for the ATTRIBUTES 
@@ -78,17 +71,8 @@ module Taxonifi
         ancestors 
       end
 
-      # Determines identity base ONLY
-      # on attributes in ATTRIBUTES.
-      def identical?(obj)
-        raise Taxonifi::ModelError, "Objects are not comparible." if obj.class != self.class
-        self.class::ATTRIBUTES.each do |a|
-          next if a == :id # don't compare
-          return false if obj.send(a) != self.send(a)
-        end
-        return true
-      end
-
     end
+
+
   end
 end
