@@ -397,6 +397,15 @@ class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
       assert_equal "1", t.pg_start
       assert_equal "10", t.pg_end
     end
+
+    str = '12-33. ix 14, 19'
+    lexer = Taxonifi::Splitter::Lexer.new(str, :pages)
+    assert t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
+    assert_equal "12", t.pg_start
+    assert_equal "33", t.pg_end
+    assert_equal "ix 14, 19", t.remainder
+
+
   end
 
 end 

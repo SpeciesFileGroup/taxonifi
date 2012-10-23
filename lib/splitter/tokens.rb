@@ -241,7 +241,7 @@ module Taxonifi::Splitter::Tokens
       str =~ /\A\s*(\d+)\s*[-]?\s*(\d+)?\)?\s*[\.\,]?(.*)?/i
       @pg_start = $1 
       @pg_end = $2
-      @remainder = $3
+      @remainder = $3.strip
     end
   end
 

@@ -54,12 +54,15 @@ module Taxonifi::Export
 
     attr_accessor :name_collection
     attr_accessor :ref_collection
+    attr_accessor :pub_collection
     attr_accessor :author_index
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
+      
 
     # MANIFEST order is important
-    MANIFEST = %w{tblTaxa tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
+    MANIFEST = %w{tblTaxa tblPubs tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
+
 
     def initialize(options = {})
       opts = {
@@ -72,10 +75,10 @@ module Taxonifi::Export
       raise Taxonifi::Export::ExportError, 'NameCollection not passed to SpeciesFile export.' if ! opts[:nc].class == Taxonifi::Model::NameCollection
       raise Taxonifi::Export::ExportError, 'You must provide authorized_user_id for species_file export initialization.' if opts[:authorized_user_id].nil?
       @name_collection = opts[:nc]
+      @pub_collection = {} # title => id
       @authorized_user_id = opts[:authorized_user_id]
       @author_index = {}
-
-      # 
+      
       # Careful here, at present we are just generating Reference micro-citations from our names, so the indexing "just works"
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
       # include references external to the initialized name_collection.  See also export_references.
@@ -84,10 +87,10 @@ module Taxonifi::Export
       @genus_names = {}
       @species_names = {}
       @nomenclator = {}
+
       @time = Time.now.strftime("%F %T") 
+      @empty_quotes = "" 
     end 
-
-
 
     # Assumes names that are the same are the same person. 
     def build_author_index
@@ -117,7 +120,9 @@ module Taxonifi::Export
       MANIFEST.each do |f|
         str << send(f)
       end
-      str << ['COMMIT', 'END TRY', 'BEGIN CATCH', 'ROLLBACK', 'END CATCH']  
+      str << ['COMMIT', 'END TRY', 'BEGIN CATCH', 
+        'SELECT ERROR_LINE() AS ErrorLine, ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;', 
+        'ROLLBACK', 'END CATCH']  
       write_file('everything', str.join("\n\n"))
       true
     end
@@ -146,7 +151,9 @@ module Taxonifi::Export
     # Get's the reference for a name as referenced
     # by .related[:link_to_ref_from_row]
     def get_ref(name)
-      return @name_collection.ref_collection.object_from_row(name.related[:link_to_ref_from_row]) if !name.related[:link_to_ref_from_row].nil?
+      if not name.related[:link_to_ref_from_row].nil?
+        return @name_collection.ref_collection.object_from_row(name.related[:link_to_ref_from_row])
+      end
       nil
     end
 
@@ -181,17 +188,67 @@ module Taxonifi::Export
       sql = []
       @headers = %w{RefID ActualYear Title PubID Verbatim}
       @name_collection.ref_collection.collection.each_with_index do |r,i|
+
+        # Assumes the 0 "null" pub id is there
+        pub_id = @pub_collection[r.publication] ? @pub_collection[r.publication] : 0
+
         cols = {
-          RefID: r.id, #  i + 1,
+          RefID: r.id,
+          ContainingRefID: 0,
           Title: (r.title.nil? ? """""" : r.title),
-          PubID: 0,                                   # Careful - assumes you have a pre-generated PubID of Zero in there, PubID table is not included in CSV imports
+          PubID: pub_id,  
+          Series: @empty_quotes,
+          Volume: r.volume,
+          Issue:  r.number,
+          RefPages: r.page_string,
           ActualYear: r.year,
+          StatedYear: @empty_quotes,
+          AccessCode: 0,
+          Flags: 0, 
+          Note: @empty_quotes,
+          LastUpdate: @time,
+          ModifiedBy: @authorized_user,
+          LinkID: 0,
+          CiteDataStatus: 0,
           Verbatim: r.full_citation
         }
         sql << sql_insert_statement('tblRefs', cols) 
       end
       sql.join("\n")
     end
+
+    # Generate tblPubs SQL
+    def tblPubs
+      sql = []
+      @headers = %w{PubID PrefID PubType ShortName FullName Note LastUpdate ModifiedBy Publisher PlacePublished PubRegID Status StartYear EndYear BHL}
+      
+      # Hackish should build this elsewhere, but degrades OK
+      pubs = @name_collection.ref_collection.collection.collect{|r| r.publication}.compact.uniq
+
+      pubs.each_with_index do |p, i|
+        cols = {
+          PubID: i + 1,
+          PrefID: 0,
+          PubType: 1,
+          ShortName: @empty_quotes,
+          FullName: p,
+          Note: @empty_quotes,
+          LastUpdate: @time, 
+          ModifiedBy: @authorized_user_id,
+          Publisher: @empty_quotes,
+          PlacePublished: @empty_quotes,
+          PubRegID: 0,
+          Status: 0, 
+          StartYear: 0, 
+          EndYear: 0, 
+          BHL: 0
+        }
+        @pub_collection.merge!(p => i + 1)
+        sql << sql_insert_statement('tblPubs', cols) 
+      end
+      sql.join("\n")
+    end
+
 
     # Generate tblPeople string.
     def tblPeople
@@ -210,7 +267,6 @@ module Taxonifi::Export
           LastUpdate: @time,
           ModifiedBy: @authorized_user_id
         }
-
         sql << sql_insert_statement('tblPeople', cols) 
       end
       sql.join("\n")
@@ -241,29 +297,30 @@ module Taxonifi::Export
     def tblCites
       @headers = %w{TaxonNameID SeqNum RefID NomenclatorID LastUpdate ModifiedBy NewNameStatus CitePages Note TypeClarification CurrentConcept ConceptChange InfoFlags InfoFlagStatus PolynomialStatus}
       sql = []
+     
       @name_collection.collection.each do |n|
         next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
         ref = get_ref(n)
+
         # ref = @by_author_reference_index[n.author_year_index]
         next if ref.nil?
         cols = {
-          TaxonNameID: n.id,
-          SeqNum: 1,
-          RefID: ref.id,
-          NomenclatorID: @nomenclator[n.nomenclator_name], 
-          LastUpdate: @time, 
-          ModifiedBy: @authorized_user_id,
-          CitePages: """""",        # equates to "" in CSV speak
-          NewNameStatus: 0,
-          Note: """""",
+          TaxonNameID:       n.id,
+          SeqNum:            1,
+          RefID:             ref.id,
+          NomenclatorID:     @nomenclator[n.nomenclator_name], 
+          LastUpdate:        @time, 
+          ModifiedBy:        @authorized_user_id,
+          CitePages:         """""",        # equates to "" in CSV speak
+          NewNameStatus:     0,
+          Note:              """""",
           TypeClarification: 0,     # We might derive more data from this
-          CurrentConcept: 1,        # Boolean, right?
-          ConceptChange: 0,         # Unspecified
-          InfoFlags: 0,             # 
-          InfoFlagStatus: 1,        # 1 => needs review
-          PolynomialStatus: 0
+          CurrentConcept:    1,        # Boolean, right?
+          ConceptChange:     0,         # Unspecified
+          InfoFlags:         0,             # 
+          InfoFlagStatus:    1,        # 1 => needs review
+          PolynomialStatus:  0
         }
-
         sql << sql_insert_statement('tblCites', cols) 
       end
       sql.join("\n")
@@ -272,18 +329,18 @@ module Taxonifi::Export
     def tblGenusNames
       # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
       # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
-      sql = csv_for_genus_and_species_names_tables('Genus')
+      sql = sql_for_genus_and_species_names_tables('Genus')
       sql 
     end
 
     def tblSpeciesNames
       # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
       # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
-      sql = csv_for_genus_and_species_names_tables('Species')
+      sql = sql_for_genus_and_species_names_tables('Species')
       sql 
     end
 
-    def csv_for_genus_and_species_names_tables(type)
+    def sql_for_genus_and_species_names_tables(type)
       sql = []
       col = "#{type}NameID"
       @headers = [col, "Name", "LastUpdate", "ModifiedBy", "Italicize"]
@@ -297,7 +354,7 @@ module Taxonifi::Export
           ModifiedBy: @authorized_user_id,
           Italicize: 1                              # always true for these data
         }
-        sql << sql_insert_statement("tbl#{type}", cols) 
+        sql << sql_insert_statement("tbl#{type}Names", cols) 
       end
       sql.join("\n")
     end
@@ -321,6 +378,7 @@ module Taxonifi::Export
         next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
 
         ref = get_ref(n)  
+        # debugger
         # ref = @by_author_reference_index[n.author_year_index]
 
         next if ref.nil?

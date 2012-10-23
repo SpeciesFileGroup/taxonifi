@@ -53,7 +53,6 @@ module Taxonifi
         names
       end
 
-
       # Returns id of matching existing name
       # or false if there is no match.
       # !! assumes parent is set

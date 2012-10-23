@@ -80,6 +80,22 @@ module Taxonifi
         @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
       end
 
+      # Return a single String value representing the page
+      # data available for this reference.
+      def page_string
+        str = '' 
+        if @pg_start.nil?
+          str = [@pages].compact.join
+        else
+          if @pg_end.nil?
+            str = [@pg_start, @pages].compact.join("; ")
+          else
+            str = ["#{@pg_start}-#{@pg_end}", @pages].compact.join("; ")
+          end
+        end
+        str
+      end
+
     end
   end
 end

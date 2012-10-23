@@ -37,6 +37,8 @@ module Taxonifi::Lumper
     eol_basic: %w{identifier parent child rank synonyms}
   }
 
+  # Authors, Year, Title, Publication, Volume_Number Pages Cited_Page
+
   # Lumps for which all columns are represented 
   # TODO: This is really an assessor method 
   def self.available_lumps(columns)
@@ -84,11 +86,15 @@ module Taxonifi::Lumper
     # name collection, with id 0, and id 2.
     name_index = {} 
 
+    has_ref_fields = ([:citation_basic, :citation_small] & Taxonifi::Lumper.intersecting_lumps(csv.headers)).size > 0
+
     # First pass, create and index names
     Taxonifi::Assessor::RowAssessor.rank_headers(csv.headers).each do |rank|
       name_index[rank] = {}
       csv.each_with_index do |row, i|
-        
+
+        shares_rank = (rank == Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s)
+
         name = row[rank] 
 
         if !name.nil?     # cell has data
@@ -131,7 +137,9 @@ module Taxonifi::Lumper
               n.author               = builder.people 
               n.year                 = builder.year 
               n.parens               = !builder.parens
+            end
 
+            if has_ref_fields and shares_rank
               n.related.merge!(:link_to_ref_from_row => i)
             end
 
@@ -151,7 +159,6 @@ module Taxonifi::Lumper
 
       end
     end
-
     nc
   end 
 
@@ -190,12 +197,12 @@ module Taxonifi::Lumper
 
         if row['pages'] && !row['pages'].empty?
           # If our regex doesn't match dump the field into pages
-          begin
-            lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
-            t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
+          lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
+          if t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
             r.pg_start = t.pg_start
             r.pg_end = t.pg_end
-          rescue
+            r.pages = t.remainder
+          else
             r.pages = row['pages']
           end
         end
@@ -205,18 +212,19 @@ module Taxonifi::Lumper
         if !ref_index.keys.include?(ref_str)
           ref_id = rc.add_object(r).id
           ref_index.merge!(ref_str => ref_id)
+          # puts "#{i} : #{ref_id}"
           rc.row_index[i] = r 
         else
-          rc.row_index[i] = ref_index[ref_str] 
+          rc.row_index[i] = rc.object_by_id(ref_index[ref_str])
+          # puts "#{i} : #{ref_index[ref_str]}"
         end
       end
     end
     rc
   end
 
-  def self.link_name_and_ref_collections_by_row(nc, rc)
-
-  end
+  # def self.link_name_and_ref_collections_by_row(nc, rc)
+  # end
 
   # Creates a generic Collection with Objects of GenericObject
   # Objects are assigned to parents (rank) according to the order provided in headers.
