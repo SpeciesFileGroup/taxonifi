@@ -39,5 +39,10 @@ module Taxonifi::Export
       f.close
     end
 
+    def sql_insert_statement(tbl = nil, values = {})
+      return "nope" if tbl.nil?
+      "INSERT INTO #{tbl} (#{values.keys.sort.join(",")}) VALUES (#{values.keys.sort.collect{|k| values[k].to_s.gsub(/'/,"''")}.join(",")});"
+    end
+
   end
 end

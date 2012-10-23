@@ -87,6 +87,41 @@ module Taxonifi::Export
       @time = Time.now.strftime("%F %T") 
     end 
 
+
+
+    # Assumes names that are the same are the same person. 
+    def build_author_index
+      @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
+    end
+
+    def export()
+      super
+      # This is deprecated for a pre-handling approach, i.e. you should determine
+      # how to create and link the reference IDs.
+      # Reference related approaches
+      # @name_collection.generate_ref_collection(1)
+      # Give authors unique ids
+      # @name_collection.ref_collection.uniquify_authors(1) 
+
+      build_author_index 
+
+      # See notes in #initalize re potential key collisions!
+      # @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
+
+      @name_collection.names_at_rank('genus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
+
+      str = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
+      MANIFEST.each do |f|
+        str << send(f)
+      end
+      str << ['COMMIT', 'END TRY', 'BEGIN CATCH', 'ROLLBACK', 'END CATCH']  
+      write_file('everything', str.join("\n\n"))
+      true
+    end
+
     # Export only the ref_collection. Sidesteps the main name-centric exports
     # Note that this still uses the base @name_collection object as a starting reference,
     # it just references @name_collection.ref_collection.  So you can do:
@@ -108,36 +143,6 @@ module Taxonifi::Export
       end
     end
 
-    # Assumes names that are the same are the same person. 
-    def build_author_index
-      @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
-    end
-
-    def export()
-      super
-
-      # This is deprecated for a pre-handling approach, i.e. you should determine
-      # how to create and link the reference IDs.
-      # Reference related approaches
-      # @name_collection.generate_ref_collection(1)
-      # Give authors unique ids
-      # @name_collection.ref_collection.uniquify_authors(1) 
-     
-      build_author_index 
-
-      # See notes in #initalize re potential key collisions!
-      # @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
-
-      @name_collection.names_at_rank('genus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
-      @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
-      @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
-      @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
-
-      MANIFEST.each do |f|
-        write_file(f, send(f))
-      end
-    end
-
     # Get's the reference for a name as referenced
     # by .related[:link_to_ref_from_row]
     def get_ref(name)
@@ -147,58 +152,34 @@ module Taxonifi::Export
 
     def tblTaxa
       @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
-      @csv_string = CSV.generate() do |csv|
-        csv << @headers  
-        @name_collection.collection.each do |n|
-
-          # ref = @by_author_reference_index[n.author_year_index]
-          ref = get_ref(n) 
-
-                cols = {
-            TaxonNameID: n.id,
-            TaxonNameStr: n.parent_ids_sf_style,        # closure -> ends with 1 
-            RankID: SPECIES_FILE_RANKS[n.rank], 
-            Name: n.name,
-            Parens: (n.parens ? 1 : 0),
-            AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   # !! SF folks like to pre-populate with zeros
-            RefID: (ref ? ref.id : 0),
-            DataFlags: 0,                                # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
-            AccessCode: 0,             
-            NameStatus: (n.related_name.nil? ? 0 : 7),                            # 0 :valid, 7: synonym)
-            StatusFlags: (n.related_name.nil? ? 0 : 262144),                      # 0 :valid, 262144: jr. synonym
-            OriginalGenusID: (!n.parens && n.parent_at_rank('genus') ? n.parent_at_rank('genus').id : 0),      # SF must be pre-configured with 0 filler (this restriction needs to go)                
-            LastUpdate: @time, 
-            ModifiedBy: @authorized_user_id,
-          }
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
+      sql = []
+      @name_collection.collection.each do |n|
+        ref = get_ref(n) 
+        cols = {
+          TaxonNameID: n.id,
+          TaxonNameStr: n.parent_ids_sf_style,        # closure -> ends with 1 
+          RankID: SPECIES_FILE_RANKS[n.rank], 
+          Name: n.name,
+          Parens: (n.parens ? 1 : 0),
+          AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   # !! SF folks like to pre-populate with zeros
+          RefID: (ref ? ref.id : 0),
+          DataFlags: 0,                                    # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
+          AccessCode: 0,             
+          NameStatus: (n.related_name.nil? ? 0 : 7),                            # 0 :valid, 7: synonym)
+          StatusFlags: (n.related_name.nil? ? 0 : 262144),                      # 0 :valid, 262144: jr. synonym
+          OriginalGenusID: (!n.parens && n.parent_at_rank('genus') ? n.parent_at_rank('genus').id : 0),      # SF must be pre-configured with 0 filler (this restriction needs to go)                
+          LastUpdate: @time, 
+          ModifiedBy: @authorized_user_id,
+        }
+        sql << sql_insert_statement('tblTaxa', cols) 
       end
-      @csv_string
+      sql.join("\n")
     end
 
     # Generate a tblRefs string.
     def tblRefs
-      @headers = %w{RefID ActualYear Title PubID  Verbatim}
-      @csv_string = CSV.generate(:col_sep => "\t") do |csv|
-        csv << @headers  
-        @name_collection.ref_collection.collection.each_with_index do |r,i|
-          cols = {
-            RefID: r.id, #  i + 1,
-            Title: (r.title.nil? ? """""" : r.title),
-            PubID: 0,                                   # Careful - assumes you have a pre-generated PubID of Zero in there, PubID table is not included in CSV imports
-            ActualYear: r.year,
-            Verbatim: r.full_citation
-          }
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
-      end
-      @csv_string
-    end
-
-    # TODO make a standard transaction wrapper
-    def sqlRefs
-      sql = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
-      @headers = %w{RefID ActualYear Title PubID  Verbatim}
+      sql = []
+      @headers = %w{RefID ActualYear Title PubID Verbatim}
       @name_collection.ref_collection.collection.each_with_index do |r,i|
         cols = {
           RefID: r.id, #  i + 1,
@@ -207,209 +188,197 @@ module Taxonifi::Export
           ActualYear: r.year,
           Verbatim: r.full_citation
         }
-        sql <<  "INSERT INTO tblRefs (#{@headers.sort.join(",")}) VALUES (#{@headers.sort.collect{|h| "'#{cols[h.to_sym].to_s.gsub(/'/,"''")}'"}.join(",")});"
+        sql << sql_insert_statement('tblRefs', cols) 
       end
-      sql << ['COMMIT', 'END TRY', 'BEGIN CATCH', 'ROLLBACK', 'END CATCH']
-      sql.join("\n") 
+      sql.join("\n")
     end
 
     # Generate tblPeople string.
     def tblPeople
       @headers = %w{PersonID FamilyName GivenNames GivenInitials Suffix Role LastUpdate ModifiedBy}
-      @csv_string = CSV.generate() do |csv|
-        csv << @headers  
-        @author_index.keys.each_with_index do |k,i|
-          a = @author_index[k] 
-          # a.id = i + 1
-          cols = {
-            PersonID: a.id,
-            FamilyName: a.last_name,
-            GivenName: a.first_name,
-            GivenInitials: a.initials_string,
-            Suffix: a.suffix,
-            Role: 1,                          # authors 
-            LastUpdate: @time,
-            ModifiedBy: @authorized_user_id
-          }
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
+      sql = []   
+      @author_index.keys.each_with_index do |k,i|
+        a = @author_index[k] 
+        # a.id = i + 1
+        cols = {
+          PersonID: a.id,
+          FamilyName: a.last_name,
+          GivenName: a.first_name,
+          GivenInitials: a.initials_string,
+          Suffix: a.suffix,
+          Role: 1,                          # authors 
+          LastUpdate: @time,
+          ModifiedBy: @authorized_user_id
+        }
+
+        sql << sql_insert_statement('tblPeople', cols) 
       end
-      @csv_string
+      sql.join("\n")
     end
 
     # Generate tblRefAuthors string.
     def tblRefAuthors 
       @headers = %w{RefID PersonID SeqNum AuthorCount LastUpdate ModifiedBy}
-      @csv_string = CSV.generate() do |csv|
-        csv << @headers  
-        @name_collection.ref_collection.collection.each do |r| 
-          r.authors.each_with_index do |x, i|
-            a = @author_index[x.compact_string] 
-            cols = {
-              RefID: r.id,
-              PersonID: a.id,
-              SeqNum: i + 1,
-              AuthorCount: r.authors.size,
-              LastUpdate: @time,
-              ModifiedBy: @authorized_user_id
-            }
-            csv <<  @headers.collect{|h| cols[h.to_sym]} 
-          end
+      sql = []
+      @name_collection.ref_collection.collection.each do |r| 
+        r.authors.each_with_index do |x, i|
+          a = @author_index[x.compact_string] 
+          cols = {
+            RefID: r.id,
+            PersonID: a.id,
+            SeqNum: i + 1,
+            AuthorCount: r.authors.size,
+            LastUpdate: @time,
+            ModifiedBy: @authorized_user_id
+          }
+          sql << sql_insert_statement('tblRefAuthors', cols) 
         end
       end
-      @csv_string
+      sql.join("\n")
     end
 
     # Generate tblCites string.
     def tblCites
       @headers = %w{TaxonNameID SeqNum RefID NomenclatorID LastUpdate ModifiedBy NewNameStatus CitePages Note TypeClarification CurrentConcept ConceptChange InfoFlags InfoFlagStatus PolynomialStatus}
-      @csv_string = CSV.generate() do |csv|
-        csv << @headers  
-        @name_collection.collection.each do |n|
-          next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
-          ref = get_ref(n)
- 
-          # ref = @by_author_reference_index[n.author_year_index]
-          next if ref.nil?
-          cols = {
-            TaxonNameID: n.id,
-            SeqNum: 1,
-            RefID: ref.id,
-            NomenclatorID: @nomenclator[n.nomenclator_name], 
-            LastUpdate: @time, 
-            ModifiedBy: @authorized_user_id,
-            CitePages: """""",        # equates to "" in CSV speak
-            NewNameStatus: 0,
-            Note: """""",
-            TypeClarification: 0,     # We might derive more data from this
-            CurrentConcept: 1,        # Boolean, right?
-            ConceptChange: 0,         # Unspecified
-            InfoFlags: 0,             # 
-            InfoFlagStatus: 1,        # 1 => needs review
-            PolynomialStatus: 0
-          }
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
+      sql = []
+      @name_collection.collection.each do |n|
+        next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
+        ref = get_ref(n)
+        # ref = @by_author_reference_index[n.author_year_index]
+        next if ref.nil?
+        cols = {
+          TaxonNameID: n.id,
+          SeqNum: 1,
+          RefID: ref.id,
+          NomenclatorID: @nomenclator[n.nomenclator_name], 
+          LastUpdate: @time, 
+          ModifiedBy: @authorized_user_id,
+          CitePages: """""",        # equates to "" in CSV speak
+          NewNameStatus: 0,
+          Note: """""",
+          TypeClarification: 0,     # We might derive more data from this
+          CurrentConcept: 1,        # Boolean, right?
+          ConceptChange: 0,         # Unspecified
+          InfoFlags: 0,             # 
+          InfoFlagStatus: 1,        # 1 => needs review
+          PolynomialStatus: 0
+        }
+
+        sql << sql_insert_statement('tblCites', cols) 
       end
-      @csv_string
+      sql.join("\n")
     end
 
     def tblGenusNames
       # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
       # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
-      @csv_string = csv_for_genus_and_species_names_tables('Genus')
-      @csv_string
+      sql = csv_for_genus_and_species_names_tables('Genus')
+      sql 
     end
 
     def tblSpeciesNames
       # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
       # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
-      @csv_string = csv_for_genus_and_species_names_tables('Species')
-      @csv_string
+      sql = csv_for_genus_and_species_names_tables('Species')
+      sql 
     end
 
     def csv_for_genus_and_species_names_tables(type)
+      sql = []
       col = "#{type}NameID"
       @headers = [col, "Name", "LastUpdate", "ModifiedBy", "Italicize"]
-      @csv_string = CSV.generate() do |csv|
-        csv << @headers 
-        var = self.send("#{type.downcase}_names")
-        var.keys.each_with_index do |n,i|
-          var[n] = i + 1
-          cols = {
-            col.to_sym => i + 1,
-            Name: n,
-            LastUpdate: @time, 
-            ModifiedBy: @authorized_user_id,
-            Italicize: 1                              # always true for these data
-          }
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
+      var = self.send("#{type.downcase}_names")
+      var.keys.each_with_index do |n,i|
+        var[n] = i + 1
+        cols = {
+          col.to_sym => i + 1,
+          Name: n,
+          LastUpdate: @time, 
+          ModifiedBy: @authorized_user_id,
+          Italicize: 1                              # always true for these data
+        }
+        sql << sql_insert_statement("tbl#{type}", cols) 
       end
-      @csv_string 
+      sql.join("\n")
     end
 
     # Must be called post tblGenusNames and tblSpeciesNames.
     # Some records are not used but can be cleaned by SF 
     def tblNomenclator
       @headers = %w{NomenclatorID GenusNameID SubgenusNameID SpeciesNameID SubspeciesNameID LastUpdate ModifiedBy SuitableForGenus SuitableForSpecies InfrasubspeciesNameID InfrasubKind}
-      @csv_string = CSV.generate() do |csv|
-        csv << @headers
-        i = 1
-        @name_collection.collection.each do |n|
+      sql = []   
+      i = 1
+      @name_collection.collection.each do |n|
+        gid, sgid = 0,0
+        sid = @species_names[n.parent_name_at_rank('species')] || 0
+        ssid = @species_names[n.parent_name_at_rank('subspecies')] || 0
 
-          gid, sgid = 0,0
-          sid = @species_names[n.parent_name_at_rank('species')] || 0
-          ssid = @species_names[n.parent_name_at_rank('subspecies')] || 0
+        if n.parens == false
+          gid = @genus_names[n.parent_name_at_rank('genus')] || 0
+          sgid = @genus_names[n.parent_name_at_rank('subgenus')] || 0
+        end 
 
-          if n.parens == false
-            gid = @genus_names[n.parent_name_at_rank('genus')] || 0
-            sgid = @genus_names[n.parent_name_at_rank('subgenus')] || 0
-          end 
+        next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
 
-          next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
-        
-          ref = get_ref(n)  
-          # ref = @by_author_reference_index[n.author_year_index]
-         
-          next if ref.nil?
-          cols = {
-            NomenclatorID: i,
-            GenusNameID: gid,
-            SubgenusNameID: sgid, 
-            SpeciesNameID: sid, 
-            SubspeciesNameID: ssid,
-            InfrasubspeciesNameID: 0,
-            InfrasubKind: 0,                          # this might be wrong
-            LastUpdate: @time,  
-            ModifiedBy: @authorized_user_id, 
-            SuitableForGenus: 0,                      # Set in SF 
-            SuitableForSpecies: 0                     # Set in SF
-          }
-          @nomenclator.merge!(n.nomenclator_name => i)
-          i += 1
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
+        ref = get_ref(n)  
+        # ref = @by_author_reference_index[n.author_year_index]
 
-        # TODO: DRY this up with above?!
-        @name_collection.combinations.each do |c|
+        next if ref.nil?
+        cols = {
+          NomenclatorID: i,
+          GenusNameID: gid,
+          SubgenusNameID: sgid, 
+          SpeciesNameID: sid, 
+          SubspeciesNameID: ssid,
+          InfrasubspeciesNameID: 0,
+          InfrasubKind: 0,                          # this might be wrong
+          LastUpdate: @time,  
+          ModifiedBy: @authorized_user_id, 
+          SuitableForGenus: 0,                      # Set in SF 
+          SuitableForSpecies: 0                     # Set in SF
+        }
+        @nomenclator.merge!(n.nomenclator_name => i)
+        i += 1
 
-          gid, sgid = 0,0
-          sid = (c[2].nil? ? 0 : @species_names[c[2].name])
-          ssid = (c[3].nil? ? 0 : @species_names[c[3].name])
-
-          if c.compact.last.parens == false
-            gid = (c[0].nil? ? 0 : @genus_names[c[0].name])
-            sgid = (c[1].nil? ? 0 : @genus_names[c[1].name])
-          end 
-
-          # ref = @by_author_reference_index[c.compact.last.author_year_index]
-          ref =  @name_collection.ref_collection.object_from_row(c.compact.last.related[:link_to_ref_from_row]) 
-
-          next if ref.nil?
-
-          cols = {
-            NomenclatorID: i,
-            GenusNameID: gid ,
-            SubgenusNameID: sgid ,
-            SpeciesNameID: sid ,
-            SubspeciesNameID: ssid ,
-            InfrasubspeciesNameID: 0,
-            InfrasubKind: 0,                          # this might be wrong
-            LastUpdate: @time,  
-            ModifiedBy: @authorized_user_id, 
-            SuitableForGenus: 0,                      # Set in SF 
-            SuitableForSpecies: 0                     # Set in SF
-          }
-          # check!?
-          @nomenclator.merge!(c.compact.last.nomenclator_name => i)
-          i += 1
-          csv <<  @headers.collect{|h| cols[h.to_sym]} 
-        end
-
+        sql << sql_insert_statement('tblNomenclator', cols) 
       end
-      @csv_string
+
+      # TODO: DRY this up with above?!
+      @name_collection.combinations.each do |c|
+        gid, sgid = 0,0
+        sid = (c[2].nil? ? 0 : @species_names[c[2].name])
+        ssid = (c[3].nil? ? 0 : @species_names[c[3].name])
+
+        if c.compact.last.parens == false
+          gid = (c[0].nil? ? 0 : @genus_names[c[0].name])
+          sgid = (c[1].nil? ? 0 : @genus_names[c[1].name])
+        end 
+
+        # ref = @by_author_reference_index[c.compact.last.author_year_index]
+        ref =  @name_collection.ref_collection.object_from_row(c.compact.last.related[:link_to_ref_from_row]) 
+
+        next if ref.nil?
+
+        cols = {
+          NomenclatorID: i,
+          GenusNameID: gid ,
+          SubgenusNameID: sgid ,
+          SpeciesNameID: sid ,
+          SubspeciesNameID: ssid ,
+          InfrasubspeciesNameID: 0,
+          InfrasubKind: 0,                          # this might be wrong
+          LastUpdate: @time,  
+          ModifiedBy: @authorized_user_id, 
+          SuitableForGenus: 0,                      # Set in SF 
+          SuitableForSpecies: 0                     # Set in SF
+        }
+        # check!?
+        @nomenclator.merge!(c.compact.last.nomenclator_name => i)
+        sql << sql_insert_statement('tblNomenclator', cols) 
+        i += 1
+      end
+      sql.join("\n")
     end
 
-  end
-end
+  end # End class
+end # End module
