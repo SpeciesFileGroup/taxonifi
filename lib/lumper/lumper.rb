@@ -198,11 +198,15 @@ module Taxonifi::Lumper
         if row['pages'] && !row['pages'].empty?
           # If our regex doesn't match dump the field into pages
           lexer = Taxonifi::Splitter::Lexer.new(row['pages'], :pages)
+          begin
           if t = lexer.pop(Taxonifi::Splitter::Tokens::Pages)
             r.pg_start = t.pg_start
             r.pg_end = t.pg_end
             r.pages = t.remainder
           else
+            r.pages = row['pages']
+          end
+          rescue
             r.pages = row['pages']
           end
         end

@@ -39,6 +39,12 @@ module Taxonifi::Export
       f.close
     end
 
+    def new_output_file(filename = 'foo')
+      File.new( File.expand_path(File.join(export_path, filename)), 'w+')
+    end
+
+
+
     def sql_insert_statement(tbl = nil, values = {})
       return "nope" if tbl.nil?
       "INSERT INTO #{tbl} (#{values.keys.sort.join(",")}) VALUES (#{values.keys.sort.collect{|k| sqlize(values[k])}.join(",")});"

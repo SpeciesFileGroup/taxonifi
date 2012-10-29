@@ -93,7 +93,7 @@ module Taxonifi
             str = ["#{@pg_start}-#{@pg_end}", @pages].compact.join("; ")
           end
         end
-        str
+        str.strip
       end
 
     end

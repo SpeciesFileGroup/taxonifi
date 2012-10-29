@@ -49,7 +49,6 @@ class Test_TaxonifiExports < Test::Unit::TestCase
 
     e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 11) 
     e.export
-   
   end
 
 end 

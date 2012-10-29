@@ -58,7 +58,6 @@ module Taxonifi::Export
     attr_accessor :author_index
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
-      
 
     # MANIFEST order is important
     MANIFEST = %w{tblTaxa tblPubs tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
@@ -195,22 +194,22 @@ module Taxonifi::Export
         cols = {
           RefID: r.id,
           ContainingRefID: 0,
-          Title: (r.title.nil? ? """""" : r.title),
+          Title: (r.title.nil? ? @empty_quotes : r.title),
           PubID: pub_id,  
           Series: @empty_quotes,
-          Volume: r.volume,
-          Issue:  r.number,
-          RefPages: r.page_string,
-          ActualYear: r.year,
+          Volume: (r.volume ? r.volume : @empty_quotes),
+          Issue:  (r.number ? r.number : @empty_quotes),
+          RefPages: r.page_string, # always a string
+          ActualYear: (r.year ? r.year : @empty_quotes),
           StatedYear: @empty_quotes,
           AccessCode: 0,
           Flags: 0, 
           Note: @empty_quotes,
           LastUpdate: @time,
-          ModifiedBy: @authorized_user,
           LinkID: 0,
+          ModifiedBy: @authorized_user_id,
           CiteDataStatus: 0,
-          Verbatim: r.full_citation
+          Verbatim: (r.full_citation ? r.full_citation : @empty_quotes)
         }
         sql << sql_insert_statement('tblRefs', cols) 
       end
@@ -249,7 +248,6 @@ module Taxonifi::Export
       sql.join("\n")
     end
 
-
     # Generate tblPeople string.
     def tblPeople
       @headers = %w{PersonID FamilyName GivenNames GivenInitials Suffix Role LastUpdate ModifiedBy}
@@ -259,10 +257,10 @@ module Taxonifi::Export
         # a.id = i + 1
         cols = {
           PersonID: a.id,
-          FamilyName: a.last_name,
-          GivenName: a.first_name,
-          GivenInitials: a.initials_string,
-          Suffix: a.suffix,
+          FamilyName: a.last_name || @empty_quotes,
+          GivenNames: a.first_name || @empty_quotes,
+          GivenInitials: a.initials_string || @empty_quotes,
+          Suffix: a.suffix || @empty_quotes,
           Role: 1,                          # authors 
           LastUpdate: @time,
           ModifiedBy: @authorized_user_id
@@ -311,9 +309,9 @@ module Taxonifi::Export
           NomenclatorID:     @nomenclator[n.nomenclator_name], 
           LastUpdate:        @time, 
           ModifiedBy:        @authorized_user_id,
-          CitePages:         """""",        # equates to "" in CSV speak
+          CitePages:         @empty_quotes,        # equates to "" in CSV speak
           NewNameStatus:     0,
-          Note:              """""",
+          Note:              @empty_quotes,
           TypeClarification: 0,     # We might derive more data from this
           CurrentConcept:    1,        # Boolean, right?
           ConceptChange:     0,         # Unspecified
