@@ -1,12 +1,12 @@
 
 module Taxonifi::Export
 
-  # Dumps tables identical to the existing structure in SpeciesFile.
-  # Will only work in the pre Identity world.  Will reconfigure
-  # as templates for Jim's work after the fact.
+  # Writes a OBO formatted file for all names in a name collection.
+  # !! Does not write synonyms out. 
+  # Follows the TTO example.
   class OboNomenclature < Taxonifi::Export::Base
 
-    # tblRanks 5/17/2012
+    # TODO: Figure out where the TAXRANK values are coming from.
     TAXRANKS = {
       'subspecies' =>              0,
       'species' =>                 0,
@@ -47,9 +47,9 @@ module Taxonifi::Export
       'infrakingdom' =>            0,   
       'subkingdom' =>              0,  
       'kingdom' =>                 0,
-      'superkingdom' =>            82,    
-      'life' =>                    90,
-      'unknown' =>                 100 
+      'superkingdom' =>            0,    
+      'life' =>                    0,
+      'unknown' =>                 0 
     }
 
     attr_accessor :name_collection, :namespace
@@ -66,10 +66,11 @@ module Taxonifi::Export
       raise Taxonifi::Export::ExportError, 'NameCollection not passed to OboNomenclature export.' if ! opts[:nc].class == Taxonifi::Model::NameCollection
       @name_collection = opts[:nc]
       @namespace = opts[:namespace]
-      @time = Time.now.strftime("%F %T") 
+      @time = Time.now.strftime("%D %T").gsub('/',":") 
       @empty_quotes = "" 
     end 
 
+    # Writes the file.
     def export()
       super
       f = new_output_file('obo_nomenclature.obo') 
@@ -93,14 +94,14 @@ module Taxonifi::Export
         f.puts "is_a: #{id_string(n.parent)} ! #{n.parent.name}" if n.parent
         f.puts "property_value: has_rank #{rank_string(n)}"
         f.puts
-
-        # typedefs
-        f.puts "[Typedef]"
-        f.puts "id: has_rank"
-        f.puts "name: has taxonomic rank"
-        f.puts "is_metadata_tag: true"
-
       end
+
+      # typedefs
+      f.puts "[Typedef]"
+      f.puts "id: has_rank"
+      f.puts "name: has taxonomic rank"
+      f.puts "is_metadata_tag: true"
+
       true
     end
 
@@ -111,7 +112,6 @@ module Taxonifi::Export
     def id_string(name)
       "#{@namespace}:#{name.id.to_s.rjust(7,"0")}"
     end
-
 
   end # End class
 end # End module
