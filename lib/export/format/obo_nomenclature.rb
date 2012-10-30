@@ -95,7 +95,6 @@ module Taxonifi::Export
         f.puts
 
         # typedefs
-
         f.puts "[Typedef]"
         f.puts "id: has_rank"
         f.puts "name: has taxonomic rank"
