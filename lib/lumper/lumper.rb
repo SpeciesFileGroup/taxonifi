@@ -163,9 +163,15 @@ module Taxonifi::Lumper
   end 
 
   # Return a Taxonifi::Model::RefCollection from a CSV file.
-  def self.create_ref_collection(csv)
+  def self.create_ref_collection(options = {})
+    opts = {
+      :csv => nil,
+      :inital_id => 1
+    }.merge!(options)
+    csv = opts[:csv]
+
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_ref_collection.' if csv.class != CSV::Table
-    rc = Taxonifi::Model::RefCollection.new
+    rc = Taxonifi::Model::RefCollection.new(opts)
 
     ref_index = {}
     csv.each_with_index do |row, i|

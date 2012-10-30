@@ -40,7 +40,7 @@ class Test_TaxonifiExports < Test::Unit::TestCase
     } ) 
 
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv, :initial_id => 1) 
-    rc = Taxonifi::Lumper.create_ref_collection(csv) 
+    rc = Taxonifi::Lumper.create_ref_collection(:csv => csv) 
     rc.uniquify_authors(1)
     nc.ref_collection = rc
 

@@ -33,15 +33,15 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
   end
 
   def test_create_ref_collection
-    assert_equal Taxonifi::Model::RefCollection, Taxonifi::Lumper.create_ref_collection(@csv).class
+    assert_equal Taxonifi::Model::RefCollection, Taxonifi::Lumper.create_ref_collection(:csv => @csv).class
   end
 
   def test_creates_refs
-    assert_equal 1, Taxonifi::Lumper.create_ref_collection(@csv).collection.size
+    assert_equal 1, Taxonifi::Lumper.create_ref_collection(:csv => @csv).collection.size
   end
 
   def test_assigns_attributes_to_instantiated_refs
-    rc = Taxonifi::Lumper.create_ref_collection(@csv)
+    rc = Taxonifi::Lumper.create_ref_collection(:csv => @csv)
     assert_equal ["J"], rc.collection.first.authors.first.initials
     assert_equal "Smith", rc.collection.first.authors.first.last_name
     assert_equal "2012", rc.collection.first.year
@@ -60,7 +60,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
     csv = CSV.parse(csv_string, {headers: true})
-    rc = Taxonifi::Lumper.create_ref_collection(csv)
+    rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal 1, rc.collection.size
   end
 
@@ -72,7 +72,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Bartes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
     csv = CSV.parse(csv_string, {headers: true})
-    rc = Taxonifi::Lumper.create_ref_collection(csv)
+    rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal 2, rc.collection.size
   end
 
@@ -83,7 +83,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J.", "2012", "Foo and bar", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
     csv = CSV.parse(csv_string, {headers: true})
-    rc = Taxonifi::Lumper.create_ref_collection(csv)
+    rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal "Foo and bar", rc.object_from_row(1).title
   end
 

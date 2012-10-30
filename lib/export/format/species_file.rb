@@ -58,6 +58,7 @@ module Taxonifi::Export
     attr_accessor :author_index
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
+    attr_accessor :starting_ref_id
 
     # MANIFEST order is important
     MANIFEST = %w{tblTaxa tblPubs tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
@@ -67,7 +68,8 @@ module Taxonifi::Export
       opts = {
         :nc => Taxonifi::Model::NameCollection.new,
         :export_folder => 'species_file',
-        :authorized_user_id => nil
+        :authorized_user_id => nil,
+        :starting_ref_id => 1  # should be configured elsewhere... but
       }.merge!(options)
 
       super(opts)
@@ -77,7 +79,8 @@ module Taxonifi::Export
       @pub_collection = {} # title => id
       @authorized_user_id = opts[:authorized_user_id]
       @author_index = {}
-      
+      @starting_ref_id = opts[:starting_ref_id]
+    
       # Careful here, at present we are just generating Reference micro-citations from our names, so the indexing "just works"
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
       # include references external to the initialized name_collection.  See also export_references.
@@ -229,7 +232,7 @@ module Taxonifi::Export
           PubID: i + 1,
           PrefID: 0,
           PubType: 1,
-          ShortName: @empty_quotes,
+          ShortName: "unknown_#{i}", # Unique constraint
           FullName: p,
           Note: @empty_quotes,
           LastUpdate: @time, 
