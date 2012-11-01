@@ -60,17 +60,16 @@ module Taxonifi::Export
     attr_accessor :authorized_user_id, :time
     attr_accessor :starting_ref_id
 
-    # MANIFEST order is important
-    MANIFEST = %w{tblTaxa tblPubs tblRefs tblPeople tblRefAuthors tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
-
-
     def initialize(options = {})
       opts = {
         :nc => Taxonifi::Model::NameCollection.new,
         :export_folder => 'species_file',
         :authorized_user_id => nil,
-        :starting_ref_id => 1  # should be configured elsewhere... but
+        :starting_ref_id => 1,                              # should be configured elsewhere... but
+        :manifest => %w{tblPubs tblRefs tblPeople tblRefAuthors tblTaxa tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
       }.merge!(options)
+
+      @manifest = opts[:manifest]
 
       super(opts)
       raise Taxonifi::Export::ExportError, 'NameCollection not passed to SpeciesFile export.' if ! opts[:nc].class == Taxonifi::Model::NameCollection
@@ -119,13 +118,13 @@ module Taxonifi::Export
       @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
 
       str = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
-      MANIFEST.each do |f|
+      @manifest.each do |f|
         str << send(f)
       end
       str << ['COMMIT', 'END TRY', 'BEGIN CATCH', 
         'SELECT ERROR_LINE() AS ErrorLine, ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;', 
         'ROLLBACK', 'END CATCH']  
-      write_file('everything', str.join("\n\n"))
+      write_file('everything.sql', str.join("\n\n"))
       true
     end
 
@@ -163,6 +162,7 @@ module Taxonifi::Export
       @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       sql = []
       @name_collection.collection.each do |n|
+        raise "#{n.name} is too long" if n.name.length > 30
         ref = get_ref(n) 
         cols = {
           TaxonNameID: n.id,
@@ -190,7 +190,6 @@ module Taxonifi::Export
       sql = []
       @headers = %w{RefID ActualYear Title PubID Verbatim}
       @name_collection.ref_collection.collection.each_with_index do |r,i|
-
         # Assumes the 0 "null" pub id is there
         pub_id = @pub_collection[r.publication] ? @pub_collection[r.publication] : 0
 
@@ -260,7 +259,7 @@ module Taxonifi::Export
         # a.id = i + 1
         cols = {
           PersonID: a.id,
-          FamilyName: a.last_name || @empty_quotes,
+          FamilyName: (a.last_name.length > 0 ? a.last_name : "Unknown"),
           GivenNames: a.first_name || @empty_quotes,
           GivenInitials: a.initials_string || @empty_quotes,
           Suffix: a.suffix || @empty_quotes,
