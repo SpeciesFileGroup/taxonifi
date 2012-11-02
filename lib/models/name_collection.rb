@@ -154,7 +154,18 @@ module Taxonifi
       def ref_collection=(ref_collection)
         @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
       end
-      
+     
+      # Return an Array of Generic "Homonyms"
+      def homonyms_at_rank(rank) 
+       raise if !RANKS.include?(rank)
+        uniques = {}
+        names_at_rank(rank).each do |n|
+          uniques[n.name] ||= []
+          uniques[n.name].push n
+        end
+        uniques
+      end
+
       protected
 
       # Index the object by name into the
