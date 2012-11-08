@@ -42,7 +42,7 @@ module Taxonifi
         RANKS[highest - 1]
       end 
 
-      # The names objects in the collection at a rank. 
+      # Returns an Array of the names objects in the collection at a rank. 
       # TODO: Should index this on add_object
       def names_at_rank(rank)
         raise if !RANKS.include?(rank)
@@ -155,14 +155,26 @@ module Taxonifi
         @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
       end
      
-      # Return an Array of Generic "Homonyms"
+      # Return an Array of "homonyms" within the rank
+      # provided.  Useful for finding missmatched upper heirarchies,
+      # if nc is a name_collection:
+      #
+      #  homonyms = nc.homonyms_at_rank('genus')
+      #  homonyms.keys.sort.each do |n|
+      #    puts "#{n} (#{homonyms[n].size}) :"
+      #    homonyms[n].each do |p|
+      #      puts "  #{p.ancestors.collect{|i| i.name}.join(",")}"
+      #    end
+      #  end 
+      #
       def homonyms_at_rank(rank) 
        raise if !RANKS.include?(rank)
         uniques = {}
         names_at_rank(rank).each do |n|
-          uniques[n.name] ||= []
+          uniques.merge!(n.name => []) if !uniques[n.name]
           uniques[n.name].push n
         end
+        uniques.delete_if{|k| uniques[k].size < 2}
         uniques
       end
 
