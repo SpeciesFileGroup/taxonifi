@@ -118,6 +118,16 @@ class TestTaxonifiName < Test::Unit::TestCase
    @n4 = Taxonifi::Model::Name.new(:name => "boo", :rank => "Species", :author => "Frank", :year => 2020, :id => 11,  :parent => @n3 )
   end
 
+  def test_prologify
+    create_a_few_names
+    n0 = [
+      "rank(#{@n0.id}, #{@n0.rank})",
+      "edge(#{@n0.id}, #{@n0.parent ? @no.parent.id : "_"})",
+      "name({@n0.id}, #{@n0.name})"
+    ]
+    assert_equal n0.join("\n") , @n0.prologify
+  end
+
   def test_name_author_year_string
     create_a_few_names
     assert_equal 'Baridae', @n0.name_author_year_string

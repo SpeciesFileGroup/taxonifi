@@ -211,6 +211,12 @@ module Taxonifi
       @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
     end
 
+    # Return a String of Prolog rules representing this Name
+    def prologify
+      "false"
+
+    end
+
   end 
 
   # ICZN specific sublassing of a taxonomic name.

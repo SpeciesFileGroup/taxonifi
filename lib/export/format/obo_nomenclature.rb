@@ -6,64 +6,7 @@ module Taxonifi::Export
   # Follows the TTO example.
   class OboNomenclature < Taxonifi::Export::Base
 
-    # See https://phenoscape.svn.sourceforge.net/svnroot/phenoscape/trunk/vocab/taxonomic_rank.obo
-    # Site: https://www.phenoscape.org/wiki/Taxonomic_Rank_Vocabulary
-    # Values of -1 have no correspondance in that ontology. 
-    # Nt all values are supported. Not all values are included.
-    TAXRANKS = {
-      'taxonomic_rank' =>          0,
-      'variety'        =>          16,
-      'bio-variety'    =>          32,
-      'subspecies' =>              23,
-      'form' =>                    26,
-      'species' =>                 5,
-      'species complex' =>         12,
-      'species subgroup' =>        11,      
-      'species group' =>           10,     
-      'species series' =>          -1,      
-      'series'  =>                 31,
-      'infragenus' =>              43,  
-      'subgenus' =>                9,
-      'genus' =>                   5,
-      'genus group' =>             -1,   
-      'subtribe' =>                28,
-      'tribe' =>                   25,
-      'supertribe' =>              57,  
-      'infrafamily' =>             41,   
-      'subfamily' =>               24, 
-      'subfamily group' =>         -1,       
-      'family' =>                  4,
-      'epifamily' =>               -1, 
-      'superfamily' =>             18,  
-      'superfamily group' =>       -1,         
-      'subinfraordinal group' =>   -1,             
-      'infraorder' =>              13,  
-      'suborder' =>                14,
-      'order' =>                   3,
-      'mirorder' =>                -1,
-      'superorder' =>              20,  
-      'magnorder' =>               -1,
-      'parvorder' =>               21, 
-      'cohort' =>                  -1,
-      'supercohort' =>             -1,   
-      'infraclass' =>              19,  
-      'subclass' =>                7,
-      'class' =>                   2,
-      'superclass' =>              15,  
-      'infraphylum' =>             40,   
-      'subphylum' =>               8, 
-      'phylum' =>                  1,
-      'superphylum' =>             27,   
-      'infrakingdom' =>            44,   
-      'subkingdom' =>              29,  
-      'kingdom' =>                 17,
-      'superkingdom' =>            22,    
-      'life' =>                    -1,
-      'unknown' =>                 -1,
-      'section' =>                 30
-    }
-
-    attr_accessor :name_collection, :namespace
+     attr_accessor :name_collection, :namespace
 
     def initialize(options = {})
       opts = {
