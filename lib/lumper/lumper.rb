@@ -144,9 +144,8 @@ module Taxonifi::Lumper
                 n.related.merge!(:link_to_ref_from_row => i)
               end
 
-              if opts[:capture_related_field]
-                unused_fields.each do |k|
-                n.related.merge!(k => row[k])
+              if opts[:capture_related_fields]
+                n.related.merge!(row.to_hash.select{|f| unused_fields.include?(f)})
               end
             end
 
