@@ -8,8 +8,12 @@ module Taxonifi
   RANKS = %w{
       kingdom
       phylum
+      superclass
       class
+      subclass
       infraclass
+      cohort
+      superorder
       order 
       suborder
       infraorder

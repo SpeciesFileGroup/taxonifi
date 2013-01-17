@@ -62,14 +62,14 @@ module Taxonifi::Lumper
   def self.create_name_collection(options = {})
     opts = {
       :csv => [],
-      :initial_id => 0
+      :initial_id => 0,
+      :capture_related_fields => true   # Stores other column values in (column_header => value) pairs in Name.related
     }.merge!(options)
     
     csv = opts[:csv]
-
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_name_collection.' if csv.class != CSV::Table
+    
     nc = Taxonifi::Model::NameCollection.new(:initial_id => opts[:initial_id])
-
     row_size = csv.size
 
     # The row index contains a vector of parent ids like
@@ -85,6 +85,8 @@ module Taxonifi::Lumper
     name_index = {} 
 
     has_ref_fields = ([:citation_basic, :citation_small] & Taxonifi::Lumper.intersecting_lumps(csv.headers)).size > 0
+    unused_fields = csv.headers - Taxonifi::Lumper::LUMPS[:names]
+
 
     # First pass, create and index names
     Taxonifi::Assessor::RowAssessor.rank_headers(csv.headers).each do |rank|
@@ -97,17 +99,17 @@ module Taxonifi::Lumper
 
         if !name.nil?     # cell has data
           n = nil         # a Name if necessary
-          name_id = nil   # index the new or existing name 
+          name_id = nil   # index the new or existing Name 
 
-          if name_index[rank][name] # name (string) exists
+          if name_index[rank][name] # A matching name (String) has been previously added
+            exists = false
 
-            exists = false 
             name_index[rank][name].each do |id|
               # Compare vectors of parent_ids for name presence
               if nc.parent_id_vector(id) == row_index[i]      
                 exists = true
                 name_id = id
-                break # don't need to check further
+                break 
               end 
             end
 
@@ -130,15 +132,21 @@ module Taxonifi::Lumper
             # headers are overlapping at times
 
             # Check to see if metadata (e.g. author year) apply to this rank, attach if so.
-            if row['author_year'] && rank ==  Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s 
-              builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
-              n.author               = builder.people 
-              n.year                 = builder.year 
-              n.parens               = !builder.parens
-            end
+            if shares_rank 
+              if row['author_year'] 
+                builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
+                n.author               = builder.people 
+                n.year                 = builder.year 
+                n.parens               = !builder.parens
+              end
 
-            if has_ref_fields and shares_rank
-              n.related.merge!(:link_to_ref_from_row => i)
+              if has_ref_fields
+                n.related.merge!(:link_to_ref_from_row => i)
+              end
+
+              if opts[:capture_related_field]
+                # n.related.merge!(
+              end
             end
 
             name_id = nc.add_object(n).id
@@ -256,11 +264,7 @@ module Taxonifi::Lumper
 
     # See create_name_collection
     row_index = Taxonifi::Utils::Array.build_array_of_empty_arrays(row_size)
-
-    name_index = {}
-    headers.each do |h|
-      name_index[h] = {}
-    end
+    name_index = Taxonifi::Utils::Hash.build_hash_of_hashes_with_keys(headers)
 
     csv.each_with_index do |row, i|
       headers.each do |rank|
@@ -269,7 +273,7 @@ module Taxonifi::Lumper
           o = nil                      # a Name if necessary
           name_id = nil                # index the new or existing name 
 
-          if name_index[rank][name] # name exists
+          if name_index[rank][name] # Matching name is found 
 
             exists = false
             name_index[rank][name].each do |id|
@@ -291,14 +295,13 @@ module Taxonifi::Lumper
             o.name = name
             o.rank = rank
             o.row_number = i
-            debugger if row_index[i].nil?
             o.parent = c.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
 
             name_id = c.add_object(o).id 
             name_index[rank][name] ||= []
             name_index[rank][name].push name_id                
-
           end
+
           row_index[i].push name_id                       
         end
       end
