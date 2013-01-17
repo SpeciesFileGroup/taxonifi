@@ -145,7 +145,8 @@ module Taxonifi::Lumper
               end
 
               if opts[:capture_related_field]
-                # n.related.merge!(
+                unused_fields.each do |k|
+                n.related.merge!(k => row[k])
               end
             end
 
