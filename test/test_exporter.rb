@@ -47,7 +47,7 @@ class Test_TaxonifiExports < Test::Unit::TestCase
     assert_equal "Crickets (Grylloptera: Grylloidea) in Dominican amber.", nc.ref_collection.object_from_row(0).title
     assert_equal "Crickets (Grylloptera: Grylloidea) in Dominican amber.", nc.ref_collection.object_from_row(nc.collection[36].related[:link_to_ref_from_row]).title
 
-    e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 11) 
+    e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 11 )
     e.export
   end
 

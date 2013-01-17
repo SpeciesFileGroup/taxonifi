@@ -1,6 +1,5 @@
 require 'csv'
-
-
+require 'fileutils'
 
 # Everything in Taxonifi is in here.
 module Taxonifi
@@ -35,5 +34,11 @@ module Taxonifi
   Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "models/*.rb") )) do |file|
     require file
   end
+
+  Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "utils/*.rb") )) do |file|
+    require file
+  end
+
+
 
 end

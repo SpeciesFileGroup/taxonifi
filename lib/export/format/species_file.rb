@@ -100,14 +100,20 @@ module Taxonifi::Export
 
     def export()
       super
-      # This is deprecated for a pre-handling approach, i.e. you should determine
+      # You must have
       # how to create and link the reference IDs.
-      # Reference related approaches
+
+      # Reference related approaches:
+      # 
       # @name_collection.generate_ref_collection(1)
-      # Give authors unique ids
+      # Give authors unique ids:
       # @name_collection.ref_collection.uniquify_authors(1) 
 
-      build_author_index 
+      if @name_collection.ref_collection 
+        build_author_index
+      end
+
+      # raise Taxonifi::Export::ExportError, 'NameCollection has no RefCollection, you might try @name_collection.generate_ref_collection(1), or alter the manifest: hash.' if ! @name_collection.ref_collection.nil?
 
       # See notes in #initalize re potential key collisions!
       # @by_author_reference_index =  @name_collection.ref_collection.collection.inject({}){|hsh, r| hsh.merge!(r.author_year_index => r)}
@@ -128,6 +134,7 @@ module Taxonifi::Export
       true
     end
 
+    # Deprecated!
     # Export only the ref_collection. Sidesteps the main name-centric exports
     # Note that this still uses the base @name_collection object as a starting reference,
     # it just references @name_collection.ref_collection.  So you can do:
@@ -135,18 +142,19 @@ module Taxonifi::Export
     #   nc.ref_collection = Taxonifi::Model::RefCollection.new
     #   etc.
     def export_references(options = {})
-      opts = {
-        :starting_ref_id => 0,
-        :starting_author_id => 0
-      }
+      raise Taxonifi::Export::ExportError, 'Method deprecated, alter manifest: to achieve a similar result.'
+     #opts = {
+     #  :starting_ref_id => 0,
+     #  :starting_author_id => 0
+     #}
 
-      configure_folders
-      build_author_index 
+     #configure_folders
+     #build_author_index 
 
-      # order matters
-      ['tblPeople', 'tblRefs', 'tblRefAuthors', 'sqlRefs' ].each do |t|
-        write_file(t, send(t))
-      end
+     ## order matters
+     #['tblPeople', 'tblRefs', 'tblRefAuthors', 'sqlRefs' ].each do |t|
+     #  write_file(t, send(t))
+     #end
     end
 
     # Get's the reference for a name as referenced

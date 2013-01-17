@@ -57,6 +57,7 @@ module Taxonifi::Lumper
     intersections
   end
 
+ 
   # Return a Taxonifi::Model::NameCollection from a csv file.
   def self.create_name_collection(options = {})
     opts = {
@@ -75,10 +76,7 @@ module Taxonifi::Lumper
     # [0, 4, 29]
     # This implies that Name with #id 29 has Parent with #id 4
     # Initialize an empty index. 
-    row_index = []
-    (0..(row_size-1)).each do |i|
-      row_index[i] = []
-    end
+    row_index = Taxonifi::Utils::Array.build_array_of_empty_arrays(row_size)
 
     # The name_index keeps track of unique name per rank like
     # :genus => {'Foo' => [0,2]}
@@ -257,10 +255,7 @@ module Taxonifi::Lumper
     row_size = csv.size
 
     # See create_name_collection
-    row_index = []
-    (0..(row_size-1)).each do |i|
-      row_index[i] = []
-    end
+    row_index = Taxonifi::Utils::Array.build_array_of_empty_arrays(row_size)
 
     name_index = {}
     headers.each do |h|
@@ -296,6 +291,7 @@ module Taxonifi::Lumper
             o.name = name
             o.rank = rank
             o.row_number = i
+            debugger if row_index[i].nil?
             o.parent = c.object_by_id(row_index[i].last) if row_index[i].size > 0 # it's parent is the previous id in this row 
 
             name_id = c.add_object(o).id 
@@ -316,12 +312,7 @@ module Taxonifi::Lumper
     gc = Taxonifi::Model::GeogCollection.new
 
     row_size = csv.size
-
-    # See create_name_collection
-    row_index = []
-    (0..(row_size-1)).each do |i|
-      row_index[i] = []
-    end
+    row_index = Taxonifi::Utils::Array.build_array_of_empty_arrays(row_size)
 
     name_index = {}
     geog_headers =  Taxonifi::Assessor::RowAssessor.geog_headers(csv.headers)
