@@ -170,7 +170,8 @@ module Taxonifi::Export
       @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       sql = []
       @name_collection.collection.each do |n|
-        raise "#{n.name} is too long" if n.name.length > 30
+        $DEBUG && $stderr.puts("#{n.name} is too long") if n.name.length > 30
+        
         ref = get_ref(n) 
         cols = {
           TaxonNameID: n.id,

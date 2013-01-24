@@ -129,8 +129,6 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal 'one', nc.collection[2].related['Stuff']
   end
 
-
-
   def test_that_create_a_name_collection_handles_varieties
     string = CSV.generate() do |csv|
       csv << %w{family genus species variety author_year}

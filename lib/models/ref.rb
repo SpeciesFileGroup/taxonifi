@@ -48,6 +48,7 @@ module Taxonifi
 
       # If :author_year is passed it is broken down into People + year. 
       def initialize(options = {})
+        super
         opts = {
         }.merge!(options)
         @parent = nil

@@ -33,7 +33,7 @@ module Taxonifi
       end
 
       # Incrementally (re-)assigns the id of every associated author (Person) 
-      # This is only really useful if you assume every author is unique.
+      # This is only useful if you assume every author is unique.
       def enumerate_authors(initial_id = 0)
         i = initial_id 
         collection.each do |r|

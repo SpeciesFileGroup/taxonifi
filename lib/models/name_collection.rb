@@ -130,7 +130,8 @@ module Taxonifi
       def name_string_array
         collection.collect{|n| n.display_name}
       end 
-    
+   
+
       # Take the author/years of these names and generate a reference collection.
       # Start the ids assigned to the references with initial_id.
       def generate_ref_collection(initial_id = 0)

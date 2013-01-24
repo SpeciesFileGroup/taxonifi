@@ -1,4 +1,4 @@
-require 'helper'
+require File.expand_path(File.join(File.dirname(__FILE__), 'helper')) 
 require File.expand_path(File.join(File.dirname(__FILE__), '../lib/lumper/lumper')) 
 
 # Builder construction
@@ -85,6 +85,22 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     csv = CSV.parse(csv_string, {headers: true})
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal "Foo and bar", rc.object_from_row(1).title
+  end
+
+  def test_that_create_a_ref_collection_handles_related_columns
+    csv_string = CSV.generate() do |csv|
+      csv <<  @headers + ['foo', 'bar']
+      csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)", "foo value", 1 ]
+      csv << ["Smith J.", "2012", "Foo and bar", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)", nil, "bar value" ]
+    end
+    csv = CSV.parse(csv_string, {headers: true})
+    rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
+  
+    assert_equal "foo value", rc.collection.first.related['foo'] 
+    assert_equal nil, rc.collection.last.related['foo'] 
+    assert_equal '1', rc.collection.first.related['bar'] 
+    assert_equal 'bar value', rc.collection.last.related['bar'] 
+
   end
 
 end 

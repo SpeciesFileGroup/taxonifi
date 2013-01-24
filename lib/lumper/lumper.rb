@@ -92,9 +92,7 @@ module Taxonifi::Lumper
     Taxonifi::Assessor::RowAssessor.rank_headers(csv.headers).each do |rank|
       name_index[rank] = {}
       csv.each_with_index do |row, i|
-
         shares_rank = (rank == Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s)
-
         name = row[rank] 
 
         if !name.nil?     # cell has data
@@ -121,7 +119,8 @@ module Taxonifi::Lumper
             n = Taxonifi::Model::Name.new()
           end # end name exists
 
-          # If we created a new name
+
+          # Populate the new name if created.  Previously matched names are not effected. 
           if !n.nil? 
             n.rank = rank
             n.name = name
@@ -140,17 +139,11 @@ module Taxonifi::Lumper
                 n.parens               = !builder.parens
               end
 
-              if has_ref_fields
-                n.related.merge!(:link_to_ref_from_row => i)
-              end
-
-              if opts[:capture_related_fields]
-                n.related.merge!(row.to_hash.select{|f| unused_fields.include?(f)})
-              end
+              n.related.merge!(:link_to_ref_from_row => i) if has_ref_fields
+              n.related.merge!(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
             end
 
             name_id = nc.add_object(n).id
-            # Add the name to the index of unique names
             name_index[rank][name] ||= []
             name_index[rank][name].push name_id                
 
@@ -172,12 +165,15 @@ module Taxonifi::Lumper
   def self.create_ref_collection(options = {})
     opts = {
       :csv => nil,
-      :inital_id => 1
+      :inital_id => 1,
+      :capture_related_fields => true   # Stores other column values in (column_header => value) pairs in Ref.related
     }.merge!(options)
     csv = opts[:csv]
 
     raise Taxonifi::Lumper::LumperError, 'Something that is not a CSV::Table was passed to Lumper.create_ref_collection.' if csv.class != CSV::Table
     rc = Taxonifi::Model::RefCollection.new(opts)
+
+    unused_fields = csv.headers - (Taxonifi::Lumper::LUMPS[:citation_basic] | Taxonifi::Lumper::LUMPS[:citation_small])
 
     ref_index = {}
     csv.each_with_index do |row, i|
@@ -222,6 +218,8 @@ module Taxonifi::Lumper
             r.pages = row['pages']
           end
         end
+       
+        r.related.merge!(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
 
         # Do some indexing.
         ref_str = r.compact_string 
