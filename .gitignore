@@ -2,6 +2,7 @@
 # ignore in development script work
 sf
 
+*.xlsx
 
 # rcov generated
 coverage
