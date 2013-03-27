@@ -100,7 +100,6 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     assert_equal nil, rc.collection.last.related['foo'] 
     assert_equal '1', rc.collection.first.related['bar'] 
     assert_equal 'bar value', rc.collection.last.related['bar'] 
-
   end
 
 end 
