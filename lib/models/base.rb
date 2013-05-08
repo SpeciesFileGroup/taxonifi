@@ -17,13 +17,13 @@ module Taxonifi
       attr_accessor :row_number
 
       # A general purpose hash populable as needed for related metadata
-      attr_accessor :related 
+      attr_accessor :properties
 
       # TODO: Rethink this. See @@ATTRIBUTES in subclasses.
       ATTRIBUTES = [:row_number]
 
       def initialize(options = {})
-        @related = {}
+        @properties = {}
       end
 
       # Assign on new() all attributes for the ATTRIBUTES 
@@ -33,6 +33,38 @@ module Taxonifi
         attributes.each do |c|
           self.send("#{c}=",opts[c]) if !opts[c].nil?
         end
+      end
+
+      # Add a set of properties (doesn't check for key collisions)
+      def add_properties(hash)
+        @properties.merge!(hash)
+      end
+
+      # Add a key/value pair to @properties
+      def add_property(key, value)
+        if @properties[key] 
+          return false
+        else
+          @properties.merge!(key => value)
+        end
+      end  
+
+      # Replace an existing key/value pair in @properties
+      def replace_property(key,value)
+       if !@properties[key]
+        return false
+       else
+        @properties.merge!(key => value)
+       end
+      end 
+ 
+      # Delete an existing key/value pair in @properties 
+      def delete_property(key)
+       if !@properties[key]
+         @properties.delete(key) 
+       else
+        @properties.merge!(key => value)
+       end
       end
 
       def id=(id)
@@ -70,7 +102,6 @@ module Taxonifi
         end
         ancestors 
       end
-
     end
 
 

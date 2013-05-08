@@ -63,7 +63,7 @@ module Taxonifi::Lumper
     opts = {
       :csv => [],
       :initial_id => 0,
-      :capture_related_fields => true   # Stores other column values in (column_header => value) pairs in Name.related
+      :capture_related_fields => true   # Stores other column values in (column_header => value) pairs in Name#properties
     }.merge!(options)
     
     csv = opts[:csv]
@@ -139,8 +139,8 @@ module Taxonifi::Lumper
                 n.parens               = !builder.parens
               end
 
-              n.related.merge!(:link_to_ref_from_row => i) if has_ref_fields
-              n.related.merge!(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
+              n.add_property(:link_to_ref_from_row, i) if has_ref_fields
+              n.add_properties(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
             end
 
             name_id = nc.add_object(n).id
@@ -166,7 +166,7 @@ module Taxonifi::Lumper
     opts = {
       :csv => nil,
       :inital_id => 1,
-      :capture_related_fields => true   # Stores other column values in (column_header => value) pairs in Ref.related
+      :capture_related_fields => true   # Stores other column values in (column_header => value) pairs in Ref#related
     }.merge!(options)
     csv = opts[:csv]
 
@@ -219,7 +219,7 @@ module Taxonifi::Lumper
           end
         end
        
-        r.related.merge!(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
+        r.add_properties(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
 
         # Do some indexing.
         ref_str = r.compact_string 

@@ -124,9 +124,9 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
 
     csv = CSV.parse(string, {headers: true})
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
-    assert_equal nil, nc.collection[2].related['foo']
-    assert_equal "1", nc.collection[2].related['bar']          # !!! everything converted to String
-    assert_equal 'one', nc.collection[2].related['Stuff']
+    assert_equal nil, nc.collection[2].properties['foo']
+    assert_equal "1", nc.collection[2].properties['bar']          # !!! everything converted to String
+    assert_equal 'one', nc.collection[2].properties['Stuff']
   end
 
   def test_that_create_a_name_collection_handles_varieties

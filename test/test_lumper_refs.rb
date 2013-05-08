@@ -96,10 +96,10 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
     csv = CSV.parse(csv_string, {headers: true})
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
   
-    assert_equal "foo value", rc.collection.first.related['foo'] 
-    assert_equal nil, rc.collection.last.related['foo'] 
-    assert_equal '1', rc.collection.first.related['bar'] 
-    assert_equal 'bar value', rc.collection.last.related['bar'] 
+    assert_equal "foo value", rc.collection.first.properties['foo'] 
+    assert_equal nil, rc.collection.last.properties['foo'] 
+    assert_equal '1', rc.collection.first.properties['bar'] 
+    assert_equal 'bar value', rc.collection.last.properties['bar'] 
   end
 
 end 

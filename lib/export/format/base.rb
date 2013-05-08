@@ -7,7 +7,7 @@ module Taxonifi::Export
     # See https://phenoscape.svn.sourceforge.net/svnroot/phenoscape/trunk/vocab/taxonomic_rank.obo
     # Site: https://www.phenoscape.org/wiki/Taxonomic_Rank_Vocabulary
     # Values of -1 have no correspondance in that ontology. 
-    # Nt all values are supported. Not all values are included.
+    # Not all values are supported. Not all values are included.
     TAXRANKS = {
       'taxonomic_rank' =>          0,
       'variety'        =>          16,

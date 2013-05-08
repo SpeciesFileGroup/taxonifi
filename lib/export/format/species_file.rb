@@ -158,10 +158,10 @@ module Taxonifi::Export
     end
 
     # Get's the reference for a name as referenced
-    # by .related[:link_to_ref_from_row]
+    # by .properties[:link_to_ref_from_row]
     def get_ref(name)
-      if not name.related[:link_to_ref_from_row].nil?
-        return @name_collection.ref_collection.object_from_row(name.related[:link_to_ref_from_row])
+      if not name.properties[:link_to_ref_from_row].nil?
+        return @name_collection.ref_collection.object_from_row(name.properties[:link_to_ref_from_row])
       end
       nil
     end
@@ -422,7 +422,7 @@ module Taxonifi::Export
         end 
 
         # ref = @by_author_reference_index[c.compact.last.author_year_index]
-        ref =  @name_collection.ref_collection.object_from_row(c.compact.last.related[:link_to_ref_from_row]) 
+        ref =  @name_collection.ref_collection.object_from_row(c.compact.last.properties[:link_to_ref_from_row]) 
 
         next if ref.nil?
 

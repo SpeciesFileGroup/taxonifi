@@ -25,13 +25,13 @@ module Taxonifi
     #  A Taxonifi::Model::Name General purpose relationship, typically used to indicate synonymy.
     attr_accessor  :related_name 
 
-    # Array, contains properties assignable in Taxonifi::Model::Name#new()
+    # Array, contains assignable properties in Taxonifi::Model::Name#new()
     @@ATTRIBUTES = [:name, :rank, :year, :parens, :parent, :author, :related_name]
 
-    # optionally parsed/index
+    # Optionally parsed/index
     attr_accessor :authors                    
 
-    # optionally parsed/index
+    # Optionally parsed/index
     attr_accessor :author_year_index    
 
     def initialize(options = {})
@@ -214,7 +214,6 @@ module Taxonifi
     # Return a String of Prolog rules representing this Name
     def prologify
       "false"
-
     end
 
   end 

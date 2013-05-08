@@ -56,7 +56,7 @@ module Taxonifi::Lumper::Lumps::ParentChildNameCollection
           n.rank = rank
           n.name = name
           n.row_number = i
-          n.related.merge!(:external_id => external_id)
+          n.add_property(:external_id, external_id)
 
           if parent = external_index[parent_id] 
             n.parent = parent
