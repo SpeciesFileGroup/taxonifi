@@ -7,7 +7,7 @@ module Taxonifi
 
       # A by-name (string index) 
       attr_accessor :by_name_index
-     
+
       # A Taxonifi::Model::RefCollection, optionally generated from Author/Year strings 
       attr_accessor :ref_collection
 
@@ -18,14 +18,17 @@ module Taxonifi
 
       def initialize(options = {})
         super 
-        @by_name_index = {'genus_group' => {}, 'species_group' => {} }                 # "foo => [1,2,3]"
-         Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}  # Lumping species and genus group names 
-
-        @by_name_index['unknown'] = {} # unranked names get dumped in here
-        @ref_collection = nil
+        @by_name_index = {'genus_group' => {}, 'species_group' => {} }                 # "'Aus bus' => [1,2,3]"
+        Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}    # Lumping species and genus group names 
+        @by_name_index['unknown'] = {}                                                 # unranked names get dumped in here
+        @ref_collection = options[:ref_collection]
         @combinations = [] 
         true
       end 
+
+      def ref_collection=(ref_collection)
+        @ref_collection ||= ref_collection
+      end
 
       def object_class
         Taxonifi::Model::Name
@@ -70,7 +73,7 @@ module Taxonifi
           by_name_index[rank][name.name_author_year_string].each do |id|
             full_parent_vector = parent_id_vector(name.parent.id) 
             return id if full_parent_vector == parent_id_vector(id)  # this hits species/genus group names
-            
+
             vector = parent_id_vector(id)
             next if vector.last != name.parent.id                    # can stop looking at this possiblity
             vector.pop                                               # compare just parents
@@ -83,7 +86,7 @@ module Taxonifi
         false 
       end
 
-      # Add an individaul name object, indexing it.
+      # Add an individual name object, indexing it.
       def add_object(obj)
         super
         index_by_name(obj)
@@ -130,7 +133,7 @@ module Taxonifi
       def name_string_array
         collection.collect{|n| n.display_name}
       end 
-   
+
 
       # Take the author/years of these names and generate a reference collection.
       # Start the ids assigned to the references with initial_id.
@@ -155,7 +158,7 @@ module Taxonifi
       def ref_collection=(ref_collection)
         @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
       end
-     
+
       # Return an Array of "homonyms" within the rank
       # provided.  Useful for finding missmatched upper heirarchies,
       # if nc is a name_collection:
@@ -169,7 +172,7 @@ module Taxonifi
       #  end 
       #
       def homonyms_at_rank(rank) 
-       raise if !RANKS.include?(rank)
+        raise if !RANKS.include?(rank)
         uniques = {}
         names_at_rank(rank).each do |n|
           uniques.merge!(n.name => []) if !uniques[n.name]

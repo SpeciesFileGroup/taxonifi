@@ -161,6 +161,12 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert_equal n11.id, c.name_exists?(n12)
   end
 
+  def test_that_name_collection_can_assign_ref_collections
+    r = Taxonifi::Model::RefCollection.new
+    c = Taxonifi::Model::NameCollection.new(:ref_collection => r)
+    assert c.ref_collection == r
+  end
+
   def test_that_name_collection_generate_ref_collection
     c = Taxonifi::Model::NameCollection.new
     c.generate_ref_collection
@@ -189,6 +195,8 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
     assert_equal 2011, c.ref_collection.collection.first.year
     foo = 1
   end
+
+
 
 
 end

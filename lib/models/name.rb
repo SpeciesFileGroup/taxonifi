@@ -25,8 +25,11 @@ module Taxonifi
     #  A Taxonifi::Model::Name General purpose relationship, typically used to indicate synonymy.
     attr_accessor  :related_name 
 
+    # The original description reference
+    attr_accessor :original_description_reference
+
     # Array, contains assignable properties in Taxonifi::Model::Name#new()
-    @@ATTRIBUTES = [:name, :rank, :year, :parens, :parent, :author, :related_name]
+    @@ATTRIBUTES = [:name, :rank, :year, :parens, :author, :related_name ]
 
     # Optionally parsed/index
     attr_accessor :authors                    
@@ -43,7 +46,10 @@ module Taxonifi
       @parent = nil
       build(@@ATTRIBUTES, opts)
       add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
+
       @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
+      @original_description_reference = opts[:original_description_reference] if (!opts[:original_description_reference].nil? && opts[:original_description_reference].class == Taxonifi::Model::Ref)
+
       @id = opts[:id] # if !opts[:id].nil? && opts[:id].size != 0
       @authors ||= []
       true

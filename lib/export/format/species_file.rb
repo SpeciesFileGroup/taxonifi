@@ -58,14 +58,12 @@ module Taxonifi::Export
     attr_accessor :author_index
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
-    attr_accessor :starting_ref_id
 
     def initialize(options = {})
       opts = {
         :nc => Taxonifi::Model::NameCollection.new,
         :export_folder => 'species_file',
         :authorized_user_id => nil,
-        :starting_ref_id => 1,                              # should be configured elsewhere... but
         :manifest => %w{tblPubs tblRefs tblPeople tblRefAuthors tblTaxa tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
       }.merge!(options)
 
@@ -78,8 +76,7 @@ module Taxonifi::Export
       @pub_collection = {} # title => id
       @authorized_user_id = opts[:authorized_user_id]
       @author_index = {}
-      @starting_ref_id = opts[:starting_ref_id]
-    
+
       # Careful here, at present we are just generating Reference micro-citations from our names, so the indexing "just works"
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
       # include references external to the initialized name_collection.  See also export_references.
@@ -128,8 +125,8 @@ module Taxonifi::Export
         str << send(f)
       end
       str << ['COMMIT', 'END TRY', 'BEGIN CATCH', 
-        'SELECT ERROR_LINE() AS ErrorLine, ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;', 
-        'ROLLBACK', 'END CATCH']  
+              'SELECT ERROR_LINE() AS ErrorLine, ERROR_NUMBER() AS ErrorNumber, ERROR_MESSAGE() AS ErrorMessage;', 
+              'ROLLBACK', 'END CATCH']  
       write_file('everything.sql', str.join("\n\n"))
       true
     end
@@ -142,22 +139,17 @@ module Taxonifi::Export
     #   nc.ref_collection = Taxonifi::Model::RefCollection.new
     #   etc.
     def export_references(options = {})
-      raise Taxonifi::Export::ExportError, 'Method deprecated, alter manifest: to achieve a similar result.'
-     #opts = {
-     #  :starting_ref_id => 0,
-     #  :starting_author_id => 0
-     #}
+      raise Taxonifi::Export::ExportError, 'Method deprecated, alter manifest to achieve a similar result.'
+      #configure_folders
+      #build_author_index 
 
-     #configure_folders
-     #build_author_index 
-
-     ## order matters
-     #['tblPeople', 'tblRefs', 'tblRefAuthors', 'sqlRefs' ].each do |t|
-     #  write_file(t, send(t))
-     #end
+      ## order matters
+      #['tblPeople', 'tblRefs', 'tblRefAuthors', 'sqlRefs' ].each do |t|
+      #  write_file(t, send(t))
+      #end
     end
 
-    # Get's the reference for a name as referenced
+    # Gets the reference for a name as referenced
     # by .properties[:link_to_ref_from_row]
     def get_ref(name)
       if not name.properties[:link_to_ref_from_row].nil?
@@ -171,17 +163,17 @@ module Taxonifi::Export
       sql = []
       @name_collection.collection.each do |n|
         $DEBUG && $stderr.puts("#{n.name} is too long") if n.name.length > 30
-        
-        ref = get_ref(n) 
+
+        # ref = get_ref(n) 
         cols = {
           TaxonNameID: n.id,
-          TaxonNameStr: n.parent_ids_sf_style,        # closure -> ends with 1 
+          TaxonNameStr: n.parent_ids_sf_style,                       # closure -> ends with 1 
           RankID: SPECIES_FILE_RANKS[n.rank], 
           Name: n.name,
           Parens: (n.parens ? 1 : 0),
           AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   # !! SF folks like to pre-populate with zeros
-          RefID: (ref ? ref.id : 0),
-          DataFlags: 0,                                    # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
+          RefID: (n.original_description_reference ? n.original_description_reference.id : 0),
+          DataFlags: 0,                  # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
           AccessCode: 0,             
           NameStatus: (n.related_name.nil? ? 0 : 7),                            # 0 :valid, 7: synonym)
           StatusFlags: (n.related_name.nil? ? 0 : 262144),                      # 0 :valid, 262144: jr. synonym
@@ -215,12 +207,12 @@ module Taxonifi::Export
           StatedYear: @empty_quotes,
           AccessCode: 0,
           Flags: 0, 
-          Note: @empty_quotes,
+          Note: (r.properties.keys.size > 0 ? r.properties.collect{|k,v| "#{k}:[#{v}]"}.join("; ") : @emptyquotes),
           LastUpdate: @time,
-          LinkID: 0,
-          ModifiedBy: @authorized_user_id,
-          CiteDataStatus: 0,
-          Verbatim: (r.full_citation ? r.full_citation : @empty_quotes)
+            LinkID: 0,
+            ModifiedBy: @authorized_user_id,
+            CiteDataStatus: 0,
+            Verbatim: (r.full_citation ? r.full_citation : @empty_quotes)
         }
         sql << sql_insert_statement('tblRefs', cols) 
       end
@@ -231,7 +223,7 @@ module Taxonifi::Export
     def tblPubs
       sql = []
       @headers = %w{PubID PrefID PubType ShortName FullName Note LastUpdate ModifiedBy Publisher PlacePublished PubRegID Status StartYear EndYear BHL}
-      
+
       # Hackish should build this elsewhere, but degrades OK
       pubs = @name_collection.ref_collection.collection.collect{|r| r.publication}.compact.uniq
 
@@ -306,7 +298,7 @@ module Taxonifi::Export
     def tblCites
       @headers = %w{TaxonNameID SeqNum RefID NomenclatorID LastUpdate ModifiedBy NewNameStatus CitePages Note TypeClarification CurrentConcept ConceptChange InfoFlags InfoFlagStatus PolynomialStatus}
       sql = []
-     
+
       @name_collection.collection.each do |n|
         next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
         ref = get_ref(n)
