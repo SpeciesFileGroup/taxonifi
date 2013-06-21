@@ -1,6 +1,6 @@
 # require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
 
-# A Clump is a "C"ollection of lump derivatives and the relatinoships between these derivatives!
+# A Clump is a "C"ollection of lump derivatives and the relationships between these derivatives!
 # It's used to define relationships among objects derived, for example, between single rows of data
 module Taxonifi::Lumper:Clumps
 

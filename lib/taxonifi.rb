@@ -29,20 +29,16 @@ module Taxonifi
       variety
   }
 
-
-  require File.expand_path(File.join(File.dirname(__FILE__), 'lumper/lumper'))
   require File.expand_path(File.join(File.dirname(__FILE__), 'splitter/splitter'))
   require File.expand_path(File.join(File.dirname(__FILE__), 'assessor/assessor'))
   require File.expand_path(File.join(File.dirname(__FILE__), 'export/export'))
 
-  Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "models/*.rb") )) do |file|
-    require file
+  # TODO use **/*.rb syntax
+  %w{models utils lumper}.each do |dir|
+    Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "#{dir}/*.rb") )) do |file|
+      require file
+    end
   end
-
-  Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "utils/*.rb") )) do |file|
-    require file
-  end
-
 
 
 end

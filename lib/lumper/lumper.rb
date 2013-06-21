@@ -82,14 +82,14 @@ module Taxonifi::Lumper
     # :genus => {'Foo' => [0,2]}
     # This says that "Foo" is instantiated two times in the
     # name collection, with id 0, and id 2.
-    name_index = {} 
+    name_index = {} # Taxonifi::Lumper::NameIndex.new # {} 
 
     has_ref_fields = ([:citation_basic, :citation_small] & Taxonifi::Lumper.intersecting_lumps(csv.headers)).size > 0
     unused_fields = csv.headers - Taxonifi::Lumper::LUMPS[:names]
 
-
     # First pass, create and index names
     Taxonifi::Assessor::RowAssessor.rank_headers(csv.headers).each do |rank|
+      # name_index.new_rank(rank)
       name_index[rank] = {}
       csv.each_with_index do |row, i|
         shares_rank = (rank == Taxonifi::Assessor::RowAssessor.lump_name_rank(row).to_s)
@@ -99,9 +99,8 @@ module Taxonifi::Lumper
           n = nil         # a Name if necessary
           name_id = nil   # index the new or existing Name 
 
+          exists = false
           if name_index[rank][name] # A matching name (String) has been previously added
-            exists = false
-
             name_index[rank][name].each do |id|
               # Compare vectors of parent_ids for name presence
               if nc.parent_id_vector(id) == row_index[i]      
@@ -110,15 +109,12 @@ module Taxonifi::Lumper
                 break 
               end 
             end
-
-            if !exists # name (string) exists, but parents are different, create new name 
-              n = Taxonifi::Model::Name.new()
-            end
-
-          else # no version of the name exists
-            n = Taxonifi::Model::Name.new()
           end # end name exists
 
+          n = Taxonifi::Model::Name.new() if !exists
+
+          unused_data = row.to_hash.select{|f| unused_fields.include?(f)}
+          row_identifier = (row['identifier'] ? row['identifier'] : i)
 
           # Populate the new name if created.  Previously matched names are not effected. 
           if !n.nil? 
@@ -139,8 +135,8 @@ module Taxonifi::Lumper
                 n.parens               = !builder.parens
               end
 
-              n.add_property(:link_to_ref_from_row, i) if has_ref_fields
-              n.add_properties(row.to_hash.select{|f| unused_fields.include?(f)}) if opts[:capture_related_fields]
+              n.add_property(:link_to_ref_from_row, i) if has_ref_fields # TODO: update this
+              n.add_properties(unused_data) if opts[:capture_related_fields]
             end
 
             name_id = nc.add_object(n).id
@@ -150,6 +146,9 @@ module Taxonifi::Lumper
             $DEBUG && $stderr.puts("added #{nc.collection.size - 1} | #{n.name} | #{n.rank} | #{n.parent ? n.parent.name : '-'} | #{n.parent ? n.parent.id : '-'}")
           else
             $DEBUG && $stderr.puts("already present #{rank} | #{name}")
+            if shares_rank 
+              nc.add_duplicate_entry_metadata(name_id, row_identifier, unused_data) 
+            end
           end
 
           # build a by row vector of parent child relationships

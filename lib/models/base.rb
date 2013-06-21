@@ -16,7 +16,7 @@ module Taxonifi
       # Optionly store the row this came from
       attr_accessor :row_number
 
-      # A general purpose hash populable as needed for related metadata
+      # A general purpose Hash populable as needed for related metadata
       attr_accessor :properties
 
       # TODO: Rethink this. See @@ATTRIBUTES in subclasses.
@@ -103,7 +103,6 @@ module Taxonifi
         ancestors 
       end
     end
-
 
   end
 end

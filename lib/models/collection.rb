@@ -89,8 +89,15 @@ module Taxonifi
 
       # Returns an Array which respresents
       # all the "root" objects.
+      # TODO: test
       def objects_without_parents
-        collection.select{|o| o.parent.nil?}
+        @collection.select{|o| o.parent.nil?}
+      end
+
+      # Returns an Array of immediate children
+      # TODO: test 
+      def children_of_object(o)
+        @collection.select{|i| i.parent == o}
       end
 
       protected

@@ -22,15 +22,18 @@ module Taxonifi
     # A Taxonifi::Model::Name 
     attr_accessor  :parent      
 
-    #  A Taxonifi::Model::Name General purpose relationship, typically used to indicate synonymy.
+    # A Taxonifi::Model::Name 
+    # A general purpose relationship, typically used to indicate synonymy.
     attr_accessor  :related_name 
 
-    # The original description reference
+    # A Taxonifi::Model::Reference 
+    # The original description. 
     attr_accessor :original_description_reference
 
-    # Array, contains assignable properties in Taxonifi::Model::Name#new()
+    # An Array, contains assignable properties in Taxonifi::Model::Name#new()
     @@ATTRIBUTES = [:name, :rank, :year, :parens, :author, :related_name ]
 
+    # An Array of Taxonifi::Model::Person 
     # Optionally parsed/index
     attr_accessor :authors                    
 
@@ -126,6 +129,43 @@ module Taxonifi
       au
     end
 
+ # Return a String, the human readable version of this name (genus, subgenus, species, subspecies, author, year)
+    def display_name
+      [nomenclator_name, author_year].compact.join(" ")
+    end
+
+    # Return a String, the human readable version of this name (genus, subgenus, species, subspecies)
+    def nomenclator_name 
+      case @rank
+      when 'species', 'subspecies', 'genus', 'subgenus'
+        nomenclator_array.compact.join(" ")
+      else
+        @name
+      end
+    end
+
+    # Return a Boolean, True if @rank is one of 'genus', 'subgenus', 'species', 'subspecies' 
+    def nomenclator_name?
+      %w{genus subgenus species subspecies}.include?(@rank) 
+    end
+
+    # Return an Array of lenght 4 of Names representing a Species or Genus group name
+    # [genus, subgenus, species, subspecies]
+    def nomenclator_array
+      case @rank
+      when 'species', 'subspecies'
+        return [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "(#{parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'),  parent_name_at_rank('subspecies')]
+      when 'subgenus'
+        return [parent_name_at_rank('genus'), "(#{@name})", nil, nil]
+      when 'genus'
+        return [@name, nil, nil, nil]
+      else
+        return false
+      end
+    end
+
+    
+
     # Return a Taxonifi::Model::Name representing the finest genus_group_parent.
     # TODO: ICZN specific(?)
     def genus_group_parent
@@ -170,24 +210,7 @@ module Taxonifi
       nil 
     end
 
-    # Return the human readable version of this name with author year (String)
-    def display_name
-      [nomenclator_name, author_year].compact.join(" ")
-    end
-
-    # Return the human readable version of this name, without author year (String)
-    def nomenclator_name 
-      case @rank
-      when 'species', 'subspecies'
-        [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "(#{parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'),  parent_name_at_rank('subspecies')].compact.join(" ")
-      when 'subgenus'
-        [parent_name_at_rank('genus'), "(#{@name})"].compact.join(" ")
-      else
-        [@name].compact.join(" ")
-      end
-    end
-
-    # Return a dashed "vector" of ids representing the ancestor parent closure, like:
+        # Return a dashed "vector" of ids representing the ancestor parent closure, like:
     #  0-1-14-29g-45s-99-100.
     #  Postfixed g means "genus", postifed s means "subgenus.  As per SpecieFile usage.
     #  TODO: !! malformed because the valid name is not injected.  Note that this can be generated internally post import.
@@ -203,7 +226,6 @@ module Taxonifi
           ids.push a.id.to_s
         end
       end
-
       ids.join("-")
     end
 
@@ -215,6 +237,18 @@ module Taxonifi
     # Generate/return the author year index.
     def generate_author_year_index
       @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
+    end
+
+    # TODO: test
+    # Returne True of False based on @rank
+    def species_group?
+      true if @rank == 'species' || @rank == 'subspecies'
+    end
+
+    # TODO: test
+    # Returne True of False based on @rank
+    def genus_group?
+      true if @rank == 'genus' || @rank == 'subgenus'
     end
 
     # Return a String of Prolog rules representing this Name

@@ -64,7 +64,7 @@ module Taxonifi::Export
         :nc => Taxonifi::Model::NameCollection.new,
         :export_folder => 'species_file',
         :authorized_user_id => nil,
-        :manifest => %w{tblPubs tblRefs tblPeople tblRefAuthors tblTaxa tblGenusNames tblSpeciesNames tblNomenclator tblCites} 
+        :manifest => %w{tblPubs tblRefs tblPeople tblRefAuthors tblTaxa tblGenusNames tblSpeciesNames tblNomenclator tblCites tblTypeSpecies}  
       }.merge!(options)
 
       @manifest = opts[:manifest]
@@ -120,6 +120,11 @@ module Taxonifi::Export
       @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
 
+
+      # Add combinations of names from nomenclators/citations as well
+
+
+
       str = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
       @manifest.each do |f|
         str << send(f)
@@ -152,14 +157,15 @@ module Taxonifi::Export
     # Gets the reference for a name as referenced
     # by .properties[:link_to_ref_from_row]
     def get_ref(name)
-      if not name.properties[:link_to_ref_from_row].nil?
-        return @name_collection.ref_collection.object_from_row(name.properties[:link_to_ref_from_row])
-      end
-      nil
+#     if not name.properties[:link_to_ref_from_row].nil?
+#       return @name_collection.ref_collection.object_from_row(name.properties[:link_to_ref_from_row])
+#     end
+#     nil
+      name.original_description_reference ? name.original_description_reference : nil
     end
 
     def tblTaxa
-      @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
+      @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode Extinct NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       sql = []
       @name_collection.collection.each do |n|
         $DEBUG && $stderr.puts("#{n.name} is too long") if n.name.length > 30
@@ -171,13 +177,14 @@ module Taxonifi::Export
           RankID: SPECIES_FILE_RANKS[n.rank], 
           Name: n.name,
           Parens: (n.parens ? 1 : 0),
-          AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   # !! SF folks like to pre-populate with zeros
+          AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   
           RefID: (n.original_description_reference ? n.original_description_reference.id : 0),
           DataFlags: 0,                  # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
           AccessCode: 0,             
+          Extinct: (n.properties && n.properties['extinct'] == 'true' ? 1 : 0), 
           NameStatus: (n.related_name.nil? ? 0 : 7),                            # 0 :valid, 7: synonym)
           StatusFlags: (n.related_name.nil? ? 0 : 262144),                      # 0 :valid, 262144: jr. synonym
-          OriginalGenusID: (!n.parens && n.parent_at_rank('genus') ? n.parent_at_rank('genus').id : 0),      # SF must be pre-configured with 0 filler (this restriction needs to go)                
+          OriginalGenusID: (n.properties && !n.properties['original_genus_id'].nil? ? n.properties['original_genus_id'] : 0),      # SF must be pre-configured with 0 filler (this restriction needs to go)                
           LastUpdate: @time, 
           ModifiedBy: @authorized_user_id,
         }
@@ -194,6 +201,16 @@ module Taxonifi::Export
         # Assumes the 0 "null" pub id is there
         pub_id = @pub_collection[r.publication] ? @pub_collection[r.publication] : 0
 
+        # Build a note based on "unused" properties
+        note = [] 
+        if r.properties
+          r.properties.keys.each do |k|
+            note.push "#{k}: #{r.properties[k]}" if r.properties[k] && r.properties.length > 0
+          end 
+        end
+        note = note.join("; ") 
+        note = @empty_quotes if note.length == 0
+
         cols = {
           RefID: r.id,
           ContainingRefID: 0,
@@ -202,12 +219,12 @@ module Taxonifi::Export
           Series: @empty_quotes,
           Volume: (r.volume ? r.volume : @empty_quotes),
           Issue:  (r.number ? r.number : @empty_quotes),
-          RefPages: r.page_string, # always a string
+          RefPages: r.page_string, # always a strings
           ActualYear: (r.year ? r.year : @empty_quotes),
           StatedYear: @empty_quotes,
           AccessCode: 0,
           Flags: 0, 
-          Note: (r.properties.keys.size > 0 ? r.properties.collect{|k,v| "#{k}:[#{v}]"}.join("; ") : @emptyquotes),
+          Note: note, 
           LastUpdate: @time,
             LinkID: 0,
             ModifiedBy: @authorized_user_id,
@@ -327,6 +344,34 @@ module Taxonifi::Export
       sql.join("\n")
     end
 
+    # Generate tblTypeSpecies string.
+    def tblTypeSpecies
+      @headers = %w{GenusNameID SpeciesNameID Reason AuthorityRefID FirstFamGrpNameID LastUpdate ModifiedBy NewID}
+      sql = []
+
+      names = @name_collection.names_at_rank('genus') + @name_collection.names_at_rank('subgenus')
+      names.each do |n|
+        if n.properties[:type_species_id]
+          ref = get_ref(n)
+
+          # ref = @by_author_reference_index[n.author_year_index]
+          next if ref.nil?
+          cols = {
+            GenusNameID: n.id ,
+            SpeciesNameID: n.properties[:type_species_id],
+            Reason: 0            ,
+            AuthorityRefID: 0    ,
+            FirstFamGrpNameID: 0 ,
+            LastUpdate: @time    ,
+            ModifiedBy: @authorized_user_id   ,
+            NewID: 0 # What is this?  
+          }
+          sql << sql_insert_statement('tblTypeSpecies', cols) 
+        end
+      end
+      sql.join("\n")
+    end 
+   
     def tblGenusNames
       # TODO: SF tests catch unused names based on some names not being included in Nomeclator data.  We could optimize so that the work around is removed.
       # I.e., all the names get added here, not all the names get added to Nomclator/Cites because of citations which are not original combinations
@@ -366,15 +411,16 @@ module Taxonifi::Export
       @headers = %w{NomenclatorID GenusNameID SubgenusNameID SpeciesNameID SubspeciesNameID LastUpdate ModifiedBy SuitableForGenus SuitableForSpecies InfrasubspeciesNameID InfrasubKind}
       sql = []   
       i = 1
+
       @name_collection.collection.each do |n|
         gid, sgid = 0,0
         sid = @species_names[n.parent_name_at_rank('species')] || 0
         ssid = @species_names[n.parent_name_at_rank('subspecies')] || 0
 
-        if n.parens == false
+#        if n.parens == false
           gid = @genus_names[n.parent_name_at_rank('genus')] || 0
           sgid = @genus_names[n.parent_name_at_rank('subgenus')] || 0
-        end 
+#       end 
 
         next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
 

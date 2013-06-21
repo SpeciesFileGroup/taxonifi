@@ -5,7 +5,10 @@ module Taxonifi
     # A collection of taxonomic names. 
     class NameCollection < Taxonifi::Model::Collection
 
-      # A by-name (string index) 
+      # A Hash. Keys are the name (String), values are ids of Names in the collection. 
+      # { rank => { name => [ids] }}
+      # There are two special ranks "genus_group" and "species_group".
+      # E.g.: {'species_group' => {'bar' => [1,2,93]}})
       attr_accessor :by_name_index
 
       # A Taxonifi::Model::RefCollection, optionally generated from Author/Year strings 
@@ -16,6 +19,22 @@ module Taxonifi
       # for this purpose because getting/setting names therin will affect other combinations
       attr_accessor :combinations
 
+      # A Hash that is filled with metadata when non-unique names are found in input parsing
+      # {unique row identifier => { redundant row identifier => {properties hash}}}
+      # TODO: reconsider, move to superclass or down to record base
+      # TODO: Test
+      attr_accessor :duplicate_entry_buffer
+
+      # An optional collection of existing combinations of species names, as represented by 
+      # individual Arrays of Taxonifi::Model::Names. Note you can not use a Taxonifi::Model::SpeciesName 
+      # for this purpose because getting/setting names therin will affect other combinations
+     
+      # { TaxonName => [[genus_string, subgenus_string, species_string, subspecies_string],...,[]] }
+      attr_accessor :nomenclators
+
+      # [Reference: [ nomenclator_id ] (index)]
+      attr_accessor :citations
+
       def initialize(options = {})
         super 
         @by_name_index = {'genus_group' => {}, 'species_group' => {} }                 # "'Aus bus' => [1,2,3]"
@@ -23,6 +42,9 @@ module Taxonifi
         @by_name_index['unknown'] = {}                                                 # unranked names get dumped in here
         @ref_collection = options[:ref_collection]
         @combinations = [] 
+        @nomenclators = {} 
+        @duplicate_entry_buffer = {}
+
         true
       end 
 
@@ -90,6 +112,7 @@ module Taxonifi
       def add_object(obj)
         super
         index_by_name(obj)
+        derive_nomenclator(obj) if obj.nomenclator_name?
         obj
       end
 
@@ -98,6 +121,18 @@ module Taxonifi
         super
         index_by_name(obj)
         obj
+      end
+
+      def derive_nomenclator(obj)
+        if obj.nomenclator_name?
+          if @nomenclators[obj.id]
+            @nomenclators[obj.id].push(obj.nomenclator_array)
+          else
+            @nomenclators[obj.id] = [obj.nomenclator_array]
+          end
+        else 
+          raise
+        end
       end
 
       # Add a Taxonifi::Model::SpeciesName object
@@ -128,12 +163,6 @@ module Taxonifi
           end
         end
       end
-
-      # Return an array of the names in the collection
-      def name_string_array
-        collection.collect{|n| n.display_name}
-      end 
-
 
       # Take the author/years of these names and generate a reference collection.
       # Start the ids assigned to the references with initial_id.
@@ -182,12 +211,34 @@ module Taxonifi
         uniques
       end
 
+      # Add a record to @duplicate_entry_buffer
+      def add_duplicate_entry_metadata(name_id, row_identifier, data_hash)
+        @duplicate_entry_buffer[name_id] = Hash.new if !@duplicate_entry_buffer[name_id]
+        @duplicate_entry_buffer[name_id].merge!(row_identifier => data_hash)
+      end
+      
+
+      # Return an Array of Strings
+      def genus_group_name_strings
+        by_name_index['genus_group'].keys
+      end
+
+      # Return an Array of Strings
+      def species_group_name_strings
+        by_name_index['species_group'].keys
+      end
+
+      # Return an array of the names in the collection
+      # DEPRECATE for name_strings
+      def name_string_array
+        collection.collect{|n| n.display_name}
+      end 
+
+
       protected
 
-      # Index the object by name into the
-      # @by_name_index variable (this looks like:
-      #  {"Foo bar" => [1,2,93]})
-      #  Pass a Taxonifi::Name
+      # Index the object by name into the @by_name_index variable 
+      # Pass a Taxonifi::Name
       def index_by_name(name)
         rank = name.rank
         rank = 'species_group' if %w{species subspecies variety}.include?(rank)
