@@ -39,6 +39,11 @@ class Taxonifi::Splitter::Parser
       @builder.send("#{r}=", Taxonifi::Model::Name.new(:name => t.send(r), rank: r) ) if t.send(r)
     end
 
+    if @lexer.peek(Taxonifi::Splitter::Tokens::Variety)
+      t = @lexer.pop(Taxonifi::Splitter::Tokens::Variety)
+      @builder.variety = Taxonifi::Model::Name.new(:name => t.variety, rank: 'variety')  
+    end
+
     if @lexer.peek(Taxonifi::Splitter::Tokens::AuthorYear)
       t = @lexer.pop(Taxonifi::Splitter::Tokens::AuthorYear)
       @builder.names.last.author = t.authors

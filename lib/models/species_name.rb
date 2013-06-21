@@ -8,7 +8,7 @@ module Taxonifi
     # Taxonifi::Model::Names have no ids!  
 
     class SpeciesName < Taxonifi::Model::Base
-      ATTRIBUTES = [:genus, :subgenus, :species, :subspecies, :parent]
+      ATTRIBUTES = [:genus, :subgenus, :species, :subspecies, :variety, :parent]
       ATTRIBUTES.each do |a|
         attr_accessor a
       end
@@ -46,6 +46,13 @@ module Taxonifi
         @subspecies.parent = @species
       end
 
+      # Set the variety name.
+      def variety=(variety)
+        raise Taxonifi::SpeciesNameError, "Varieties name must have a species name before variety can be assigned" if @species.nil? 
+        @variety = variety 
+        @variety.parent = (@subspecies ? @subspecies : @species)
+      end
+
       # Set the parent name.
       def parent=(parent)
         if parent.class != Taxonifi::Model::Name
@@ -72,12 +79,12 @@ module Taxonifi
       end
 
       # Returns true if this combination contains a nominotypic subspecies name 
-      def nominotypical_species
+      def nominotypical_species?
         names.species && names.subspecies && (names.species.name == names.subspecies.name)
       end
 
       # Returns true if this combinations contains a nominotypic subgenus 
-      def nominotypical_genus
+      def nominotypical_genus?
         names.genus && names.subgenus && (names.genus.name == names.subgenus.name)
       end
 

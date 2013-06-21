@@ -257,7 +257,7 @@ module Taxonifi::Splitter::Tokens
   #   Foo stuff von Helsing, 1920
   class Quadrinomial < Token
     attr_reader :genus, :subgenus, :species, :subspecies
-    @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?)\s*/)
+    @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s\.]+)?)\s*/)
 
     def initialize(str)
       str.strip 
@@ -272,6 +272,19 @@ module Taxonifi::Splitter::Tokens
       end
     end
   end
+  
+  # A token to match variety 
+  # Matches: 
+  # var. blorf
+  # v. blorf
+  class Variety < Token
+    attr_reader :variety
+    @regexp = Regexp.new(/\A\s*((var\.\s*|v\.\s*)(\w+))/i)
+    def initialize (str)
+      str =~ Regexp.new(/\A\s*(var\.\s*|v\.\s*)(\w+)/i)
+      @variety = $2
+    end
+  end
 
   # !! You must register token lists as symbols in
   # !! Taxonifi::Splitter
@@ -282,15 +295,16 @@ module Taxonifi::Splitter::Tokens
   # Create an untested list at your own risk, any proposed
   # ordering will be accepted as long as tests pass.
   
-  # All tokens.
+  # All tokens.  Order matters!
   def self.global_token_list
     [ 
+      Taxonifi::Splitter::Tokens::AuthorYear,
       Taxonifi::Splitter::Tokens::Quadrinomial,
+      Taxonifi::Splitter::Tokens::Variety,
       Taxonifi::Splitter::Tokens::LeftParen,
       Taxonifi::Splitter::Tokens::Year,
       Taxonifi::Splitter::Tokens::Comma,
       Taxonifi::Splitter::Tokens::RightParen,
-      Taxonifi::Splitter::Tokens::AuthorYear,
       Taxonifi::Splitter::Tokens::Authors,
       Taxonifi::Splitter::Tokens::VolumeNumber,
       Taxonifi::Splitter::Tokens::Pages,
@@ -312,10 +326,12 @@ module Taxonifi::Splitter::Tokens
   end
 
   # Tokens used in breaking down species names.
+  # Order matters.
   def self.species_name
     [
-      Taxonifi::Splitter::Tokens::Quadrinomial,
       Taxonifi::Splitter::Tokens::AuthorYear,
+      Taxonifi::Splitter::Tokens::Quadrinomial,
+      Taxonifi::Splitter::Tokens::Variety
     ]
   end
 

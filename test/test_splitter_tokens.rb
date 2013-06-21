@@ -14,6 +14,21 @@ end
 
 class Test_TaxonifiSplitterTokens < Test::Unit::TestCase
 
+  def test_variety
+    lexer = Taxonifi::Splitter::Lexer.new("var. blorf")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Variety)
+
+    lexer = Taxonifi::Splitter::Lexer.new(" var. blorf")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Variety)
+
+    lexer = Taxonifi::Splitter::Lexer.new("v. blorf")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Variety)
+  
+    lexer = Taxonifi::Splitter::Lexer.new("  v. blorf ")
+    assert lexer.pop(Taxonifi::Splitter::Tokens::Variety)
+  end
+
+
   def test_year
     lexer = Taxonifi::Splitter::Lexer.new("1235")
     assert lexer.pop(Taxonifi::Splitter::Tokens::Year)

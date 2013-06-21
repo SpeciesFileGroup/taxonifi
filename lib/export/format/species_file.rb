@@ -120,9 +120,7 @@ module Taxonifi::Export
       @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
 
-
       # Add combinations of names from nomenclators/citations as well
-
 
 
       str = [ 'BEGIN TRY', 'BEGIN TRANSACTION']

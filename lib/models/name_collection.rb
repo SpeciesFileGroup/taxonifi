@@ -17,21 +17,23 @@ module Taxonifi
       # An optional collection of existing combinations of species names, as represented by 
       # individual arrays of Taxonifi::Model::Names.  Note you can not use a Taxonifi::Model::SpeciesName 
       # for this purpose because getting/setting names therin will affect other combinations
+      # DEPRECATE? 
       attr_accessor :combinations
 
-      # A Hash that is filled with metadata when non-unique names are found in input parsing
+      # A Hash. Contains metadata when non-unique names are found in input parsing
       # {unique row identifier => { redundant row identifier => {properties hash}}}
       # TODO: reconsider, move to superclass or down to record base
       # TODO: Test
       attr_accessor :duplicate_entry_buffer
 
-      # An optional collection of existing combinations of species names, as represented by 
-      # individual Arrays of Taxonifi::Model::Names. Note you can not use a Taxonifi::Model::SpeciesName 
-      # for this purpose because getting/setting names therin will affect other combinations
-     
-      # { TaxonName => [[genus_string, subgenus_string, species_string, subspecies_string],...,[]] }
+      # A Hash.  An index with keys = Name.id, and values an Array of Arrays, the inner array containing Strings
+      # representing the genus, subgenus, species, and subspecies name.
+      # Automatically populated when .add_object is used.  Alternately populated with .add_nomenclator(Name)
+      # { TaxonName => [[genus_string, subgenus_string, species_string, subspecies_string, infrasubspecific_string (e.g. variety)],...,[]] }
+      # !! The names represented in the Array of strings does *NOT* have to be represented in the NameCollection
       attr_accessor :nomenclators
 
+      # TODO!! 
       # [Reference: [ nomenclator_id ] (index)]
       attr_accessor :citations
 
@@ -41,10 +43,9 @@ module Taxonifi
         Taxonifi::RANKS[0..-5].inject(@by_name_index){|hsh, v| hsh.merge!(v => {})}    # Lumping species and genus group names 
         @by_name_index['unknown'] = {}                                                 # unranked names get dumped in here
         @ref_collection = options[:ref_collection]
-        @combinations = [] 
+        @combinations = []  # DEPRECATE?
         @nomenclators = {} 
-        @duplicate_entry_buffer = {}
-
+        @duplicate_entry_buffer = {} # Move to Collection?!
         true
       end 
 
@@ -108,7 +109,7 @@ module Taxonifi
         false 
       end
 
-      # Add an individual name object, indexing it.
+      # Add an individual Name instance, indexing it.
       def add_object(obj)
         super
         index_by_name(obj)
@@ -116,23 +117,30 @@ module Taxonifi
         obj
       end
 
-      # Add an individaul name object, without indexing it. 
+      # Add an individaul Name instance, without indexing it. 
       def add_object_pre_indexed(obj)
         super
         index_by_name(obj)
         obj
       end
 
+      # TODO: Test
       def derive_nomenclator(obj)
         if obj.nomenclator_name?
-          if @nomenclators[obj.id]
-            @nomenclators[obj.id].push(obj.nomenclator_array)
-          else
-            @nomenclators[obj.id] = [obj.nomenclator_array]
-          end
+          add_nomenclator(obj.id, obj.nomenclator_array)
         else 
           raise
         end
+      end
+
+      # TODO: Test
+      def add_nomenclator(id, nomenclator_array)
+        if @nomenclators[id]
+          @nomenclators[id].push(nomenclator_array) if !@nomenclators[id].include?(nomenclator_array)
+        else
+          @nomenclators[id] = [nomenclator_array]
+        end
+        true 
       end
 
       # Add a Taxonifi::Model::SpeciesName object

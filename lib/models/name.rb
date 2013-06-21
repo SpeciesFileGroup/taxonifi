@@ -129,7 +129,7 @@ module Taxonifi
       au
     end
 
- # Return a String, the human readable version of this name (genus, subgenus, species, subspecies, author, year)
+    # Return a String, the human readable version of this name (genus, subgenus, species, subspecies, variety author, year)
     def display_name
       [nomenclator_name, author_year].compact.join(" ")
     end
@@ -137,7 +137,8 @@ module Taxonifi
     # Return a String, the human readable version of this name (genus, subgenus, species, subspecies)
     def nomenclator_name 
       case @rank
-      when 'species', 'subspecies', 'genus', 'subgenus'
+      # TODO: update for infrasubspecifics if we start tracking those
+      when 'species', 'subspecies', 'genus', 'subgenus', 'variety'
         nomenclator_array.compact.join(" ")
       else
         @name
@@ -145,26 +146,27 @@ module Taxonifi
     end
 
     # Return a Boolean, True if @rank is one of 'genus', 'subgenus', 'species', 'subspecies' 
+    # TODO: update for infrasubspecifics if we start tracking those
     def nomenclator_name?
-      %w{genus subgenus species subspecies}.include?(@rank) 
+      %w{genus subgenus species subspecies variety}.include?(@rank) 
     end
 
     # Return an Array of lenght 4 of Names representing a Species or Genus group name
-    # [genus, subgenus, species, subspecies]
+    # [genus, subgenus, species, subspecies, infrasubspecific]
     def nomenclator_array
       case @rank
+      when 'variety'
+        return [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "(#{parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'),  parent_name_at_rank('subspecies'), "var. #{@name}"]
       when 'species', 'subspecies'
-        return [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "(#{parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'),  parent_name_at_rank('subspecies')]
+        return [parent_name_at_rank('genus'), (parent_name_at_rank('subgenus') ? "(#{parent_name_at_rank('subgenus')})" : nil), parent_name_at_rank('species'),  parent_name_at_rank('subspecies'), nil]
       when 'subgenus'
-        return [parent_name_at_rank('genus'), "(#{@name})", nil, nil]
+        return [parent_name_at_rank('genus'), "(#{@name})", nil, nil, nil]
       when 'genus'
-        return [@name, nil, nil, nil]
+        return [@name, nil, nil, nil, nil]
       else
         return false
       end
     end
-
-    
 
     # Return a Taxonifi::Model::Name representing the finest genus_group_parent.
     # TODO: ICZN specific(?)
