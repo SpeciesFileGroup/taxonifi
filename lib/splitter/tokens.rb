@@ -257,11 +257,14 @@ module Taxonifi::Splitter::Tokens
   #   Foo stuff von Helsing, 1920
   class Quadrinomial < Token
     attr_reader :genus, :subgenus, :species, :subspecies
-    @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s\.]+)?)\s*/)
+  #  @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s\.]+)?)\s*/)
+
+   @regexp = Regexp.new(/\A\s*(([A-Z][^\s]+\w)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+(?!\.))?\s?([a-z][^\s]*(?!\.)\b)?)\s*/)
+
 
     def initialize(str)
       str.strip 
-      str =~ /\A\s*([A-Z][^\s]+)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+)?\s?([a-z][^\s]+)?\s*/i
+      str =~ /\A\s*([A-Z][^\s]+\w)\s*(\([A-Z][a-z]+\))?\s?([a-z][^\s]+(?!\.))?\s?([a-z][^\s]*(?!\.)\b)?\s*/i
       @genus = $1 
       @subgenus = $2
       @species = $3

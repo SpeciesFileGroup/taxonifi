@@ -59,6 +59,8 @@ module Taxonifi::Export
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
 
+    attr_accessor :built_nomenclators
+
     def initialize(options = {})
       opts = {
         :nc => Taxonifi::Model::NameCollection.new,
@@ -119,10 +121,22 @@ module Taxonifi::Export
       @name_collection.names_at_rank('subgenus').inject(@genus_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('species').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
       @name_collection.names_at_rank('subspecies').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
+      @name_collection.names_at_rank('variety').inject(@species_names){|hsh, n| hsh.merge!(n.name => nil)}
 
       # Add combinations of names from nomenclators/citations as well
 
+      @name_collection.nomenclators.keys.each do |k|
+        @genus_names.merge!(@name_collection.nomenclators[k][0] => nil)
+        @genus_names.merge!(@name_collection.nomenclators[k][1] => nil)
+        @species_names.merge!(@name_collection.nomenclators[k][2] => nil)
+        @species_names.merge!(@name_collection.nomenclators[k][3] => nil)
+        @species_names.merge!(@name_collection.nomenclators[k][4] => nil)
+      end
 
+      @genus_names.delete_if{|key,value| key.nil? || key.length == 0}
+      @species_names.delete_if{|key,value| key.nil? || key.length == 0}
+
+ 
       str = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
       @manifest.each do |f|
         str << send(f)
@@ -165,28 +179,33 @@ module Taxonifi::Export
     def tblTaxa
       @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode Extinct NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       sql = []
-      @name_collection.collection.each do |n|
-        $DEBUG && $stderr.puts("#{n.name} is too long") if n.name.length > 30
 
-        # ref = get_ref(n) 
-        cols = {
-          TaxonNameID: n.id,
-          TaxonNameStr: n.parent_ids_sf_style,                       # closure -> ends with 1 
-          RankID: SPECIES_FILE_RANKS[n.rank], 
-          Name: n.name,
-          Parens: (n.parens ? 1 : 0),
-          AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   
-          RefID: (n.original_description_reference ? n.original_description_reference.id : 0),
-          DataFlags: 0,                  # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
-          AccessCode: 0,             
-          Extinct: (n.properties && n.properties['extinct'] == 'true' ? 1 : 0), 
-          NameStatus: (n.related_name.nil? ? 0 : 7),                            # 0 :valid, 7: synonym)
-          StatusFlags: (n.related_name.nil? ? 0 : 262144),                      # 0 :valid, 262144: jr. synonym
-          OriginalGenusID: (n.properties && !n.properties['original_genus_id'].nil? ? n.properties['original_genus_id'] : 0),      # SF must be pre-configured with 0 filler (this restriction needs to go)                
-          LastUpdate: @time, 
-          ModifiedBy: @authorized_user_id,
-        }
-        sql << sql_insert_statement('tblTaxa', cols) 
+      # Need to add by rank for FK constraint handling
+
+      Taxonifi::RANKS.each do |rank|
+        @name_collection.names_at_rank(rank).each do |n|
+          $DEBUG && $stderr.puts("#{n.name} is too long") if n.name.length > 30
+
+          # ref = get_ref(n) 
+          cols = {
+            TaxonNameID: n.id,
+            TaxonNameStr: n.parent_ids_sf_style,                       # closure -> ends with 1 
+            RankID: SPECIES_FILE_RANKS[n.rank], 
+            Name: n.name,
+            Parens: (n.parens ? 1 : 0),
+            AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   
+            RefID: (n.original_description_reference ? n.original_description_reference.id : 0),
+            DataFlags: 0,                  # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
+            AccessCode: 0,             
+            Extinct: (n.properties && n.properties['extinct'] == 'true' ? 1 : 0), 
+            NameStatus: (n.related_name.nil? ? 0 : 7),                            # 0 :valid, 7: synonym)
+            StatusFlags: (n.related_name.nil? ? 0 : 262144),                      # 0 :valid, 262144: jr. synonym
+            OriginalGenusID: (n.properties && !n.properties['original_genus_id'].nil? ? n.properties['original_genus_id'] : 0),      # SF must be pre-configured with 0 filler (this restriction needs to go)                
+            LastUpdate: @time, 
+            ModifiedBy: @authorized_user_id,
+          }
+          sql << sql_insert_statement('tblTaxa', cols) 
+        end
       end
       sql.join("\n")
     end
@@ -224,10 +243,10 @@ module Taxonifi::Export
           Flags: 0, 
           Note: note, 
           LastUpdate: @time,
-            LinkID: 0,
-            ModifiedBy: @authorized_user_id,
-            CiteDataStatus: 0,
-            Verbatim: (r.full_citation ? r.full_citation : @empty_quotes)
+          LinkID: 0,
+          ModifiedBy: @authorized_user_id,
+          CiteDataStatus: 0,
+          Verbatim: (r.full_citation ? r.full_citation : @empty_quotes)
         }
         sql << sql_insert_statement('tblRefs', cols) 
       end
@@ -314,30 +333,29 @@ module Taxonifi::Export
       @headers = %w{TaxonNameID SeqNum RefID NomenclatorID LastUpdate ModifiedBy NewNameStatus CitePages Note TypeClarification CurrentConcept ConceptChange InfoFlags InfoFlagStatus PolynomialStatus}
       sql = []
 
-      @name_collection.collection.each do |n|
-        next if @nomenclator[n.nomenclator_name].nil? # Only create nomenclator records if they are original citations, otherwise not !! Might need updating in future imports
-        ref = get_ref(n)
-
-        # ref = @by_author_reference_index[n.author_year_index]
-        next if ref.nil?
-        cols = {
-          TaxonNameID:       n.id,
-          SeqNum:            1,
-          RefID:             ref.id,
-          NomenclatorID:     @nomenclator[n.nomenclator_name], 
-          LastUpdate:        @time, 
-          ModifiedBy:        @authorized_user_id,
-          CitePages:         @empty_quotes,        # equates to "" in CSV speak
-          NewNameStatus:     0,
-          Note:              @empty_quotes,
-          TypeClarification: 0,     # We might derive more data from this
-          CurrentConcept:    1,        # Boolean, right?
-          ConceptChange:     0,         # Unspecified
-          InfoFlags:         0,             # 
-          InfoFlagStatus:    1,        # 1 => needs review
-          PolynomialStatus:  0
-        }
-        sql << sql_insert_statement('tblCites', cols) 
+      @name_collection.citations.keys.each do |name_id|
+        seq_num = 1 
+        @name_collection.citations[name_id].each do |ref_id, nomenclator_index, properties|
+          cols = {
+            TaxonNameID:       name_id,
+            SeqNum:            seq_num,
+            RefID:             ref_id,
+            NomenclatorID:     nomenclator_index,
+            LastUpdate:        @time, 
+            ModifiedBy:        @authorized_user_id,
+            CitePages:         (properties[:cite_pages] ? properties[:cite_pages] : @empty_quotes),
+            NewNameStatus:     0,
+            Note:              (properties[:note] ? properties[:note] : @empty_quotes),
+            TypeClarification: 0,     # We might derive more data from this
+            CurrentConcept:    (properties[:current_concept] == true ? 1 : 0),     # Boolean, right?
+            ConceptChange:     0,     # Unspecified
+            InfoFlags:         0,     # 
+            InfoFlagStatus:    1,     # 1 => needs review
+            PolynomialStatus:  0
+          }
+          sql << sql_insert_statement('tblCites', cols) 
+          seq_num += 1
+        end
       end
       sql.join("\n")
     end
@@ -410,78 +428,41 @@ module Taxonifi::Export
       sql = []   
       i = 1
 
-      @name_collection.collection.each do |n|
-        gid, sgid = 0,0
-        sid = @species_names[n.parent_name_at_rank('species')] || 0
-        ssid = @species_names[n.parent_name_at_rank('subspecies')] || 0
-
-#        if n.parens == false
-          gid = @genus_names[n.parent_name_at_rank('genus')] || 0
-          sgid = @genus_names[n.parent_name_at_rank('subgenus')] || 0
-#       end 
-
-        next if Taxonifi::RANKS.index(n.rank) < Taxonifi::RANKS.index('subtribe')
-
-        ref = get_ref(n)  
-        # debugger
-        # ref = @by_author_reference_index[n.author_year_index]
-
-        next if ref.nil?
-        cols = {
-          NomenclatorID: i,
-          GenusNameID: gid,
-          SubgenusNameID: sgid, 
-          SpeciesNameID: sid, 
-          SubspeciesNameID: ssid,
-          InfrasubspeciesNameID: 0,
-          InfrasubKind: 0,                          # this might be wrong
-          LastUpdate: @time,  
-          ModifiedBy: @authorized_user_id, 
-          SuitableForGenus: 0,                      # Set in SF 
-          SuitableForSpecies: 0                     # Set in SF
-        }
-        @nomenclator.merge!(n.nomenclator_name => i)
-        i += 1
-
-        sql << sql_insert_statement('tblNomenclator', cols) 
-      end
-
-      # TODO: DRY this up with above?!
-      @name_collection.combinations.each do |c|
-        gid, sgid = 0,0
-        sid = (c[2].nil? ? 0 : @species_names[c[2].name])
-        ssid = (c[3].nil? ? 0 : @species_names[c[3].name])
-
-        if c.compact.last.parens == false
-          gid = (c[0].nil? ? 0 : @genus_names[c[0].name])
-          sgid = (c[1].nil? ? 0 : @genus_names[c[1].name])
-        end 
-
-        # ref = @by_author_reference_index[c.compact.last.author_year_index]
-        ref =  @name_collection.ref_collection.object_from_row(c.compact.last.properties[:link_to_ref_from_row]) 
-
-        next if ref.nil?
+      # Ugh, move build from here 
+      @name_collection.nomenclators.keys.each do |i|
+        name =  @name_collection.nomenclators[i]
+        genus_id = @genus_names[name[0]]
+        genus_id ||= 0
+        subgenus_id = @genus_names[name[1]]
+        subgenus_id ||= 0
+        species_id = @species_names[name[2]]
+        species_id ||= 0
+        subspecies_id = @species_names[name[3]]
+        subspecies_id ||= 0
+        variety_id = @species_names[name[4]]
+        variety_id ||= 0
 
         cols = {
           NomenclatorID: i,
-          GenusNameID: gid ,
-          SubgenusNameID: sgid ,
-          SpeciesNameID: sid ,
-          SubspeciesNameID: ssid ,
-          InfrasubspeciesNameID: 0,
-          InfrasubKind: 0,                          # this might be wrong
+          GenusNameID: genus_id, 
+          SubgenusNameID: subgenus_id, 
+          SpeciesNameID: species_id, 
+          SubspeciesNameID: subspecies_id,
+          InfrasubspeciesNameID: variety_id,
+          InfrasubKind: (variety_id == 0 ? 0 : 2), 
           LastUpdate: @time,  
           ModifiedBy: @authorized_user_id, 
-          SuitableForGenus: 0,                      # Set in SF 
-          SuitableForSpecies: 0                     # Set in SF
+          SuitableForGenus: 0,                      # Set in SF w test
+          SuitableForSpecies: 0                     # Set in SF w test
         }
-        # check!?
-        @nomenclator.merge!(c.compact.last.nomenclator_name => i)
-        sql << sql_insert_statement('tblNomenclator', cols) 
         i += 1
+        sql << sql_insert_statement('tblNomenclator', cols) 
       end
+
       sql.join("\n")
     end
+
+
 
   end # End class
 end # End module

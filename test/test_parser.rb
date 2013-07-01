@@ -89,6 +89,19 @@ class Test_TaxonifiSplitterParser < Test::Unit::TestCase
   end
 
 
+  def test_that_parse_species_name_parses_variety_following_species_without_author_year_II
+    lexer = Taxonifi::Splitter::Lexer.new("Calyptonotus rolandri var. opacus", :species_name)
+    builder = Taxonifi::Model::SpeciesName.new
+    Taxonifi::Splitter::Parser.new(lexer, builder).parse_species_name
+    assert_equal "Calyptonotus", builder.genus.name
+    assert_equal "rolandri", builder.species.name
+    assert_equal nil, builder.subspecies
+    assert_equal "opacus", builder.variety.name
+    assert_equal nil, builder.names.last.parens # not set
+    assert_equal "Calyptonotus rolandri var. opacus", builder.display_name 
+  end
+
+
 
 end 
 
