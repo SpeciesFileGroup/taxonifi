@@ -85,7 +85,7 @@ module Taxonifi
     # TODO: Family group extension; ICZN specific 
     def index_rank
       case rank
-      when 'species', 'subspecies'
+      when 'species', 'subspecies', 'variety'
         'species_group'
       when 'genus', 'subgenus'
         'genus_group'
