@@ -8,6 +8,7 @@ module Taxonifi::Export
 
     # tblRanks 5/17/2012
     SPECIES_FILE_RANKS = {
+      'variety' =>                 5,  # there is no variety rank per se in SFs, they are handled this way according to DE
       'subspecies' =>              5,
       'species' =>                 10,
       'species subgroup' =>        11,      
@@ -135,7 +136,6 @@ module Taxonifi::Export
 
       @genus_names.delete_if{|key,value| key.nil? || key.length == 0}
       @species_names.delete_if{|key,value| key.nil? || key.length == 0}
-
  
       str = [ 'BEGIN TRY', 'BEGIN TRANSACTION']
       @manifest.each do |f|
@@ -179,6 +179,7 @@ module Taxonifi::Export
     def tblTaxa
       @headers = %w{TaxonNameID TaxonNameStr RankID Name Parens AboveID RefID DataFlags AccessCode Extinct NameStatus StatusFlags OriginalGenusID LastUpdate ModifiedBy}
       sql = []
+      sql_above = []
 
       # Need to add by rank for FK constraint handling
 
@@ -193,7 +194,7 @@ module Taxonifi::Export
             RankID: SPECIES_FILE_RANKS[n.rank], 
             Name: n.name,
             Parens: (n.parens ? 1 : 0),
-            AboveID: (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id),   
+            AboveID: 0,   
             RefID: (n.original_description_reference ? n.original_description_reference.id : 0),
             DataFlags: 0,                  # see http://software.speciesfile.org/Design/TaxaTables.aspx#Taxon, a flag populated when data is reviewed, initialize to zero
             AccessCode: 0,             
@@ -205,9 +206,12 @@ module Taxonifi::Export
             ModifiedBy: @authorized_user_id,
           }
           sql << sql_insert_statement('tblTaxa', cols) 
+          above_id =  (n.related_name.nil? ? (n.parent ? n.parent.id : 0) : n.related_name.id)
+          sql_above.push "UPDATE tblTaxa SET AboveID = #{above_id} where TaxonNameID = #{n.id};"
         end
       end
-      sql.join("\n")
+
+      sql.join("\n") +  sql_above.join("\n") 
     end
 
     # Generate a tblRefs string.

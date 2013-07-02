@@ -92,4 +92,25 @@ class TestTaxonifiSpeciesName < Test::Unit::TestCase
     assert_equal "Foo (Bar) stuff things (Jones, 2012)", sn3.display_name
   end
 
+  def test_new_from_string_for_simple_species_name
+    string = "Foo bar Smith, 1920"
+    sn = Taxonifi::Model::SpeciesName.new_from_string(string)
+    assert_equal "Foo", sn.genus.name
+    assert_equal "bar", sn.species.name
+    assert_equal 1920, sn.species.year
+    assert_equal "Smith", sn.species.authors.first.last_name
+  end
+
+  def test_new_from_string_for_more_complex_species_name
+    string = 'Aus (Cus) bus dus (Smith, 1920)'
+    sn = Taxonifi::Model::SpeciesName.new_from_string(string)
+    assert_equal "Aus", sn.genus.name
+    assert_equal "Cus", sn.subgenus.name
+    assert_equal "bus", sn.species.name
+    assert_equal "dus", sn.subspecies.name
+    assert_equal 1920, sn.subspecies.year
+    assert_equal "Smith", sn.subspecies.authors.first.last_name
+    assert_equal true, sn.subspecies.parens
+  end
+
 end

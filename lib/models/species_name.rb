@@ -20,6 +20,20 @@ module Taxonifi
         true
       end 
 
+      # Create a new SpeciesName from a string format
+      # TODO: Is this replicated somewhere else?
+      # Examples: 
+      #   Taxonifi::Model::SpeciesName.new_from_string('Aus bus Smith, 1920')
+      #   Taxonifi::Model::SpeciesName.new_from_string('Aus (Cus) bus dus (Smith, 1920)')
+      def self.new_from_string(name)
+        raise Taxonifi::SpeciesNameError, "No name passed to SpeciesName.new_from_string" if name.nil? || name.length == 0 
+        #  Appears to be a validly formatted species epithet at this point.
+        lexer = Taxonifi::Splitter::Lexer.new(name, :species_name)
+        builder = Taxonifi::Model::SpeciesName.new
+        Taxonifi::Splitter::Parser.new(lexer, builder).parse_species_name
+        builder
+      end
+
       # Set the genus name.
       def genus=(genus)
         @genus = genus
