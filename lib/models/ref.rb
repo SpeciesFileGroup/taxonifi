@@ -71,7 +71,9 @@ module Taxonifi
         s
       end
 
-      # Return a by author_year index.
+      # Return a Taxonifi::Model::AuthorYear representing author/year
+      # !! Identical to method in Taxonifi::Model::Name
+      # !! *Not* necessarily unique.
       def author_year_index
         @author_year_index ||= generate_author_year_index
       end

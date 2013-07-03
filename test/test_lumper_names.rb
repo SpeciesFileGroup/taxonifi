@@ -98,14 +98,14 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
 
     csv = CSV.parse(string, {headers: true})
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
-    assert_equal 1, nc.collection[3].author.size
-    assert_equal 'Smith', nc.collection[3].author.first.last_name
+    assert_equal 1, nc.collection[3].authors.size
+    assert_equal 'Smith', nc.collection[3].authors.first.last_name
     assert_equal 1854, nc.collection[3].year
 
     # Name only applies to the "last" name in the order.
     assert_equal nil, nc.collection[0].author
     assert_equal nil, nc.collection[1].author
-    assert_equal 1, nc.collection[2].author.size
+    assert_equal 1, nc.collection[2].authors.size
 
     assert_equal nil, nc.collection[0].parens
     assert_equal true, nc.collection[2].parens
@@ -154,7 +154,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal nc.collection[2], nc.collection[4].parent
     assert_equal 'variety', nc.collection[4].rank
     assert_equal 'varblorf', nc.collection[5].name
-    assert_equal 'Smith', nc.collection[6].author.first.last_name
+    assert_equal 'Smith', nc.collection[6].authors.first.last_name
 
   # assert_equal 1, nc.collection[3].author.size
 

@@ -7,6 +7,7 @@ module Taxonifi
     class RefCollection < Taxonifi::Model::Collection
 
       # An options index when there is one reference per row.
+      # A Hash.  {:row_number => Ref
       attr_accessor :row_index
      
       # Points a Ref#id to an array of Person#ids.  
@@ -17,6 +18,7 @@ module Taxonifi
         super
         @row_index = []
         @author_index = {}
+        @fingerprint_index = {}
         true
       end 
 
@@ -100,6 +102,7 @@ module Taxonifi
         end
         auths
       end
+
 
     end
   end

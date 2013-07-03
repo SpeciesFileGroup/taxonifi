@@ -231,7 +231,9 @@ module Taxonifi
       ids.join("-")
     end
 
-    # Return names indexed by author_year.
+    # Return a Taxonifi::Model::AuthorYear representing author/year
+    # !! Identical to method in Taxonifi::Model::Ref
+    # !! *Not* necessarily unique.
     def author_year_index
       @author_year_index ||= generate_author_year_index
     end

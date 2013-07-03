@@ -130,7 +130,7 @@ module Taxonifi::Lumper
             if shares_rank 
               if row['author_year'] 
                 builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
-                n.author               = builder.people 
+                n.authors              = builder.people  # was author!?
                 n.year                 = builder.year 
                 n.parens               = !builder.parens
               end
