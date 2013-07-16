@@ -28,7 +28,7 @@ module Taxonifi
       def compact_index
         index = [@year]
         @people.each do |a|
-          index.push a.compact_string
+          index.push(a.compact_string)
         end
         index.join("-")
       end

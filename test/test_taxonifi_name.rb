@@ -172,7 +172,7 @@ class TestTaxonifiName < Test::Unit::TestCase
   end
 
   def test_genus_group_parent
-    n1 = Taxonifi::Model::Name.new(name: "Fooidae", rank: "family",     author: nil ,    year: nil)                      # 
+    n1 = Taxonifi::Model::Name.new(name: "Fooidae", rank: "family", author: nil, year: nil)                      # 
     n2 = Taxonifi::Model::Name.new(name: "Foo",     rank: "genus",      author: nil ,    year: nil,   :parent => n1)     # Foo
     n3 = Taxonifi::Model::Name.new(name: "Bar",     rank: "subgenus",   author: nil ,    year: nil,   :parent => n2)     # Foo (Bar)
     n4 = Taxonifi::Model::Name.new(name: "aus",     rank: "species",    author: nil ,    year: nil,   :parent => n3)     # Foo (Bar) aus 

@@ -201,18 +201,17 @@ module Taxonifi
         end
       end
 
-      # Take the author/years of these names and generate a reference collection.
+      # Take the author/years of these names and generate a RefCollection.
       # Start the ids assigned to the references with initial_id.
       def generate_ref_collection(initial_id = 0)
         rc = Taxonifi::Model::RefCollection.new(:initial_id => initial_id)
-        if collection.size > 0
-          uniques = collection.inject({}){|hsh, n| hsh.merge!(n.author_year_string => nil)}.keys.compact
-          if  uniques.size > 0
-            uniques.sort.each_with_index do |r, i|
-              next if r.size == 0
-              ref = Taxonifi::Model::Ref.new(:author_year => r)        
-              rc.add_object(ref)
-            end
+        temp_index = {} 
+        @collection.each do |n|
+          index = n.author_year_index
+          if !temp_index[index] && index.size > 0
+            temp_index.merge!(index => nil)
+            ref = Taxonifi::Model::Ref.new(authors: n.authors, year: n.year) 
+            rc.add_object(ref)
           end
         end
         @ref_collection = rc 
@@ -221,7 +220,7 @@ module Taxonifi
       # Assign a reference collection to this name collection. 
       # !! Overwrites existing reference collection, including ones built
       # using generate_ref_collection. 
-      def ref_collection=(ref_collection)
+      def ref_collection=(ref_collection = Taxonifi::Model::RefCollection)
         @ref_collection = ref_collection if ref_collection.class == Taxonifi::Model::RefCollection
       end
 
@@ -253,7 +252,21 @@ module Taxonifi
         @duplicate_entry_buffer[name_id] = Hash.new if !@duplicate_entry_buffer[name_id]
         @duplicate_entry_buffer[name_id].merge!(row_identifier => data_hash)
       end
-      
+
+      # For all species group names, assigns to property 'original_genus_id' the id of the parent genus group name if parens are not set.
+      # Returns an Array of ids for those names for which the property has *NOT* been set.
+      def add_original_genus_id_property
+        not_added = [] 
+        by_name_index['species_group'].values.flatten.uniq.each do |id|
+          name = object_by_id(id) 
+          if name.parens != true
+            name.add_property('original_genus_id', name.genus_group_parent.id)
+          else
+            not_added.push(name.id)
+          end
+        end
+        not_added
+      end
 
       # Return an Array of Strings
       def genus_group_name_strings
@@ -270,7 +283,6 @@ module Taxonifi
       def name_string_array
         collection.collect{|n| n.display_name}
       end 
-
 
       protected
 

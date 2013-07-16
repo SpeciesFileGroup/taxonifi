@@ -47,14 +47,16 @@ module Taxonifi
       }.merge!(options)
 
       @parent = nil
-      build(@@ATTRIBUTES, opts)
-      add_author_year(opts[:author_year]) if !opts[:author_year].nil? && opts[:author_year].size > 0
+      @authors ||= []
 
+      build(@@ATTRIBUTES, opts)
+      assign_author_year(opts)
+
+
+      @id = opts[:id] 
       @parent = opts[:parent] if (!opts[:parent].nil? && opts[:parent].class == Taxonifi::Model::Name)
       @original_description_reference = opts[:original_description_reference] if (!opts[:original_description_reference].nil? && opts[:original_description_reference].class == Taxonifi::Model::Ref)
 
-      @id = opts[:id] # if !opts[:id].nil? && opts[:id].size != 0
-      @authors ||= []
       true
     end 
 
@@ -122,9 +124,26 @@ module Taxonifi
       (self.parens == true) ? "(#{au})" : au
     end
 
+
     # Return the author year string. 
     def author_year_string
-      au = [self.author, self.year].compact.join(", ")
+      # Build based on People 
+
+      auth = nil
+      if authors.size > 0
+        case authors.size
+        when 1
+          auth = self.author
+        when 2 
+          auth = authors.map(&:last_name).join(" & ")
+        when 2...100
+          auth =  authors[0..-1].map(&:last_name).join(", ") + " & " + authors.last.last_name
+        end
+        # Build based on string
+      else
+        auth = self.author
+      end
+      au = [auth, self.year].compact.join(", ")
       return nil if au.size == 0
       au
     end
@@ -238,7 +257,7 @@ module Taxonifi
       @author_year_index ||= generate_author_year_index
     end
 
-    # Generate/return the author year index.
+    # Generate and return (String) the author year index.
     def generate_author_year_index
       @author_year_index = Taxonifi::Model::AuthorYear.new(people: @authors, year: @year).compact_index
     end
@@ -259,6 +278,32 @@ module Taxonifi
     def prologify
       "false"
     end
+
+  protected
+
+  # Generate @authors = [People], @year = 1999 from incoming initialization options.
+  def assign_author_year(opts)
+    # If for some reason already set get out
+    raise NameError, "Name initialization error, @authors set prior to conversionf from @author_year." if @year && !@authors.nil? && @authors.size > 0
+    author_year = nil
+    if !opts[:author_year].nil? && (opts[:author_year].size > 0)
+      author_year = opts[:author_year]
+    elsif !opts[:author].nil? && !@year.nil? && (opts[:author].size > 0) && (@year.size > 0)
+      author_year = opts[:author] + ", " + @year.to_s
+    end
+
+    if !author_year.nil?
+      if ay = Taxonifi::Splitter::Builder.build_author_year(author_year) 
+        @year = ay.year
+        @authors = ay.people
+        true
+      else
+        false
+      end
+    end
+  end
+
+
 
   end 
 

@@ -113,4 +113,33 @@ class TestTaxonifiSpeciesName < Test::Unit::TestCase
     assert_equal true, sn.subspecies.parens
   end
 
+  def test_new_from_simple_ampersand_authors
+    string = 'Pericoma deceptrix Quate & Brown, 2004'
+    sn = Taxonifi::Model::SpeciesName.new_from_string(string)
+    assert_equal "Pericoma", sn.genus.name
+    assert_equal nil, sn.subgenus
+    assert_equal "deceptrix", sn.species.name
+    assert_equal nil, sn.subspecies
+    assert_equal 2004, sn.species.year 
+    assert_equal "Quate", sn.species.authors.first.last_name
+    assert_equal "Brown", sn.species.authors.last.last_name
+    assert_equal false, sn.species.parens
+  end
+
+  def test_new_from_simple_ampersand_parened_authors
+    string = 'Pericoma deceptrix (Quate & Brown, 2004)'
+    sn = Taxonifi::Model::SpeciesName.new_from_string(string)
+    assert_equal "Pericoma", sn.genus.name
+    assert_equal nil, sn.subgenus
+    assert_equal "deceptrix", sn.species.name
+    assert_equal nil, sn.subspecies
+    assert_equal 2004, sn.species.year 
+    assert_equal "Quate", sn.species.authors.first.last_name
+    assert_equal "Brown", sn.species.authors.last.last_name
+    assert_equal true, sn.species.parens
+  end
+
+
+
+
 end

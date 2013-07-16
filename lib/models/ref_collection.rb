@@ -103,7 +103,6 @@ module Taxonifi
         auths
       end
 
-
     end
   end
 

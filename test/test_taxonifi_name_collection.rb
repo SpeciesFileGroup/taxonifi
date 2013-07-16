@@ -188,14 +188,12 @@ class TestTaxonifiNameCollection < Test::Unit::TestCase
 
     c.generate_ref_collection
     assert_equal 3, c.ref_collection.collection.size 
-    # References are sorted 
-    assert_equal ['Jones'], c.ref_collection.collection.first.authors.collect{|r| r.last_name} 
-    assert_equal ['Smith', 'Jones'], c.ref_collection.collection[1].authors.collect{|r| r.last_name} 
-    assert_equal ['Smith', 'Jones', 'Simon'], c.ref_collection.collection.last.authors.collect{|r| r.last_name}
-    assert_equal 2011, c.ref_collection.collection.first.year
+    assert_equal ['Smith', 'Jones'], c.ref_collection.collection.first.authors.collect{|r| r.last_name} 
+    assert_equal ['Smith', 'Jones', 'Simon'], c.ref_collection.collection[1].authors.collect{|r| r.last_name}
+    assert_equal ['Jones'], c.ref_collection.collection.last.authors.collect{|r| r.last_name} 
+    assert_equal 2011, c.ref_collection.collection.last.year
     foo = 1
   end
-
 
 
 

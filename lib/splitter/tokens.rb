@@ -63,8 +63,8 @@ module Taxonifi::Splitter::Tokens
     end
   end
 
-  # Complex breakdown of author strings. Handles
-  # a wide variety of formats.   
+  # Complex breakdown of author strings.
+  # Handles a wide variety of formats.   
   # See test_splitter_tokens.rb for scope. As with
   # AuthorYear this will match just about anything when used alone.
   # Add exceptions at will, just test using TestSplittTokens#test_authors.
@@ -103,6 +103,33 @@ module Taxonifi::Splitter::Tokens
         str = nil
       end
 
+      # Look for an exception case.  Last name, commas, no and.  The idea is to decompose and
+      # have nothing left, if possible then the match is good.
+      if str && !naked_and && (str.split(",").size > 1) && (str =~ /[A-Z]\./)
+        test_str = str.clone 
+        ok = true 
+        pseudo_individuals = test_str.split(",").collect{|i| i.strip}
+        pseudo_individuals.each do |pi|
+          # All names must be identically formatted in this special case.
+          if pi =~ /(([A-Z][a-z]+)\s*(([A-Z]\.\s*)+))/
+            if not($1 == pi)
+              ok = false
+            end
+          else
+            ok = false
+          end
+          test_str.gsub!(/#{Regexp.quote(pi)}/, "")
+        end
+        
+        if ok 
+          test_str.gsub!(/\s*/, "") 
+          if test_str.split(//).uniq == [","]
+            individuals = pseudo_individuals
+            str = nil 
+          end
+        end
+      end
+
       prefix = ['van den ', 'Van ', "O'", "Mc", 'Campos ', 'Costa ']
       pre_reg = prefix.collect{|p| "(#{Regexp.escape(p)})?"}.join
 
@@ -135,7 +162,7 @@ module Taxonifi::Splitter::Tokens
         while parsing
           individual = ''
           check_for_more_individuals = false
-          [m2, m1].each do |regex|
+          [ m2, m1].each do |regex|
             if str =~ regex
               individual = $1
               str.slice!(individual)
@@ -165,7 +192,7 @@ module Taxonifi::Splitter::Tokens
 
       individuals.push(last_individual) if !last_individual.nil?
       individuals.flatten!
-
+      
       # At this point we have isolated individuals.  Strategy is to slice out initials and remainder is last name.
       # Initials regex matches any A-B. A. or " A ", "A-B" pattern (including repeats) 
       # TODO: Make a Token
