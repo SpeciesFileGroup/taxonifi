@@ -56,7 +56,6 @@ module Taxonifi::Export
     attr_accessor :name_collection
     attr_accessor :ref_collection
     attr_accessor :pub_collection
-    attr_accessor :author_index
     attr_accessor :genus_names, :species_names, :nomenclator
     attr_accessor :authorized_user_id, :time
 
@@ -78,7 +77,6 @@ module Taxonifi::Export
       @name_collection = opts[:nc]
       @pub_collection = {} # title => id
       @authorized_user_id = opts[:authorized_user_id]
-      @author_index = {}
 
       # Careful here, at present we are just generating Reference micro-citations from our names, so the indexing "just works"
       # because it's all internal.  There will is a strong potential for key collisions if this pipeline is modified to 
@@ -93,11 +91,6 @@ module Taxonifi::Export
       @empty_quotes = "" 
     end 
 
-    # Assumes names that are the same are the same person. 
-    def build_author_index
-      @author_index = @name_collection.ref_collection.unique_authors.inject({}){|hsh, a| hsh.merge!(a.compact_string => a)}
-    end
-
     def export()
       super
       # You must have
@@ -109,9 +102,6 @@ module Taxonifi::Export
       # Give authors unique ids:
       # @name_collection.ref_collection.uniquify_authors(1) 
 
-      if @name_collection.ref_collection 
-        build_author_index
-      end
 
       # raise Taxonifi::Export::ExportError, 'NameCollection has no RefCollection, you might try @name_collection.generate_ref_collection(1), or alter the manifest: hash.' if ! @name_collection.ref_collection.nil?
 
@@ -158,13 +148,7 @@ module Taxonifi::Export
     def export_references(options = {})
       raise Taxonifi::Export::ExportError, 'Method deprecated, alter manifest to achieve a similar result.'
       #configure_folders
-      #build_author_index 
-
-      ## order matters
-      #['tblPeople', 'tblRefs', 'tblRefAuthors', 'sqlRefs' ].each do |t|
-      #  write_file(t, send(t))
-      #end
-    end
+   end
 
     # Gets the reference for a name as referenced
     # by .properties[:link_to_ref_from_row]
@@ -293,9 +277,7 @@ module Taxonifi::Export
     def tblPeople
       @headers = %w{PersonID FamilyName GivenNames GivenInitials Suffix Role LastUpdate ModifiedBy}
       sql = []   
-      @author_index.keys.each_with_index do |k,i|
-        a = @author_index[k] 
-        # a.id = i + 1
+      @name_collection.ref_collection.all_authors.each do |a|
         cols = {
           PersonID: a.id,
           FamilyName: (a.last_name.length > 0 ? a.last_name : "Unknown"),
@@ -317,10 +299,9 @@ module Taxonifi::Export
       sql = []
       @name_collection.ref_collection.collection.each do |r| 
         r.authors.each_with_index do |x, i|
-          a = @author_index[x.compact_string] 
           cols = {
             RefID: r.id,
-            PersonID: a.id,
+            PersonID: x.id,
             SeqNum: i + 1,
             AuthorCount: r.authors.size,
             LastUpdate: @time,
