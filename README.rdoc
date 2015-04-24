@@ -1,3 +1,11 @@
+
+[![Continuous Integration Status][1]][2]
+[![Coverage Status][3]][4]
+[![CodePolice][5]][6]
+[![Dependency Status][7]][8]
+
+
+
 = taxonifi
 There will always be "legacy" taxonomic data that needs shuffling around. The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases).  It's first application was to convert DwC-style data downloaded from EoL into a Species File.  The code is well documented in unit tests, poke around to see if it might be useful.  In particular, if you've considered building a collection of regular expressions particular to biodiversity data look at the Tokens code and related tests. 
 
@@ -151,4 +159,14 @@ taxonifi is coded by Matt Yoder in consultation with the Species File Group at U
 
 Copyright (c) 2012 Illinois Natural History Survey. See LICENSE.txt for
 further details.
+
+
+[1]: https://secure.travis-ci.org/SpeciesFileGroup/taxonifi.png?branch=master
+[3]: https://coveralls.io/repos/SpeciesFileGroup/taxonifi/badge.png?branch=master
+[4]: https://coveralls.io/r/SpeciesFileGroup/taxonifi?branch=master
+[5]: https://codeclimate.com/github/SpeciesFileGroup/taxonifi.png?branch=master
+[6]: https://codeclimate.com/github/SpeciesFileGroup/taxonifi?branch=master
+[7]: https://gemnasium.com/SpeciesFileGroup/taxonifi.png?branch=master
+[8]: https://gemnasium.com/SpeciesFileGroup/taxonifi?branch=master
+
 

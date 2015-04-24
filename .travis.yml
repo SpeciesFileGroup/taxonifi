@@ -1,0 +1,10 @@
+language: ruby
+rvm:
+  - 2.1.5
+bundler_args: --without development
+branches:
+  only:
+      - master
+  email:
+    - diapriid@gmail.com 
+  on_failure: change
