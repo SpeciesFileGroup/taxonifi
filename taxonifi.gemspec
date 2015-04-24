@@ -89,28 +89,35 @@ Gem::Specification.new do |s|
   s.rubygems_version = "1.8.25"
   s.summary = "A general purpose framework for scripted handling of taxonomic names"
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 3
+  s.add_development_dependency "byebug", "~> 4.0"
+  s.add_development_dependency "builder", "~> 3.2"
+  s.add_development_dependency "rdoc", "~> 4.2"
+  s.add_development_dependency "bundler", "~> 1.9"
+  s.add_development_dependency "jeweler", "~> 2.0"
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<rdoc>, ["~> 3.12"])
-      s.add_development_dependency(%q<bundler>, ["> 1.0.0"])
-      s.add_development_dependency(%q<jeweler>, ["~> 1.8.3"])
-      s.add_development_dependency(%q<activerecord>, ["= 3.2.8"])
-      s.add_development_dependency(%q<debugger>, [">= 0"])
-    else
-      s.add_dependency(%q<rdoc>, ["~> 3.12"])
-      s.add_dependency(%q<bundler>, ["> 1.0.0"])
-      s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
-      s.add_dependency(%q<activerecord>, ["= 3.2.8"])
-      s.add_dependency(%q<debugger>, [">= 0"])
-    end
-  else
-    s.add_dependency(%q<rdoc>, ["~> 3.12"])
-    s.add_dependency(%q<bundler>, ["> 1.0.0"])
-    s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
-    s.add_dependency(%q<activerecord>, ["= 3.2.8"])
-    s.add_dependency(%q<debugger>, [">= 0"])
-  end
+# if s.respond_to? :specification_version then
+#   s.specification_version = 3
+
+#   if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+#     s.add_development_dependency(%q<rdoc>, ["~> 3.12"])
+#     s.add_development_dependency(%q<bundler>, ["> 1.0.0"])
+#     s.add_development_dependency(%q<jeweler>, ["~> 1.8.3"])
+#     s.add_development_dependency(%q<activerecord>, ["= 3.2.8"])
+#     s.add_development_dependency(%q<debugger>, [">= 0"])
+#   else
+#     s.add_dependency(%q<rdoc>, ["~> 3.12"])
+#     s.add_dependency(%q<bundler>, ["> 1.0.0"])
+#     s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
+#     s.add_dependency(%q<activerecord>, ["= 3.2.8"])
+#     s.add_dependency(%q<debugger>, [">= 0"])
+#   end
+# else
+#   s.add_dependency(%q<rdoc>, ["~> 3.12"])
+#   s.add_dependency(%q<bundler>, ["> 1.0.0"])
+#   s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
+#   s.add_dependency(%q<activerecord>, ["= 3.2.8"])
+#   s.add_dependency(%q<debugger>, [">= 0"])
+# end
+
 end
 
