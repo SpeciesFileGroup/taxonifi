@@ -38,7 +38,7 @@ Write some code:
     csv << %w{a b c}
   end
 
-  csv = CSV.parse(csv_string, {headers: true, :header_converters :downcase})
+  csv = CSV.parse(csv_string, {headers: true, header_converters: :downcase})
 
   # Taxonifi can create generic hierachical collections based on column headers
   c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{a b c})    # => a Taxonifi::Model::Collection 
