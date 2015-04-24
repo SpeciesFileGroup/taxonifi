@@ -133,10 +133,8 @@ module Taxonifi
 
       # TODO: Test
       def derive_nomenclator(obj)
-        if obj.nomenclator_name?
+        if obj.nomenclator_name? && !obj.authors.nil? && !obj.year.nil?
           add_nomenclator(obj.nomenclator_array)
-        else 
-          raise
         end
       end
 

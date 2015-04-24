@@ -303,7 +303,7 @@ module Taxonifi::Export
             RefID: r.id,
             PersonID: x.id,
             SeqNum: i + 1,
-            AuthorCount: r.authors.size,
+            AuthorCount: r.authors.size + 1,
             LastUpdate: @time,
             ModifiedBy: @authorized_user_id
           }

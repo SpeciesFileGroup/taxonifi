@@ -99,6 +99,8 @@ module Taxonifi
     end
 
     # Set the parent (a Taxonifi::Model::Name) 
+    # Passing "true" allows you to bypass the parent level restriction, do so
+    # with great caution.
     def parent=(parent)
       if @rank.nil?
         raise Taxonifi::NameError, "Parent of name can not be set if rank of child is not set." 
@@ -109,8 +111,8 @@ module Taxonifi
         raise NameError, "Parent is not a Taxonifi::Model::Name."
       end
 
-      if RANKS.index(parent.rank) >= RANKS.index(self.rank)
-        raise NameError, "Parent is same or lower rank than self (#{rank})."
+      if (RANKS.index(parent.rank) >= RANKS.index(self.rank))
+        warn "WARNING:: Assigning parent to Name at same or lower rank than self (#{rank})."
       end
 
       @parent = parent
@@ -167,7 +169,7 @@ module Taxonifi
     # Return a Boolean, True if @rank is one of 'genus', 'subgenus', 'species', 'subspecies' 
     # TODO: update for infrasubspecifics if we start tracking those
     def nomenclator_name?
-      %w{genus subgenus species subspecies variety}.include?(@rank) 
+      %w{genus subgenus species subspecies variety}.include?(@rank)
     end
 
     # Return an Array of lenght 4 of Names representing a Species or Genus group name
@@ -185,6 +187,7 @@ module Taxonifi
       else
         return false
       end
+       
     end
 
     # Return a Taxonifi::Model::Name representing the finest genus_group_parent.

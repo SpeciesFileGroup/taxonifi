@@ -108,8 +108,8 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal 1, nc.collection[2].authors.size
 
     assert_equal nil, nc.collection[0].parens
-    assert_equal true, nc.collection[2].parens
-    assert_equal false, nc.collection[3].parens
+    assert_equal false, nc.collection[2].parens
+    assert_equal true, nc.collection[3].parens
   end
 
   def test_that_create_a_name_collection_handles_related_columns

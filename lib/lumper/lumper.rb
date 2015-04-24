@@ -132,7 +132,7 @@ module Taxonifi::Lumper
                 builder = Taxonifi::Splitter::Builder.build_author_year(row['author_year'])                
                 n.authors              = builder.people  # was author!?
                 n.year                 = builder.year 
-                n.parens               = !builder.parens
+                n.parens               = builder.parens
               end
 
               n.add_property(:link_to_ref_from_row, i) if has_ref_fields # TODO: update this
@@ -147,7 +147,12 @@ module Taxonifi::Lumper
           else
             $DEBUG && $stderr.puts("already present #{rank} | #{name}")
             if shares_rank 
-              nc.add_duplicate_entry_metadata(name_id, row_identifier, unused_data) 
+              # original:: 
+              nc.add_duplicate_entry_metadata(name_id, row_identifier, unused_data)
+
+              # hack 
+              # nc.add_duplicate_entry_metadata(name_id, row_identifier, row.to_hash) 
+            
             end
           end
 
