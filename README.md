@@ -5,22 +5,25 @@
 [![Dependency Status][7]][8]
 
 
-
-= taxonifi
+taxonifi
+========
 There will always be "legacy" taxonomic data that needs shuffling around. The taxonifi gem is a suite of general purpose tools that act as a middle layer for data-conversion purposes (e.g. migrating legacy taxonomic databases).  It's first application was to convert DwC-style data downloaded from EoL into a Species File.  The code is well documented in unit tests, poke around to see if it might be useful.  In particular, if you've considered building a collection of regular expressions particular to biodiversity data look at the Tokens code and related tests. 
 
 Overall, the goal is to provide well documented (and unit-tested) coded that is broadly useful, and vanilla enough to encourage other to fork and hack on their own.
 
-== Source
+Source
+------
 Source is available at https://github.com/SpeciesFile/taxonifi .  The rdoc API is also viewable at http://taxonifi.speciesfile.org , (though those docs may lag behind commits to github).
 
-== What's next?
+What's next?
+------------
 
 Before you jump on board you should also check out similar code from the Global Names team at https://github.com/GlobalNamesArchitecture. Future integration and merging of shared functionality is planned.  Code will be released in an "early-and-often" approach.
 
 Taxonifi is presently coded for convience, not speed (though it's not necessarily slow). It assumes that conversion processes are typically one-offs that can afford to run over a longer period of time (read minutes rather than seconds). Reading, and fully parsing into objects, around 25k rows of nomenclature (class to species, inc. author year, = ~45k names) in to memory as Taxonifi objects benchmarks at around 2 minutes. Faster indexing is planned as needed, likely using Redis (see GNA link above).
 
-= Getting started
+Getting started
+---------------
 taxonifi is coded for Ruby 1.9.3, it has not been tested on earlier versions (though it will certainly not work with 1.8.7). 
 Using Ruby Version Manager (RVM, https://rvm.io/ ) is highly recommend. You can test your version of Ruby by doinging "ruby -v" in your terminal.
 
@@ -33,8 +36,11 @@ In your script
   require 'taxonifi'
 
 
-= Use
-== Quick start
+Use
+===
+
+Quick start
+-----------
 
 Write some code:
 
@@ -99,7 +105,8 @@ Parent/child style nomenclature is also parseable.
 
 There are *lots* more examples of code use in the test suite.
 
-== Export/conversion
+Export/conversion
+-----------------
 
 The following is an example that translates a DwC style input format as exported by EOL into tables importable to SpeciesFile.  The input file is has id, parent, child, vernacular, synonym columns.  Data are exported by default to a the users home folder in a taxonifi directory.  The export creates 6 tables that can be imported into Species File directly.
 
@@ -118,7 +125,8 @@ The following is an example that translates a DwC style input format as exported
 
 You should be able to relativley quickly use the export framework to code new output formats.
 
-== Reading files 
+Reading files 
+-------------
 
 taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e.g.:
 
@@ -127,7 +135,8 @@ taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e
                 header_converters: :downcase,
                 col_sep: "\t"  } ) 
 
-== Code organization
+Code organization
+-----------------
 
   test                # unit tests, quite a few of them
   lib                 # the main libraries
@@ -138,7 +147,8 @@ taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e
   models              # Taxonifi objects
   splitter            # a parser/lexer/token suite for breaking down data 
 
-= Contributing to taxonifi
+Contributing to taxonifi
+------------------------
 
 (this is generic)
  
@@ -151,11 +161,13 @@ taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e
 * All pull requests should test clean.
 * Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
 
-= About
+About
+-----
 
 taxonifi is coded by Matt Yoder in consultation with the Species File Group at University of Illinois.
 
-= Copyright
+Copyright
+---------
 
 Copyright (c) 2012 Illinois Natural History Survey. See LICENSE.txt for
 further details.
