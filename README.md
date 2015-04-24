@@ -29,12 +29,15 @@ Using Ruby Version Manager (RVM, https://rvm.io/ ) is highly recommend. You can 
 
 To install:
 
+   ```
    gem install taxonifi
+   ```
 
-In your script
+In your script:
 
+  ```
   require 'taxonifi'
-
+  ```
 
 Use
 ===
@@ -44,6 +47,7 @@ Quick start
 
 Write some code:
 
+  ```
   require 'taxonifi'
 
   headers = ["a", "B", "c"]
@@ -78,9 +82,11 @@ Write some code:
   #  b nil d
   # The collection consists of objects with names a,b,c,d,b,d respectively.
   # This makes it very useful for handling not only nomenclatural but other nested data as well.
+  ```
 
 There are collections of specific types (e.g. taxonomic names, geographic names):
 
+    ```
     string = CSV.generate() do |csv|
       csv << %w{family genus species author_year}
       csv << ["Fooidae", "Foo", "bar", "Smith, 1854"]
@@ -100,6 +106,7 @@ There are collections of specific types (e.g. taxonomic names, geographic names)
     nc.collection.last.name                            # => "foo" 
     nc.collection.last.author.first.last_name          # =>  "Smith"
     nc.collection.last.year                            # =>  "1854"
+    ```
 
 Parent/child style nomenclature is also parseable.
 
@@ -110,6 +117,7 @@ Export/conversion
 
 The following is an example that translates a DwC style input format as exported by EOL into tables importable to SpeciesFile.  The input file is has id, parent, child, vernacular, synonym columns.  Data are exported by default to a the users home folder in a taxonifi directory.  The export creates 6 tables that can be imported into Species File directly.
 
+    ```
     require 'taxonifi'
     file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/Lygaeoidea-csv.tsv'))
 
@@ -122,6 +130,7 @@ The following is an example that translates a DwC style input format as exported
     nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
     e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 1)
     e.export
+    ```
 
 You should be able to relativley quickly use the export framework to code new output formats.
 
@@ -130,14 +139,17 @@ Reading files
 
 taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e.g.:
 
+  ```
   csv = CSV.read('input/my_data.tab',  { 
                 headers: true,
                 header_converters: :downcase,
                 col_sep: "\t"  } ) 
+  ```
 
 Code organization
 -----------------
 
+  ```
   test                # unit tests, quite a few of them
   lib                 # the main libraries
   lib/assessor        # libraries to assess the properties of incoming data
@@ -146,6 +158,7 @@ Code organization
   lumper              # code that builds Taxonifi objects 
   models              # Taxonifi objects
   splitter            # a parser/lexer/token suite for breaking down data 
+  ```
 
 Contributing to taxonifi
 ------------------------
@@ -174,6 +187,7 @@ further details.
 
 
 [1]: https://secure.travis-ci.org/SpeciesFileGroup/taxonifi.png?branch=master
+[2]: http://travis-ci.org/SpeciesFileGroup/taxonifi?branch=master
 [3]: https://coveralls.io/repos/SpeciesFileGroup/taxonifi/badge.png?branch=master
 [4]: https://coveralls.io/r/SpeciesFileGroup/taxonifi?branch=master
 [5]: https://codeclimate.com/github/SpeciesFileGroup/taxonifi.png?branch=master
