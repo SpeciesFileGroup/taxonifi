@@ -2,7 +2,7 @@ language: ruby
 rvm:
   - 2.1.5
 bundler_args: --without development
-before_install: gem install bundler '~> 1.9'
+before_install: ./travis/before_install.sh
 branches:
   only:
       - master
