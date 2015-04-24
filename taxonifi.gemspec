@@ -96,7 +96,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "jeweler", "~> 2.0"
 
   # Travis
-  s.add_development_dependency "rake"
+  s.add_dependency "rake"
 
 # if s.respond_to? :specification_version then
 #   s.specification_version = 3
