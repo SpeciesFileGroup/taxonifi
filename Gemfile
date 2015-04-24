@@ -16,7 +16,6 @@ group :development do
   gem "bundler", "> 1.0.0"
   gem "jeweler", "~> 1.8.6"
 #  gem "activerecord", "3.2.8"
-   gem "debugger"
-#  gem "ruby-debug19"
+   gem "byebug"
 #  gem "simplecov", ">= 0"
 end

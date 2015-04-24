@@ -112,7 +112,8 @@ module Taxonifi
       end
 
       if (RANKS.index(parent.rank) >= RANKS.index(self.rank))
-        warn "WARNING:: Assigning parent to Name at same or lower rank than self (#{rank})."
+        #  warn "WARNING:: Assigning parent to Name at same or lower rank than self (#{rank})."
+        raise NameError, "Parent is same or lower rank than self (#{rank})."
       end
 
       @parent = parent

@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'bundler'
-require 'debugger'
+require 'byebug'
 require File.expand_path(File.join(File.dirname(__FILE__), '../lib/taxonifi'))
 
 begin

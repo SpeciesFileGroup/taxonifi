@@ -30,12 +30,12 @@ class TestTaxonifiName < Test::Unit::TestCase
     n = Taxonifi::Model::Name.new() 
     assert n.respond_to?(:rank) 
   end
- 
+
   def test_that_name_has_an_author
     n = Taxonifi::Model::Name.new() 
     assert n.respond_to?(:author) 
   end
-  
+
   def test_that_name_has_a_year
     n = Taxonifi::Model::Name.new() 
     assert n.respond_to?(:year) 
@@ -74,12 +74,11 @@ class TestTaxonifiName < Test::Unit::TestCase
     end
   end
 
- def test_that_rank_can_be_set
+  def test_that_rank_can_be_set
     n = Taxonifi::Model::Name.new() 
     n.rank = "family"
     assert_equal "family", n.rank
   end
-
 
   def test_that_parent_is_higher_rank_than_child
     n = Taxonifi::Model::Name.new() 
@@ -111,11 +110,11 @@ class TestTaxonifiName < Test::Unit::TestCase
   end
 
   def create_a_few_names
-   @n0 = Taxonifi::Model::Name.new(:name => "Baridae", :rank => "Family", :id => 2)
-   @n1 = Taxonifi::Model::Name.new(:name => "Barinae", :rank => "Subfamily", :id => 15, :parent => @n0)
-   @n2 = Taxonifi::Model::Name.new(:name => "Foo", :rank => "Genus", :author => "Frank", :year => 2020, :id => 14,  :parent => @n1 )
-   @n3 = Taxonifi::Model::Name.new(:name => "Bar", :rank => "Subgenus", :author => "Frank", :year => 2020, :id => 19,  :parent => @n2 )
-   @n4 = Taxonifi::Model::Name.new(:name => "boo", :rank => "Species", :author => "Frank", :year => 2020, :id => 11,  :parent => @n3 )
+    @n0 = Taxonifi::Model::Name.new(:name => "Baridae", :rank => "Family", :id => 2)
+    @n1 = Taxonifi::Model::Name.new(:name => "Barinae", :rank => "Subfamily", :id => 15, :parent => @n0)
+    @n2 = Taxonifi::Model::Name.new(:name => "Foo", :rank => "Genus", :author => "Frank", :year => 2020, :id => 14,  :parent => @n1 )
+    @n3 = Taxonifi::Model::Name.new(:name => "Bar", :rank => "Subgenus", :author => "Frank", :year => 2020, :id => 19,  :parent => @n2 )
+    @n4 = Taxonifi::Model::Name.new(:name => "boo", :rank => "Species", :author => "Frank", :year => 2020, :id => 11,  :parent => @n3 )
   end
 
   def dont_test_prologify
@@ -140,7 +139,7 @@ class TestTaxonifiName < Test::Unit::TestCase
   def test_nomenclator_name
     create_a_few_names
     n5 = Taxonifi::Model::Name.new(:name => "beep", :rank => "Subspecies", :author => "Frank", :year => 2020, :id => 11,  :parent => @n4 )
-    
+
     assert_equal 'Foo', @n2.nomenclator_name 
     assert_equal 'Foo (Bar)', @n3.nomenclator_name
     assert_equal 'Foo (Bar) boo', @n4.nomenclator_name
@@ -165,7 +164,7 @@ class TestTaxonifiName < Test::Unit::TestCase
     assert_equal '2-15-14g', @n2.parent_ids_sf_style
     assert_equal '2-15', @n1.parent_ids_sf_style
   end 
- 
+
   def test_author_year_index
     n = Taxonifi::Model::Name.new(author_year: 'Smith and Jones, 1920')
     assert_equal '1920-||smith|-||jones|', n.author_year_index
@@ -185,7 +184,7 @@ class TestTaxonifiName < Test::Unit::TestCase
   # 
   # ICZN Subclass
   #
-  
+
   def test_that_iczn_family_ends_in_idae
     n = Taxonifi::Model::IcznName.new
     assert_raise Taxonifi::NameError do

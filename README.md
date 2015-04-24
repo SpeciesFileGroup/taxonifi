@@ -1,7 +1,5 @@
 
 [![Continuous Integration Status][1]][2]
-[![Coverage Status][3]][4]
-[![CodePolice][5]][6]
 [![Dependency Status][7]][8]
 
 
@@ -188,10 +186,6 @@ further details.
 
 [1]: https://secure.travis-ci.org/SpeciesFileGroup/taxonifi.png?branch=master
 [2]: http://travis-ci.org/SpeciesFileGroup/taxonifi?branch=master
-[3]: https://coveralls.io/repos/SpeciesFileGroup/taxonifi/badge.png?branch=master
-[4]: https://coveralls.io/r/SpeciesFileGroup/taxonifi?branch=master
-[5]: https://codeclimate.com/github/SpeciesFileGroup/taxonifi.png?branch=master
-[6]: https://codeclimate.com/github/SpeciesFileGroup/taxonifi?branch=master
 [7]: https://gemnasium.com/SpeciesFileGroup/taxonifi.png?branch=master
 [8]: https://gemnasium.com/SpeciesFileGroup/taxonifi?branch=master
 
