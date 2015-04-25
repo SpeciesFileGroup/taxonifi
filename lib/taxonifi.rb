@@ -34,7 +34,7 @@ module Taxonifi
   require File.expand_path(File.join(File.dirname(__FILE__), 'export/export'))
 
   # TODO use **/*.rb syntax
-  %w{models utils lumper}.each do |dir|
+  %w{model utils lumper}.each do |dir|
     Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "#{dir}/*.rb") )) do |file|
       require file
     end

@@ -35,19 +35,19 @@ Gem::Specification.new do |s|
     "lib/lumper/clump.rb",
     "lib/lumper/lumper.rb",
     "lib/lumper/lumps/parent_child_name_collection.rb",
-    "lib/models/author_year.rb",
-    "lib/models/base.rb",
-    "lib/models/collection.rb",
-    "lib/models/generic_object.rb",
-    "lib/models/geog.rb",
-    "lib/models/geog_collection.rb",
-    "lib/models/name.rb",
-    "lib/models/name_collection.rb",
-    "lib/models/person.rb",
-    "lib/models/ref.rb",
-    "lib/models/ref_collection.rb",
-    "lib/models/shared_class_methods.rb",
-    "lib/models/species_name.rb",
+    "lib/model/author_year.rb",
+    "lib/model/base.rb",
+    "lib/model/collection.rb",
+    "lib/model/generic_object.rb",
+    "lib/model/geog.rb",
+    "lib/model/geog_collection.rb",
+    "lib/model/name.rb",
+    "lib/model/name_collection.rb",
+    "lib/model/person.rb",
+    "lib/model/ref.rb",
+    "lib/model/ref_collection.rb",
+    "lib/model/shared_class_methods.rb",
+    "lib/model/species_name.rb",
     "lib/splitter/builder.rb",
     "lib/splitter/lexer.rb",
     "lib/splitter/parser.rb",
@@ -86,14 +86,14 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/SpeciesFile/taxonifi"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.25"
+  s.rubygems_version = "2.4.5"
   s.summary = "A general purpose framework for scripted handling of taxonomic names"
 
   s.add_development_dependency "byebug", "~> 4.0"
   s.add_development_dependency "builder", "~> 3.2"
   s.add_development_dependency "rdoc", "~> 4.2"
   s.add_development_dependency "bundler", "~> 1.9"
-  s.add_development_dependency "jeweler", "~> 2.0"
+ #  s.add_development_dependency "jeweler", "~> 2.0"
 
   # Travis
   s.add_dependency "rake"

@@ -10,10 +10,10 @@ module Taxonifi
     # String 
     attr_accessor  :rank   
   
-    # String
+    # String, authors as originally read 
     attr_accessor  :author        
  
-    # String, authors as originally read 
+    # String, year as originally read 
     attr_accessor  :year         
 
     # Boolean, true if parens present (i.e. _not_ in original combination) 
@@ -74,8 +74,8 @@ module Taxonifi
     end
 
     # Set the rank.
-    def rank=(rank)
-      r = rank.to_s.downcase.strip
+    def rank=(value)
+      r = value.to_s.downcase.strip
       if !RANKS.include?(r) 
         raise NameError, "#{r} is not a valid rank."
       end

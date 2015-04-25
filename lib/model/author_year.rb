@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), "../models/base.rb"))
+require File.expand_path(File.join(File.dirname(__FILE__), "../model/base.rb"))
 
 module Taxonifi
   module Model
