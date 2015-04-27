@@ -29,9 +29,9 @@ module Taxonifi
       variety
   }
 
-  require File.expand_path(File.join(File.dirname(__FILE__), 'splitter/splitter'))
-  require File.expand_path(File.join(File.dirname(__FILE__), 'assessor/assessor'))
-  require File.expand_path(File.join(File.dirname(__FILE__), 'export/export'))
+ require File.expand_path(File.join(File.dirname(__FILE__), 'splitter/splitter'))
+ require File.expand_path(File.join(File.dirname(__FILE__), 'assessor/assessor'))
+ require File.expand_path(File.join(File.dirname(__FILE__), 'export/export'))
 
   # TODO use **/*.rb syntax
   %w{model utils lumper}.each do |dir|
