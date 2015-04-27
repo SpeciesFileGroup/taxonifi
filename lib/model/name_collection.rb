@@ -1,3 +1,6 @@
+
+require File.expand_path(File.join(File.dirname(__FILE__), 'collection'))
+
 module Taxonifi
   class NameCollectionError < StandardError; end
   module Model

@@ -6,7 +6,7 @@ Bundler.setup
 require 'byebug'
 require 'test/unit'
 
-# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/taxonifi.rb'))
+require File.expand_path(File.join(File.dirname(__FILE__), '../lib/taxonifi'))
 
 # begin
 #   Bundler.setup(:default, :development)
