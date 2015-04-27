@@ -14,10 +14,10 @@ module Taxonifi
 
     class SplitterError < StandardError; end
 
-    require File.expand_path(File.join(File.dirname(__FILE__), 'tokens'))
-    require File.expand_path(File.join(File.dirname(__FILE__), 'parser'))
-    require File.expand_path(File.join(File.dirname(__FILE__), 'lexer'))
-    require File.expand_path(File.join(File.dirname(__FILE__), 'builder'))
+ #  require File.expand_path(File.join(File.dirname(__FILE__), 'tokens'))
+ #  require File.expand_path(File.join(File.dirname(__FILE__), 'parser'))
+ #  require File.expand_path(File.join(File.dirname(__FILE__), 'lexer'))
+ #  require File.expand_path(File.join(File.dirname(__FILE__), 'builder'))
 
 
     # stub, we might not need

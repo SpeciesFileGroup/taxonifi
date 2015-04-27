@@ -8,9 +8,14 @@ module Taxonifi::Lumper
   # functionality to determine whether your
   # columns match a given set.
   module Lumps
-    Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "lumps/*.rb") )) do |file|
-      require file
-    end
+
+  # Dir[File.join(__dir__, 'assessor', '*.rb')].each {|file| require file }
+
+
+
+  # Dir.glob( File.expand_path(File.join(File.dirname(__FILE__), "lumps/*.rb") )) do |file|
+  #   require file
+  # end
   end
 
   class LumperError < StandardError; end

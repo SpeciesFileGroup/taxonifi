@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
+# require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
 
 module Taxonifi::Lumper
   class NameIndex

@@ -7,7 +7,6 @@ require 'taxonifi/version'
 require 'taxonifi'
 
 
-
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'

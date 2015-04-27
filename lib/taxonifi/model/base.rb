@@ -1,8 +1,6 @@
 module Taxonifi
-  class ModelError < StandardError; end
   module Model
 
-    require File.expand_path(File.join(File.dirname(__FILE__), 'shared_class_methods'))
 
     # A base class for all Taxonifi::Models that represent
     # "individuals" (as opposed to collections of indviduals).  

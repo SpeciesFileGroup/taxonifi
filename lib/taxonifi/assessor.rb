@@ -1,7 +1,6 @@
 module Taxonifi
 
-  require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
-  require File.expand_path(File.join(File.dirname(__FILE__), 'row_assessor'))
+  Dir[File.join(__dir__, 'assessor', '*.rb')].each {|file| require file }
 
   class AssessorError < StandardError; end
 
