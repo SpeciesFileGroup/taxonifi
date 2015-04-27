@@ -1,27 +1,29 @@
 PATH
   remote: .
   specs:
-    taxonifi (0.2.0)
+    taxonifi (0.3.2)
       rake
 
 GEM
   remote: https://rubygems.org/
   specs:
+    awesome_print (1.6.1)
     builder (3.2.2)
     byebug (4.0.5)
       columnize (= 0.9.0)
     columnize (0.9.0)
-    json (1.8.2)
+    did_you_mean (0.9.8)
+      interception
+    interception (0.5)
     rake (10.4.2)
-    rdoc (4.2.0)
-      json (~> 1.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  awesome_print
   builder (~> 3.2)
   bundler (~> 1.9)
   byebug (~> 4.0)
-  rdoc (~> 4.2)
+  did_you_mean (~> 0.9)
   taxonifi!
