@@ -6,32 +6,6 @@ require 'rake/testtask'
 require 'taxonifi/version'
 require 'taxonifi'
 
-# require 'rubygems'
-# require 'bundler'
-
-# begin
-#   Bundler.setup(:default, :development)
-# rescue Bundler::BundlerError => e
-#   $stderr.puts e.message
-#   $stderr.puts "Run `bundle install` to install missing gems"
-#   exit e.status_code
-# end
-
-#require 'jeweler'
-
-# Jeweler::Tasks.new do |gem|
-#   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-#   gem.name = "taxonifi"
-#   gem.homepage = "http://github.com/SpeciesFile/taxonifi"
-#   gem.license = "MIT"
-#   gem.summary = %Q{A general purpose framework for scripted handling of taxonomic names}
-#   gem.description = %Q{Taxonifi contains simple models and utilties of use in for parsing lists of taxonomic name (life) related metadata}
-#   gem.email = "diapriid@gmail.com"
-#   gem.authors = ["mjy"]
-#   # dependencies defined in Gemfile
-# end
-
-# Jeweler::RubygemsDotOrgTasks.new
 
 
 Rake::TestTask.new(:test) do |test|
@@ -50,8 +24,8 @@ end
 
 task :default => :test
 
-require 'rdoc/task'
 
+require 'rdoc/task'
 Rake::RDocTask.new do |rdoc|
  version = Taxonifi::VERSION 
 
