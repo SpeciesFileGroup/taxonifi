@@ -1,6 +1,4 @@
-# require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
-
-# Generic Array methods
+# Generic Has methods
 module Taxonifi::Utils
   module Hash 
 

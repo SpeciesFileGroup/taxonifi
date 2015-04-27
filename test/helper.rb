@@ -8,9 +8,6 @@ require 'test/unit'
 
 require File.expand_path(File.join(File.dirname(__FILE__), '../lib/taxonifi'))
 
-# class Test::Unit::TestCase
-# end
-
 # TODO: rename to reflect format
 def generic_csv_with_names
   @headers = %W{identifier parent child rank synonyms}

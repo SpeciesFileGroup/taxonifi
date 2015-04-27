@@ -1,5 +1,4 @@
 require 'helper'
-# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/model/ref_collection')) 
 
 class TestTaxonifiRefCollection < Test::Unit::TestCase
 

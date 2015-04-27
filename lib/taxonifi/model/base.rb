@@ -1,7 +1,6 @@
 module Taxonifi
   module Model
 
-
     # A base class for all Taxonifi::Models that represent
     # "individuals" (as opposed to collections of indviduals).  
     class Base 

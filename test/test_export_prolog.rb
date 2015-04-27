@@ -1,5 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/export/export')) 
+require 'helper'
 
 class Test_ExportProlog < Test::Unit::TestCase
 
@@ -7,7 +6,6 @@ class Test_ExportProlog < Test::Unit::TestCase
     e = Taxonifi::Export::Prolog.new(:nc => names, :namespace => 'YYZ')
     assert foo = e.export
   end 
-
 
 end 
 

@@ -1,5 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/splitter/splitter')) 
+require 'helper'
 
 class SplitterTest < Test::Unit::TestCase
   def test_truth

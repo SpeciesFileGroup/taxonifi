@@ -29,7 +29,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rake", '~> 10.4'
   s.add_dependency "byebug", "~> 4.0"
-
   s.add_dependency "require_all", "~> 1.3"
 
   s.add_development_dependency "bundler", "~> 1.9"
@@ -37,11 +36,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'did_you_mean', '~> 0.9'
   s.add_development_dependency "rdoc", "~> 4.2"
   s.add_development_dependency "builder", "~> 3.2"
-
-
-  # Travis
-
-
 
 end
 

@@ -1,5 +1,3 @@
-# require File.expand_path(File.join(File.dirname(__FILE__), '../taxonifi'))
-
 module Taxonifi::Lumper
   class NameIndex
     attr_accessor :index

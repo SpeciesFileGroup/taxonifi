@@ -1,7 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/lumper/clump')) 
-
-# Builder construction
+require 'helper'
 
 class Test_TaxonifiLumperClump < Test::Unit::TestCase
 
