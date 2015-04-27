@@ -27,15 +27,15 @@ Using Ruby Version Manager (RVM, https://rvm.io/ ) is highly recommend. You can 
 
 To install:
 
-   ```
-   gem install taxonifi
-   ```
+```
+gem install taxonifi
+```
 
 In your script:
 
-  ```
-  require 'taxonifi'
-  ```
+```
+require 'taxonifi'
+```
 
 Use
 ===
@@ -45,66 +45,66 @@ Quick start
 
 Write some code:
 
-  ```
-  require 'taxonifi'
+```
+require 'taxonifi'
 
-  headers = ["a", "B", "c"]
-  csv_string = CSV.generate() do |csv|
-    csv <<  @headers
-    csv << %w{a b c}
-  end
+headers = ["a", "B", "c"]
+csv_string = CSV.generate() do |csv|
+  csv <<  @headers
+  csv << %w{a b c}
+end
 
-  csv = CSV.parse(csv_string, {headers: true, header_converters: :downcase})
+csv = CSV.parse(csv_string, {headers: true, header_converters: :downcase})
 
-  # Taxonifi can create generic hierachical collections based on column headers
-  c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{a b c})    # => a Taxonifi::Model::Collection 
-  c.collection.first               # => Taxonifi::Model::GenericObject
-  c.collection.first.name          # => "a" 
-  c.collection.last.name           # => "c" 
-  c.collection.last.parent.name    # => "b" 
-  c.collection.first.row_number    # => 0
-  c.collection.first.rank          # => "a"
+# Taxonifi can create generic hierachical collections based on column headers
+c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{a b c})    # => a Taxonifi::Model::Collection 
+c.collection.first               # => Taxonifi::Model::GenericObject
+c.collection.first.name          # => "a" 
+c.collection.last.name           # => "c" 
+c.collection.last.parent.name    # => "b" 
+c.collection.first.row_number    # => 0
+c.collection.first.rank          # => "a"
 
-  # Header order is important:
-  c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{c a b})    # => a Taxonifi::Model::Collection 
-  c.collection.first.name          # => "c" 
-  c.collection.last.rank           # => "c" 
-  c.collection.last.name           # => "b" 
-  c.collection.last.parent.name    # => "a" 
-  
-  # Collections of GenericObjects (and some other Taxonifi::Collection based objects like TaxonifiNameCollection) only include
-  # unique names, i.e. if a name has a shared parent lineage only the name itself is created, not its parents. 
-  # For example, for:
-  #  a b   c 
-  #  a d   nil
-  #  b nil d
-  # The collection consists of objects with names a,b,c,d,b,d respectively.
-  # This makes it very useful for handling not only nomenclatural but other nested data as well.
-  ```
+# Header order is important:
+c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{c a b})    # => a Taxonifi::Model::Collection 
+c.collection.first.name          # => "c" 
+c.collection.last.rank           # => "c" 
+c.collection.last.name           # => "b" 
+c.collection.last.parent.name    # => "a" 
+
+# Collections of GenericObjects (and some other Taxonifi::Collection based objects like TaxonifiNameCollection) only include
+# unique names, i.e. if a name has a shared parent lineage only the name itself is created, not its parents. 
+# For example, for:
+#  a b   c 
+#  a d   nil
+#  b nil d
+# The collection consists of objects with names a,b,c,d,b,d respectively.
+# This makes it very useful for handling not only nomenclatural but other nested data as well.
+```
 
 There are collections of specific types (e.g. taxonomic names, geographic names):
 
-    ```
-    string = CSV.generate() do |csv|
-      csv << %w{family genus species author_year}
-      csv << ["Fooidae", "Foo", "bar", "Smith, 1854"]
-      csv << ["Fooidae", "Foo", "foo", "(Smith, 1854)"]
-    end
-   
-    csv = CSV.parse(string, {headers: true})
+```
+string = CSV.generate() do |csv|
+  csv << %w{family genus species author_year}
+  csv << ["Fooidae", "Foo", "bar", "Smith, 1854"]
+  csv << ["Fooidae", "Foo", "foo", "(Smith, 1854)"]
+end
 
-    nc = Taxonifi::Lumper.create_name_collection(:csv => csv)  # => Taxonifi::Model::NameCollection
+csv = CSV.parse(string, {headers: true})
 
-    nc.collection.first                                # => Taxonifi::Model::Name 
-    nc.collection.first.name                           # => "Fooidae"
-    nc.collection.first.rank                           # => "family" 
-    nc.collection.first.year                           # =>  nil
-    nc.collection.first.author                         # => []
-    nc.collection.last.rank                            # => "species" 
-    nc.collection.last.name                            # => "foo" 
-    nc.collection.last.author.first.last_name          # =>  "Smith"
-    nc.collection.last.year                            # =>  "1854"
-    ```
+nc = Taxonifi::Lumper.create_name_collection(:csv => csv)  # => Taxonifi::Model::NameCollection
+
+nc.collection.first                                # => Taxonifi::Model::Name 
+nc.collection.first.name                           # => "Fooidae"
+nc.collection.first.rank                           # => "family" 
+nc.collection.first.year                           # =>  nil
+nc.collection.first.author                         # => []
+nc.collection.last.rank                            # => "species" 
+nc.collection.last.name                            # => "foo" 
+nc.collection.last.author.first.last_name          # =>  "Smith"
+nc.collection.last.year                            # =>  "1854"
+```
 
 Parent/child style nomenclature is also parseable.
 
@@ -115,20 +115,20 @@ Export/conversion
 
 The following is an example that translates a DwC style input format as exported by EOL into tables importable to SpeciesFile.  The input file is has id, parent, child, vernacular, synonym columns.  Data are exported by default to a the users home folder in a taxonifi directory.  The export creates 6 tables that can be imported into Species File directly.
 
-    ```
-    require 'taxonifi'
-    file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/Lygaeoidea-csv.tsv'))
+```
+require 'taxonifi'
+file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/Lygaeoidea-csv.tsv'))
 
-    csv = CSV.read(file, { 
-      headers: true,
-      col_sep: "\t",
-      header_converters: :downcase
-    } ) 
+csv = CSV.read(file, { 
+  headers: true,
+  col_sep: "\t",
+  header_converters: :downcase
+} ) 
 
-    nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
-    e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 1)
-    e.export
-    ```
+nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
+e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 1)
+e.export
+```
 
 You should be able to relativley quickly use the export framework to code new output formats.
 
@@ -137,26 +137,26 @@ Reading files
 
 taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e.g.:
 
-  ```
-  csv = CSV.read('input/my_data.tab',  { 
-                headers: true,
-                header_converters: :downcase,
-                col_sep: "\t"  } ) 
-  ```
+```
+csv = CSV.read('input/my_data.tab',  { 
+              headers: true,
+              header_converters: :downcase,
+              col_sep: "\t"  } ) 
+```
 
 Code organization
 -----------------
 
-  ```
-  test                # unit tests, quite a few of them
-  lib                 # the main libraries
-  lib/assessor        # libraries to assess the properties of incoming data
-  lib/export          # export wrappers 
-  lib/export/format   # one module for each export type
-  lumper              # code that builds Taxonifi objects 
-  models              # Taxonifi objects
-  splitter            # a parser/lexer/token suite for breaking down data 
-  ```
+```
+test                # unit tests, quite a few of them
+lib                 # the main libraries
+lib/assessor        # libraries to assess the properties of incoming data
+lib/export          # export wrappers 
+lib/export/format   # one module for each export type
+lib/lumper          # code that builds Taxonifi objects 
+lib/model           # Taxonifi objects
+lib/splitter        # a parser/lexer/token suite for breaking down data 
+```
 
 Contributing to taxonifi
 ------------------------
