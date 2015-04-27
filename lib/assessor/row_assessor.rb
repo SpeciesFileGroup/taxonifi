@@ -77,7 +77,9 @@ module Taxonifi
         end
 
         # this far? bad
-        raise RowAssessor::RowAssessorError
+        # raise RowAssessor::RowAssessorError
+
+        raise RowAssessorError
       end
 
       # Return the column representing the parent of the name

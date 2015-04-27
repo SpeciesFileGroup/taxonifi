@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '../lib/export/export')) 
+# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/export/export')) 
 
 class Test_TaxonifiExports < Test::Unit::TestCase
 

@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '../lib/splitter/parser')) 
+# require File.expand_path(File.join(File.dirname(__FILE__), '../lib/splitter/parser')) 
 
 class Test_TaxonifiSplitterParser < Test::Unit::TestCase
   # TODO: this could also go to builder related tests
