@@ -2,6 +2,8 @@
 # ignore in development script work
 sf
 
+*.gem
+
 vendor
 
 *.xlsx

@@ -2,7 +2,8 @@ PATH
   remote: .
   specs:
     taxonifi (0.3.2)
-      rake
+      byebug (~> 4.0)
+      rake (~> 10.4)
 
 GEM
   remote: https://rubygems.org/
@@ -15,15 +16,18 @@ GEM
     did_you_mean (0.9.8)
       interception
     interception (0.5)
+    json (1.8.2)
     rake (10.4.2)
+    rdoc (4.2.0)
+      json (~> 1.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  awesome_print
+  awesome_print (~> 1.6)
   builder (~> 3.2)
   bundler (~> 1.9)
-  byebug (~> 4.0)
   did_you_mean (~> 0.9)
+  rdoc (~> 4.2)
   taxonifi!
