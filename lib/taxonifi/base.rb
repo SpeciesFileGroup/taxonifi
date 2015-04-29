@@ -1,5 +1,5 @@
 module Taxonifi
-  class ModelError < StandardError; end
+  class ModelError < TaxonifiError; end
   module Model
   end
 end

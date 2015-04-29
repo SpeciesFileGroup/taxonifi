@@ -1,5 +1,5 @@
 module Taxonifi
-  class NameError < StandardError; end
+  class NameError < TaxonifiError; end
 
   # A taxonomic name.
   class Model::Name < Taxonifi::Model::Base

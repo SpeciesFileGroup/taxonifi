@@ -12,7 +12,7 @@ module Taxonifi
       :species_name
     ]
 
-    class SplitterError < StandardError; end
+    class SplitterError < TaxonifiError; end
 
     # stub, we might not need
     class Splitter

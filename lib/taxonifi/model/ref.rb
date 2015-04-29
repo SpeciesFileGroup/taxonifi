@@ -1,5 +1,5 @@
 module Taxonifi
-  class RefError < StandardError; end
+  class RefError < TaxonifiError; end
   module Model
 
     # A basic reference object.  

@@ -1,5 +1,5 @@
 module Taxonifi
-  class ModelError < StandardError; end
+  class ModelError < TaxonifiError; end
   module Model
 
     # A generic object, has name, parent, rank properties. 

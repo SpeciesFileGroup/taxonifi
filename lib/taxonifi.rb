@@ -5,6 +5,8 @@ require 'require_all'
 # Everything in Taxonifi is in here.
 module Taxonifi
 
+  class TaxonifiError < StandardError; end;
+
   # Taxonomic ranks. 
   RANKS = %w{
       kingdom

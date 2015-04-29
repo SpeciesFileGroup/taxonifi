@@ -184,8 +184,9 @@ Copyright (c) 2012 Illinois Natural History Survey. See LICENSE.txt for
 further details.
 
 
+
 [1]: https://secure.travis-ci.org/SpeciesFileGroup/taxonifi.png?branch=master
-[2]: http://travis-ci.org/SpeciesFileGroup/taxonifi?branch=master
+[2]: https://travis-ci.org/SpeciesFileGroup/taxonifi.svg?branch=master
 [7]: https://gemnasium.com/SpeciesFileGroup/taxonifi.png?branch=master
 [8]: https://gemnasium.com/SpeciesFileGroup/taxonifi?branch=master
 

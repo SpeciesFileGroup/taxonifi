@@ -8,7 +8,7 @@ module Taxonifi
     # !! that have particular attributes
     module RowAssessor
 
-      class RowAssessorError < StandardError; end
+      class RowAssessorError < TaxonifiError; end
 
       # Pass a CSV (require "csv") row as read with the following 
       # parameters: 

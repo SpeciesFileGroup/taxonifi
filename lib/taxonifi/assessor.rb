@@ -2,7 +2,7 @@ module Taxonifi
 
   Dir[File.join(__dir__, 'assessor', '*.rb')].each {|file| require file }
 
-  class AssessorError < StandardError; end
+  class AssessorError < TaxonifiError; end
 
   # The assessor assesses!
   # 

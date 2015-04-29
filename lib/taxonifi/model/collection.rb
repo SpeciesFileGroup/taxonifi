@@ -1,5 +1,5 @@
 module Taxonifi
-  class CollectionError < StandardError; end
+  class CollectionError < TaxonifiError; end
   module Model
 
     require File.expand_path(File.join(File.dirname(__FILE__), 'shared_class_methods'))

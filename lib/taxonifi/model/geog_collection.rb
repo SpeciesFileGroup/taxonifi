@@ -1,5 +1,5 @@
 module Taxonifi
-  class GeogCollectionError < StandardError; end
+  class GeogCollectionError < TaxonifiError; end
   module Model
 
     # Collection of geog objects.

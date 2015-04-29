@@ -2,7 +2,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'collection'))
 
 module Taxonifi
-  class NameCollectionError < StandardError; end
+  class NameCollectionError < TaxonifiError; end
   module Model
 
     # A collection of taxonomic names. 

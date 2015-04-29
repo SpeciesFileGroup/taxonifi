@@ -1,5 +1,5 @@
 module Taxonifi
-  class RefCollectionError < StandardError; end
+  class RefCollectionError < TaxonifiError; end
 
   module Model
 

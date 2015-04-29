@@ -1,5 +1,5 @@
 module Taxonifi
-  class SpeciesNameError < StandardError; end
+  class SpeciesNameError < TaxonifiError; end
   module Model
 
     # The species name model is just a pointer to 5 Taxonifi::Model::Names. 

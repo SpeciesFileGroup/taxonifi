@@ -1,5 +1,5 @@
 module Taxonifi
-  class GeogError < StandardError; end
+  class GeogError < TaxonifiError; end
   module Model
 
     # An instance of some geopolitical unit.

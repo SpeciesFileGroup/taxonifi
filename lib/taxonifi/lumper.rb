@@ -7,7 +7,7 @@ module Taxonifi::Lumper
   module Lumps
   end
 
-  class LumperError < StandardError; end
+  class LumperError < Taxonifi::TaxonifiError; end
 
   # Columns used for species epithets.
   # !! Todo: map DwC URIs to these labels (at present they largely correllate with Tokens,
