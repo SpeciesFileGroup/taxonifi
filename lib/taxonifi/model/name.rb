@@ -119,8 +119,17 @@ module Taxonifi
       @parent = parent
     end
 
-    # Returns a formatted string, including parens for the name
+    # Returns just the name and author year, no parens, no parents. 
+    # Like:
+    #   foo Smith, 1927
+    #   Foo Smith, 1927
+    #   Fooidae
+    def name_author_year_string
+      [name, author_year_string].compact.join(" ")
+    end
+
     # TODO: rename to reflect parens
+    # return [String] an author/year string, including parens for the name
     def author_year
       au = author_year_string
       return nil if au.nil?
@@ -128,25 +137,34 @@ module Taxonifi
     end
 
 
-    # Return the author year string. 
-    def author_year_string
-      # Build based on People 
+    # return [String] an author string, including parens for the name
+    def author_with_parens
+      au = author_string
+      return nil if au.nil?
+      (self.parens == true) ? "(#{au})" : au
+    end
 
+    # return [String] an author string
+    def author_string
       auth = nil
-      if authors.size > 0
+      if authors.size > 0 # Build based on People 
         case authors.size
         when 1
-          auth = self.author
+          auth = authors.first.last_name # self.author
         when 2 
           auth = authors.map(&:last_name).join(" & ")
-        when 2...100
+        when 3...100
           auth =  authors[0..-1].map(&:last_name).join(", ") + " & " + authors.last.last_name
         end
-        # Build based on string
-      else
+      else # Build based on string
         auth = self.author
       end
-      au = [auth, self.year].compact.join(", ")
+      auth
+    end
+
+    # Return the author year string. 
+    def author_year_string
+      au = [author_string, self.year].compact.join(", ")
       return nil if au.size == 0
       au
     end
@@ -195,15 +213,6 @@ module Taxonifi
     # TODO: ICZN specific(?)
     def genus_group_parent
       [ parent_at_rank('subgenus'), parent_at_rank('genus')].compact.first
-    end
-  
-    # Returns just the name and author year, no parens, no parents. 
-    # Like:
-    #   foo Smith, 1927
-    #   Foo Smith, 1927
-    #   Fooidae
-    def name_author_year_string
-      [name, author_year_string].compact.join(" ")
     end
 
     # Return the name of a parent at a given rank.

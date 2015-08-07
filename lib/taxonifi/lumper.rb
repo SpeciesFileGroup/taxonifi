@@ -52,7 +52,7 @@ module Taxonifi::Lumper
   end
 
  
-  # Return a Taxonifi::Model::NameCollection from a csv file.
+  # return [Taxonifi::Model::NameCollection] from a csv file.
   def self.create_name_collection(options = {})
     opts = {
       :csv => [],
@@ -159,7 +159,7 @@ module Taxonifi::Lumper
     nc
   end 
 
-  # Return a Taxonifi::Model::RefCollection from a CSV file.
+  # return [Taxonifi::Model::RefCollection] from a CSV file.
   def self.create_ref_collection(options = {})
     opts = {
       :csv => nil,

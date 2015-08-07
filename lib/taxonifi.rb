@@ -30,10 +30,8 @@ module Taxonifi
       species
       subspecies
       variety
-
   }
 
   require_rel 'taxonifi'
-
 
 end
