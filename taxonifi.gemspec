@@ -28,9 +28,9 @@ Gem::Specification.new do |s|
   s.rubygems_version = "2.4.5"
 
   s.add_dependency "rake", '~> 10.4'
-  s.add_dependency "byebug", "~> 5.0"
   s.add_dependency "require_all", "~> 1.3"
 
+  s.add_development_dependency "byebug", "~> 5.0"
   s.add_development_dependency "bundler", "~> 1.9"
   s.add_development_dependency 'awesome_print', '~> 1.6'
   s.add_development_dependency 'did_you_mean', '~> 0.9'

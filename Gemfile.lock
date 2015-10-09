@@ -2,7 +2,6 @@ PATH
   remote: .
   specs:
     taxonifi (0.3.5)
-      byebug (~> 5.0)
       rake (~> 10.4)
       require_all (~> 1.3)
 
@@ -30,6 +29,7 @@ DEPENDENCIES
   awesome_print (~> 1.6)
   builder (~> 3.2)
   bundler (~> 1.9)
+  byebug (~> 5.0)
   did_you_mean (~> 0.9)
   rdoc (~> 4.2)
   taxonifi!
