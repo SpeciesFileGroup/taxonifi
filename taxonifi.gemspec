@@ -31,9 +31,9 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "rake", '~> 11.1'
   s.add_development_dependency "byebug", "~> 8.2"
-  s.add_development_dependency "bundler", "~> 1.11.2"
+  s.add_development_dependency "bundler", "~> 1.12"
   s.add_development_dependency 'awesome_print', '~> 1.6'
-  s.add_development_dependency 'did_you_mean', '~> 0.9'
+  s.add_development_dependency 'test-unit', '~> 3.1.8'
   s.add_development_dependency "rdoc", "~> 4.2.2"
   s.add_development_dependency "builder", "~> 3.2"
 
