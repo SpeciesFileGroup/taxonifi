@@ -1,5 +1,5 @@
 
-[![Continuous Integration Status][1]][2]
+[![Build Status](https://travis-ci.org/SpeciesFileGroup/taxonifi.svg?branch=master)](https://travis-ci.org/SpeciesFileGroup/taxonifi)
 [![Dependency Status][7]][8]
 
 
