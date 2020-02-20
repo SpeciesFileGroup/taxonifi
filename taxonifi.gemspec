@@ -33,7 +33,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "rake", '~> 13.0'
   s.add_development_dependency "byebug", "~> 11"
-  s.add_development_dependency "bundler", "~> 1.12"
+  s.add_development_dependency "bundler", "~> 2.1"
   s.add_development_dependency 'awesome_print', '~> 1.8'
   s.add_development_dependency 'test-unit', '~> 3.3.5'
   s.add_development_dependency "rdoc", "~> 6.2"

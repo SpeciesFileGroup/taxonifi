@@ -23,7 +23,7 @@ PLATFORMS
 DEPENDENCIES
   awesome_print (~> 1.8)
   builder (~> 3.2)
-  bundler (~> 1.12)
+  bundler (~> 2.1)
   byebug (~> 11)
   rake (~> 13.0)
   rdoc (~> 6.2)
@@ -31,4 +31,4 @@ DEPENDENCIES
   test-unit (~> 3.3.5)
 
 BUNDLED WITH
-   1.17.3
+   2.1.4
