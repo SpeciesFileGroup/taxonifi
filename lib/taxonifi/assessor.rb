@@ -1,6 +1,6 @@
 module Taxonifi
 
-  Dir[File.join(__dir__, 'assessor', '*.rb')].each {|file| require file }
+  Dir[File.join(__dir__, 'assessor', '*.rb')].sort.each {|file| require file }
 
   class AssessorError < TaxonifiError; end
 
