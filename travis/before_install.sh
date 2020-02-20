@@ -1,2 +1,2 @@
 #!/bin/sh
-gem install bundler -v=1.9.4
+gem install bundler -v=1.17.3
