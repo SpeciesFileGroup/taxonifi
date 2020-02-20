@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    taxonifi (0.5.1)
+    taxonifi (0.5.2)
       require_all (~> 3.0)
 
 GEM
