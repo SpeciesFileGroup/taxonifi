@@ -26,14 +26,12 @@ def generic_csv_with_names
 end
 
 def names
-    file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/names.csv'))
+  file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/names.csv'))
 
-    csv = CSV.read(file, { 
-      headers: true,
-      col_sep: ",",
-      header_converters: :downcase
-    } ) 
-    nc = Taxonifi::Lumper.create_name_collection(:csv => csv, :initial_id => 1) 
+  csv = CSV.read(file, { 
+    headers: true,
+    col_sep: ",",
+    header_converters: :downcase
+  } ) 
+  nc = Taxonifi::Lumper.create_name_collection(csv: csv, initial_id: 1) 
 end
-
-

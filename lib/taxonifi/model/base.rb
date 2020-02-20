@@ -1,9 +1,11 @@
+require_rel 'shared_class_methods'
+
 module Taxonifi
   module Model
 
     # A base class for all Taxonifi::Models that represent
-    # "individuals" (as opposed to collections of indviduals).  
-    class Base 
+    # "individuals" (as opposed to collections of indviduals).
+    class Base
 
       include Taxonifi::Model::SharedClassMethods
 
@@ -23,8 +25,8 @@ module Taxonifi
         @properties = {}
       end
 
-      # Assign on new() all attributes for the ATTRIBUTES 
-      # constant in a given subclass. 
+      # Assign on new() all attributes for the ATTRIBUTES
+      # constant in a given subclass.
       # !! Check validity prior to building.
       def build(attributes, opts)
         attributes.each do |c|
@@ -39,12 +41,12 @@ module Taxonifi
 
       # Add a key/value pair to @properties
       def add_property(key, value)
-        if @properties[key] 
+        if @properties[key]
           return false
         else
           @properties.merge!(key => value)
         end
-      end  
+      end
 
       # Replace an existing key/value pair in @properties
       def replace_property(key,value)
@@ -53,19 +55,19 @@ module Taxonifi
        else
         @properties.merge!(key => value)
        end
-      end 
- 
-      # Delete an existing key/value pair in @properties 
+      end
+
+      # Delete an existing key/value pair in @properties
       def delete_property(key)
        if !@properties[key]
-         @properties.delete(key) 
+         @properties.delete(key)
        else
         @properties.merge!(key => value)
        end
       end
 
       def id=(id)
-        raise Taxonifi::ModelError, "Base model objects must have Fixnum ids." if !id.nil? && id.class != Fixnum
+        raise Taxonifi::ModelError, "Base model objects must have Fixnum ids." if !id.nil? && id.class != ::Integer
         @id = id
       end
 
@@ -74,7 +76,7 @@ module Taxonifi
       def ancestor_ids
         i = 0 # check for recursion
         ids = []
-        p = parent 
+        p = parent
         while !p.nil?
           ids.unshift p.id
           p = p.parent
@@ -90,14 +92,14 @@ module Taxonifi
       def ancestors
         i = 0 # check for recursion
         ancestors = []
-        p = parent 
+        p = parent
         while !p.nil?
           ancestors.unshift p
           p = p.parent
           i += 1
           raise Taxonifi::ModelError, "Infite recursion in parent string detected for Base model object #{id.display_name}." if i > 100
         end
-        ancestors 
+        ancestors
       end
     end
 

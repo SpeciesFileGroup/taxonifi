@@ -7,7 +7,7 @@ module Taxonifi
 
   class TaxonifiError < StandardError; end;
 
-  # Taxonomic ranks. 
+  # Taxonomic ranks.
   RANKS = %w{
       kingdom
       phylum
@@ -17,7 +17,7 @@ module Taxonifi
       infraclass
       cohort
       superorder
-      order 
+      order
       suborder
       infraorder
       superfamily
