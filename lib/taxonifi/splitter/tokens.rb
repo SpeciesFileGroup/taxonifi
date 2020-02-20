@@ -39,7 +39,7 @@ module Taxonifi::Splitter::Tokens
     attr_reader :authors, :year, :parens
     # This is going to hit just everything, should only be used 
     # in one off when you know you have that string.
-    @regexp = Regexp.new(/\A\s*(\(?[^\+\d)]+(\d\d\d\d)?\)?)\s*/i)
+    @regexp = Regexp.new(/\A\s*(\(?[^\+\d)]+(\d{4})?\)?)\s*/i)
 
     def initialize(str)
       str.strip!
@@ -52,9 +52,9 @@ module Taxonifi::Splitter::Tokens
         @parens = false
       end
       # check for year
-      if w =~ /(\d\d\d\d)\Z/
-        @year = $1.to_i
-        w.gsub!(/\d\d\d\d\Z/, "")
+      if w =~ /(\d{4})\Z/
+        @year = $1 ? $1.to_i : nil
+        w.gsub!(/\d{4}\Z/, "")
         w.strip!
       end
       w.gsub!(/,\s*\Z/, '')

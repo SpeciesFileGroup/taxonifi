@@ -25,7 +25,7 @@ class Taxonifi::Splitter::Parser
       @builder.people.push n 
     end
 
-    @builder.year   = t.year.to_i
+    @builder.year = t.year
     @builder.parens = t.parens
   end
 
