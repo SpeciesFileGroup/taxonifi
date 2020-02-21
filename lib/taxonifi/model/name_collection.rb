@@ -1,5 +1,4 @@
-
-require File.expand_path(File.join(File.dirname(__FILE__), 'collection'))
+require_rel 'collection'
 
 module Taxonifi
   class NameCollectionError < TaxonifiError; end

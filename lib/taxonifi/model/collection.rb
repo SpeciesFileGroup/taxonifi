@@ -2,7 +2,7 @@ module Taxonifi
   class CollectionError < TaxonifiError; end
   module Model
 
-    require File.expand_path(File.join(File.dirname(__FILE__), 'shared_class_methods'))
+    require_rel 'shared_class_methods'
 
     # The base class that all collection classes are derived from.
     class Collection

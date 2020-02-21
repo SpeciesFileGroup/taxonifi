@@ -1,7 +1,6 @@
 language: ruby
 rvm:
   - 2.6.5
-before_install: ./travis/before_install.sh
 branches:
   only:
       - master
