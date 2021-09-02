@@ -12,7 +12,7 @@ GEM
     byebug (11.1.1)
     power_assert (1.1.5)
     rake (13.0.1)
-    rdoc (6.2.1)
+    rdoc (6.3.2)
     require_all (3.0.0)
     test-unit (3.3.5)
       power_assert
