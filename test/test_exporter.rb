@@ -16,11 +16,11 @@ class Test_TaxonifiExports < Test::Unit::TestCase
   def test_big_file
     file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/Lygaeoidea.csv'))
 
-    csv = CSV.read(file, { 
+    csv = CSV.read(file,
       headers: true,
       col_sep: ",",
       header_converters: :downcase
-    } ) 
+    )
 
     nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
     nc.generate_ref_collection(1)
@@ -32,11 +32,11 @@ class Test_TaxonifiExports < Test::Unit::TestCase
   def test_little_file_linkages
     file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/Fossil.csv'))
 
-    csv = CSV.read(file, { 
+    csv = CSV.read(file,
       headers: true,
       col_sep: ",",
       header_converters: :downcase
-    } ) 
+    )
 
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv, :initial_id => 1) 
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv) 

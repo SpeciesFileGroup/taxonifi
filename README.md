@@ -112,11 +112,11 @@ The following is an example that translates a DwC style input format as exported
 require 'taxonifi'
 file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/Lygaeoidea-csv.tsv'))
 
-csv = CSV.read(file, { 
+csv = CSV.read(file,
   headers: true,
   col_sep: "\t",
   header_converters: :downcase
-} ) 
+)
 
 nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
 e = Taxonifi::Export::SpeciesFile.new(:nc => nc, :authorized_user_id => 1)
@@ -131,10 +131,10 @@ Reading files
 taxonifi feeds on Ruby's CSV. read your files with header true, and downcased, e.g.:
 
 ```
-csv = CSV.read('input/my_data.tab',  { 
+csv = CSV.read('input/my_data.tab',
               headers: true,
               header_converters: :downcase,
-              col_sep: "\t"  } ) 
+              col_sep: "\t")
 ```
 
 # Code organization

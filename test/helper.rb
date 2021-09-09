@@ -22,16 +22,16 @@ def generic_csv_with_names
     csv << [6, "3", "Foo bar stuff (Guy, 1921)", "species", "Foo bar blorf (Guy, 1921)"] # initial subspecies rank data had rank blank, assuming they will be called species
   end
 
-  @csv = CSV.parse(@csv_string, {headers: true})
+  @csv = CSV.parse(@csv_string, headers: true)
 end
 
 def names
   file = File.expand_path(File.join(File.dirname(__FILE__), 'file_fixtures/names.csv'))
 
-  csv = CSV.read(file, { 
+  csv = CSV.read(file,
     headers: true,
     col_sep: ",",
     header_converters: :downcase
-  } ) 
+  )
   nc = Taxonifi::Lumper.create_name_collection(csv: csv, initial_id: 1) 
 end

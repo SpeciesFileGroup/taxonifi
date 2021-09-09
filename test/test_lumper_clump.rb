@@ -9,7 +9,7 @@ class Test_TaxonifiLumperClump < Test::Unit::TestCase
       csv << ["Fooidae", "Foo", "bar", "Smith", "1854"]
     end
 
-    @csv = CSV.parse(@csv_string, {headers: true})
+    @csv = CSV.parse(@csv_string, headers: true)
   end
 
   def test_new_clump_without_params_can_be_created
