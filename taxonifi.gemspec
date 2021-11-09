@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
   s.metadata = { "source_code_uri" => "https://github.com/SpeciesFileGroup/taxonifi" }
 
   s.add_dependency "require_all", "~> 3.0"
-  s.required_ruby_version = '~> 2.6'
+  s.required_ruby_version = '>= 2.6', '< 4'
 
   s.add_development_dependency "rake", '~> 13.0'
   s.add_development_dependency "byebug", "~> 11"

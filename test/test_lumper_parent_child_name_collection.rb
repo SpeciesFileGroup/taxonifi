@@ -14,7 +14,7 @@ class Test_TaxonifiLumperParentChildNameCollection < Test::Unit::TestCase
       csv << [5, "0", "Bidae", "Family", nil ]
     end
 
-    @csv = CSV.parse(@csv_string, {headers: true})
+    @csv = CSV.parse(@csv_string, headers: true)
   end
 
   def create_a_collection
@@ -54,7 +54,7 @@ class Test_TaxonifiLumperParentChildNameCollection < Test::Unit::TestCase
     # csv <<    [7,  3,   'Neortholomus (Neortholomus) blorf (Say, 1832)','species'] 
     # csv <<    [8,  3,   'Neortholomus (Neortholomus) blorf (Say, 1832)','species']
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
 
     nc = Taxonifi::Lumper::Lumps::ParentChildNameCollection.name_collection(csv)
    

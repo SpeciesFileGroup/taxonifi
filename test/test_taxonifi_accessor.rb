@@ -14,7 +14,7 @@ class Test_TaxonifiAccessor < Test::Unit::TestCase
       csv << ["Fooidae", "Bar",    nil,     "bar",   nil,      "varbar", "Smith",  "1854"]   # 5
     end
 
-    @csv = CSV.parse(@csv_string, {headers: true, header_converters: :downcase})
+    @csv = CSV.parse(@csv_string, headers: true, header_converters: :downcase)
   end
 
   def test_first_available
@@ -46,7 +46,7 @@ class Test_TaxonifiAccessor < Test::Unit::TestCase
         csv <<  headers
         csv << ["Smith J. and Barnes S."]
       end
-     csv = CSV.parse(csv_string, {headers: true})
+     csv = CSV.parse(csv_string, headers: true)
      assert_equal [:citation_basic, :citation_small],  Taxonifi::Assessor::RowAssessor.intersecting_lumps_with_data(csv.first)
   end 
 
@@ -57,7 +57,7 @@ class Test_TaxonifiAccessor < Test::Unit::TestCase
         csv << ["Smith J. and Barnes S.", 1912, "Foo", "Bar", "3(4)", "1-2"]
       end
 
-     csv = CSV.parse(csv_string, {headers: true})
+     csv = CSV.parse(csv_string, headers: true)
 
      assert_equal [:citation_small],  Taxonifi::Assessor::RowAssessor.lumps_with_data(csv.first)
   end

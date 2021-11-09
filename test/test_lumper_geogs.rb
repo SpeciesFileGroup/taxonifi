@@ -23,7 +23,7 @@ class Test_TaxonifiLumperGeogs < Test::Unit::TestCase
     # The name_index looks like
     # {:country => {"Canada" => 0, "USA" => 2, "Utopia" => 5} ... etc.
 
-    @csv = CSV.parse(@csv_string, {headers: true})
+    @csv = CSV.parse(@csv_string, headers: true)
   end
 
   def _create_a_collection

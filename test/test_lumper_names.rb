@@ -9,7 +9,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
       csv << ["Fooidae", "Foo", "bar", "Smith", "1854"]
     end
 
-    @csv = CSV.parse(@csv_string, {headers: true})
+    @csv = CSV.parse(@csv_string, headers: true)
   end
 
   def test_that_setup_setups
@@ -69,7 +69,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 1 3 6
     # 0 4 7
 
-    csv = CSV.parse(string, {headers: true})
+    csv = CSV.parse(string, headers: true)
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
 
     assert_equal nc.collection[2], nc.collection[5].parent
@@ -93,7 +93,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 2  bar
     # 3  foo 
 
-    csv = CSV.parse(string, {headers: true})
+    csv = CSV.parse(string, headers: true)
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
     assert_equal 2, nc.collection[3].authors.size
     assert_equal 'Smith', nc.collection[3].authors.first.last_name
@@ -125,7 +125,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 1  Foo
     # 2  bar
 
-    csv = CSV.parse(string, {headers: true})
+    csv = CSV.parse(string, headers: true)
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
     assert_equal nil, nc.collection[2].properties['foo']
     assert_equal "1", nc.collection[2].properties['bar']          # !!! everything converted to String
@@ -149,7 +149,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 5  varblorf 
     # 6  varbliff 
 
-    csv = CSV.parse(string, {headers: true})
+    csv = CSV.parse(string, headers: true)
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
 
     assert_equal nc.collection[1], nc.collection[2].parent

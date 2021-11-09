@@ -9,7 +9,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
 
-    @csv = CSV.parse(@csv_string, {headers: true})
+    @csv = CSV.parse(@csv_string, headers: true)
   end
 
   def test_available_lumps
@@ -23,7 +23,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
         csv << ["Smith J. and Barnes S."]
       end
 
-     csv = CSV.parse(csv_string, {headers: true})
+     csv = CSV.parse(csv_string, headers: true)
 
      assert_equal [:citation_basic, :citation_small], Taxonifi::Lumper.intersecting_lumps(csv.headers)
      assert_equal [], Taxonifi::Lumper.available_lumps(csv.headers)
@@ -56,7 +56,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal 1, rc.collection.size
   end
@@ -68,7 +68,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
       csv << ["Smith J. and Bartes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal 2, rc.collection.size
   end
@@ -79,7 +79,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
       csv << ["Smith J.", "2012", "Foo and bar", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)" ]
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
     assert_equal "Foo and bar", rc.object_from_row(1).title
   end
@@ -90,7 +90,7 @@ class Test_TaxonifiLumperRefs < Test::Unit::TestCase
       csv << ["Smith J. and Barnes S.", "2012", "Bar and foo", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)", "foo value", 1 ]
       csv << ["Smith J.", "2012", "Foo and bar", "Journal of Foo", "2", "3", "2-3, 190", nil, "2", "4", "2(4)", nil, "bar value" ]
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
     rc = Taxonifi::Lumper.create_ref_collection(:csv => csv)
   
     assert_equal "foo value", rc.collection.first.properties['foo'] 

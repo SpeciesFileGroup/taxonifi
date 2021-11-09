@@ -9,7 +9,7 @@ class Test_TaxonifiLumperHierarchicalCollection < Test::Unit::TestCase
       csv << %w{a b c}
     end
 
-    @csv = CSV.parse(@csv_string, {headers: true})
+    @csv = CSV.parse(@csv_string, headers: true)
   end
 
   def test_that_create_hierarchical_collection_creates_collection
@@ -48,7 +48,7 @@ class Test_TaxonifiLumperHierarchicalCollection < Test::Unit::TestCase
       csv <<  @headers
       csv << ["a", nil, "c"]
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
     c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{a b c})
     assert_equal nil, c.collection.first.parent
     assert_equal "a", c.collection[1].parent.name
@@ -61,7 +61,7 @@ class Test_TaxonifiLumperHierarchicalCollection < Test::Unit::TestCase
       csv << ["a", "b", "d"]
       csv << ["e", "b", "f"]
     end
-    csv = CSV.parse(csv_string, {headers: true})
+    csv = CSV.parse(csv_string, headers: true)
     c = Taxonifi::Lumper.create_hierarchical_collection(csv, %w{a b c})
     assert_equal %w{a b c d e b f}, c.collection.collect{|o| o.name}
     assert_equal 7, c.collection.size
