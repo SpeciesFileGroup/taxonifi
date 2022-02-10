@@ -79,6 +79,7 @@ module Taxonifi
         # this far? bad
         # raise RowAssessor::RowAssessorError
 
+        # TODO: add an error message that can be relayed on here and elsewhere
         raise RowAssessorError
       end
 
