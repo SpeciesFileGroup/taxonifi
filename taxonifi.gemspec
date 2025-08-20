@@ -25,17 +25,19 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/SpeciesFile/taxonifi"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "2.4.5"
+  s.rubygems_version = "3.2.22"
   s.metadata = { "source_code_uri" => "https://github.com/SpeciesFileGroup/taxonifi" }
 
   s.add_dependency "require_all", "~> 3.0"
-  s.required_ruby_version = '>= 2.6', '< 4'
+  s.add_dependency "csv", "~> 3.3.5"
+
+  s.required_ruby_version = '>= 3.0', '< 4'
 
   s.add_development_dependency "rake", '~> 13.0'
   s.add_development_dependency "byebug", "~> 11"
-  s.add_development_dependency "bundler", "~> 2.1"
+  s.add_development_dependency "bundler", "~> 2.7"
   s.add_development_dependency 'awesome_print', '~> 1.8'
-  s.add_development_dependency 'test-unit', '~> 3.3.5'
+  s.add_development_dependency 'test-unit', '~> 3.5'
   s.add_development_dependency "rdoc", "~> 6.2"
   s.add_development_dependency "builder", "~> 3.2"
 
