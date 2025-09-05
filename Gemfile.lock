@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    taxonifi (0.6.0)
+    taxonifi (0.6.1)
       csv (~> 3.3.5)
       require_all (~> 3.0)
 
