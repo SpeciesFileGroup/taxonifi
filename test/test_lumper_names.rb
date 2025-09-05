@@ -25,7 +25,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
   def test_available_lumps
     assert Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::QUAD ).include?(:quadrinomial)
     assert Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::AUTHOR_YEAR + Taxonifi::Lumper::QUAD ).include?(:quad_author_year)
-    assert !Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::AUTHOR_YEAR + Taxonifi::Lumper::QUAD ).include?(:names) 
+    assert !Taxonifi::Lumper.available_lumps( Taxonifi::Lumper::AUTHOR_YEAR + Taxonifi::Lumper::QUAD ).include?(:names)
   end
 
   def test_create_name_collection_creates_a_name_collection
@@ -49,7 +49,7 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal 0, nc.collection.first.row_number
     assert_equal 0, nc.collection.last.row_number
   end
-  
+
   def test_that_create_name_collection_parentifies
     nc = Taxonifi::Lumper.create_name_collection(:csv => @csv)
     assert_equal nc.collection[0], nc.collection[1].parent
@@ -87,18 +87,18 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
       csv << ["Fooidae", "Foo", "bar", "Smith, 1854"]
       csv << ["Fooidae", "Foo", "foo", "(Smith and Jones, 1854)"]
     end
-   
+
     # 0  Fooidae
     # 1  Foo
     # 2  bar
-    # 3  foo 
+    # 3  foo
 
     csv = CSV.parse(string, headers: true)
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
     assert_equal 2, nc.collection[3].authors.size
     assert_equal 'Smith', nc.collection[3].authors.first.last_name
     assert_equal 1854, nc.collection[3].year
-    
+
     assert_equal 'Smith, 1854', nc.collection[2].author_year
     assert_equal 'Smith', nc.collection[2].author_with_parens
 
@@ -115,12 +115,38 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     assert_equal true, nc.collection[3].parens
   end
 
+  def test_that_create_a_name_collection_ignores_whitespace_author_year
+    string = CSV.generate() do |csv|
+      csv << %w{family genus species author_year}
+      csv << ["Fooidae", "Foo", "bar", " "]
+    end
+
+    csv = CSV.parse(string, headers: true)
+    nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
+    assert_equal 0, nc.collection[2].authors.size
+    assert_equal nil, nc.collection[2].author_year
+  end
+
+  def test_that_create_a_name_collection_throws_lumper_error_on_bad_author_year
+    string = CSV.generate() do |csv|
+      csv << %w{family genus species author_year}
+      csv << ["Fooidae", "Foo", "bar", ")Smith)"]
+    end
+
+    csv = CSV.parse(string, headers: true)
+    e = assert_raises Taxonifi::Lumper::LumperError do
+      Taxonifi::Lumper.create_name_collection(:csv => csv)
+    end
+
+    assert_match("')Smith)' in row 2", e.message)
+  end
+
   def test_that_create_a_name_collection_handles_related_columns
     string = CSV.generate() do |csv|
       csv << %w{family genus species author_year foo bar Stuff}
       csv << ["Fooidae", "Foo", "bar", "Smith, 1854"  , nil,  1 , "one"]
     end
-   
+
     # 0  Fooidae
     # 1  Foo
     # 2  bar
@@ -145,9 +171,9 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
     # 1  Foo
     # 2  bar
     # 3  foo
-    # 4  varblorf 
-    # 5  varblorf 
-    # 6  varbliff 
+    # 4  varblorf
+    # 5  varblorf
+    # 6  varbliff
 
     csv = CSV.parse(string, headers: true)
     nc = Taxonifi::Lumper.create_name_collection(:csv => csv)
@@ -176,5 +202,5 @@ class Test_TaxonifiLumperNames < Test::Unit::TestCase
 
 #--- reference collections
 
-end 
+end
 

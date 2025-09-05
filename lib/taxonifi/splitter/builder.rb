@@ -1,4 +1,4 @@
-# Builder functionality for parsing/lexing framework. 
+# Builder functionality for parsing/lexing framework.
 module Taxonifi::Splitter::Builder
 
   # Load all builders (= models)
@@ -7,8 +7,11 @@ module Taxonifi::Splitter::Builder
 
   # Build and return Taxonifi::Model::AuthorYear from a string.
   def self.build_author_year(text)
-    lexer = Taxonifi::Splitter::Lexer.new(text)
+    text = text&.strip
     builder = Taxonifi::Model::AuthorYear.new
+    return builder if text.nil? || text.empty?
+
+    lexer = Taxonifi::Splitter::Lexer.new(text)
     Taxonifi::Splitter::Parser.new(lexer, builder).parse_author_year
     builder
   end
